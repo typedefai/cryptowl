@@ -36,7 +36,10 @@ dependencies:
   cupertino_icons: ^1.0.8
   native_argon2:
     path: deps/native_argon2
+  native_sqlcipher:
+    path: deps/native_sqlcipher
   ffi: ^2.1.3
+  sqlite3: ^2.7.3
 
 dev_dependencies:
   flutter_test:

@@ -1,0 +1,3 @@
+[submodule "deps/native_argon2"]
+	path = deps/native_argon2
+	url = git@github.com:quillgen/native_argon2.git

@@ -4,3 +4,6 @@
 [submodule "deps/native_sqlcipher"]
 	path = deps/native_sqlcipher
 	url = git@github.com:typedefai/native_sqlcipher.git
+[submodule "deps/sqlcipher"]
+	path = deps/sqlcipher
+	url = git@github.com:quillgen/sqlcipher.git

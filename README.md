@@ -4,7 +4,7 @@ A local-first encrypted vault Flutter application for storing sensitive informat
 
 ## Features
 
-- **3-level encryption**: Standard, Protected, and Vault tiers with different security properties
+- **3-level encryption**: Confidential, Secret, and Top Secret tiers with different security properties
 - **Strong KDF**: Argon2id (OWASP recommended parameters: m=19456, t=2, p=1)
 - **Authenticated encryption**: AES-256-GCM and XChaCha20-Poly1305
 - **Per-entry encryption**: Each item gets its own data encryption key (DEK)
@@ -17,7 +17,7 @@ A local-first encrypted vault Flutter application for storing sensitive informat
 
 Cryptowl classifies items into three security tiers. Each tier has different encryption and authentication requirements.
 
-### Standard (C)
+### Confidential (C)
 
 | Property | Value |
 |----------|-------|
@@ -25,11 +25,11 @@ Cryptowl classifies items into three security tiers. Each tier has different enc
 | Auth to view | Login (master password) |
 | Key | Symmetric key (derived from master password) |
 
-Standard items are readable immediately after login. The database-level encryption protects data at rest, but once the app is unlocked, all Standard items are accessible without additional prompts.
+Confidential items are readable immediately after login. The database-level encryption protects data at rest, but once the app is unlocked, all Confidential items are accessible without additional prompts.
 
 **Use for:** Low-sensitivity data that needs fast access and searchability.
 
-### Protected (S)
+### Secret (S)
 
 | Property | Value |
 |----------|-------|
@@ -37,11 +37,11 @@ Standard items are readable immediately after login. The database-level encrypti
 | Auth to view | Biometric or PIN per item |
 | Key | Per-entry DEK, encrypted by a KEK derived on-demand |
 
-Protected items show metadata (title, date) in lists, but the content is encrypted with a per-entry DEK. Viewing the content requires biometric authentication or a PIN. The KEK is derived on-demand and never stored in memory — it is discarded after use.
+Secret items show metadata (title, date) in lists, but the content is encrypted with a per-entry DEK. Viewing the content requires biometric authentication or a PIN. The KEK is derived on-demand and never stored in memory — it is discarded after use.
 
 **Use for:** Passwords, sensitive notes, anything you want gated behind explicit user action.
 
-### Vault (T)
+### Top Secret (T)
 
 | Property | Value |
 |----------|-------|
@@ -49,9 +49,9 @@ Protected items show metadata (title, date) in lists, but the content is encrypt
 | Auth to view | Secondary password (separate from master password) |
 | Key | Per-entry DEK, encrypted by a KEK derived from the secondary password |
 
-Vault items use a completely separate key hierarchy. The secondary password is set independently from the master password and derives its own key. Even if the master password is compromised, Vault items remain encrypted.
+Top Secret items use a completely separate key hierarchy. The secondary password is set independently from the master password and derives its own key. Even if the master password is compromised, Top Secret items remain encrypted.
 
-The secondary password is entered when first accessing a Vault item in a session. It can optionally be cached for the duration of the session.
+The secondary password is entered when first accessing a Top Secret item in a session. It can optionally be cached for the duration of the session.
 
 **Use for:** Critical secrets — recovery keys, master credentials, anything that must survive a master password compromise.
 
@@ -59,7 +59,7 @@ The secondary password is entered when first accessing a Vault item in a session
 
 ### What each level protects against
 
-| Threat | Standard | Protected | Vault |
+| Threat | Confidential | Secret | Top Secret |
 |--------|----------|-----------|-------|
 | Device off, data at rest | ✅ SQLCipher | ✅ SQLCipher + DEK | ✅ SQLCipher + DEK |
 | App locked / backgrounded | ✅ Protected | ✅ Protected | ✅ Protected |
@@ -82,21 +82,21 @@ The secondary password is entered when first accessing a Vault item in a session
 
 | Level | Storage | Behavior |
 |-------|---------|----------|
-| Standard | DB (plaintext attributes) | Username, URL visible in list; password visible on tap |
-| Protected | DB (encrypted DEK) | Only title visible in list; biometric to view password |
-| Vault | DB (encrypted DEK, secondary KEK) | Only title visible in list; secondary password to view |
+| Confidential | DB (plaintext attributes) | Username, URL visible in list; password visible on tap |
+| Secret | DB (encrypted DEK) | Only title visible in list; biometric to view password |
+| Top Secret | DB (encrypted DEK, secondary KEK) | Only title visible in list; secondary password to view |
 
-Passwords always use per-entry DEK encryption at Protected and Vault levels. Each password entry has its own DEK, so compromising one entry does not expose others. Attributes (username, URL, remark) follow the same classification as the password itself.
+Passwords always use per-entry DEK encryption at Secret and Top Secret levels. Each password entry has its own DEK, so compromising one entry does not expose others. Attributes (username, URL, remark) follow the same classification as the password itself.
 
 ### Notes
 
 | Level | Storage | Behavior |
 |-------|---------|----------|
-| Standard | DB (plaintext content + FTS5 index) | Full content readable after login; searchable via Jieba |
-| Protected | DB (encrypted DEK) | Title visible; biometric to view content; NOT searchable |
-| Vault | DB (encrypted DEK, secondary KEK) | Title visible; secondary password to view content; NOT searchable |
+| Confidential | DB (plaintext content + FTS5 index) | Full content readable after login; searchable via Jieba |
+| Secret | DB (encrypted DEK) | Title visible; biometric to view content; NOT searchable |
+| Top Secret | DB (encrypted DEK, secondary KEK) | Title visible; secondary password to view content; NOT searchable |
 
-Standard notes are stored in plaintext within the SQLCipher-encrypted database, enabling full-text search via the Jieba tokenizer. Protected and Vault notes sacrifice searchability for encryption — the content is encrypted with a per-entry DEK and cannot be indexed.
+Confidential notes are stored in plaintext within the SQLCipher-encrypted database, enabling full-text search via the Jieba tokenizer. Secret and Top Secret notes sacrifice searchability for encryption — the content is encrypted with a per-entry DEK and cannot be indexed.
 
 **Note history** follows the same classification as the note. Previous versions are encrypted at the same level.
 
@@ -104,15 +104,15 @@ Standard notes are stored in plaintext within the SQLCipher-encrypted database, 
 
 | Level | Storage | Behavior |
 |-------|---------|----------|
-| Standard | Individual encrypted files | Thumbnail visible; full-size viewable after login |
-| Protected | Individual encrypted files | Thumbnail visible; biometric to view full-size |
-| Vault | Individual encrypted files | Thumbnail visible; secondary password to view |
+| Confidential | Individual encrypted files | Thumbnail visible; full-size viewable after login |
+| Secret | Individual encrypted files | Thumbnail visible; biometric to view full-size |
+| Top Secret | Individual encrypted files | Thumbnail visible; secondary password to view |
 
 Media files are stored as individual encrypted files on disk (not in the database). The database stores metadata (filename, classification, timestamps) and a reference to the encrypted file. Each file is encrypted with its own DEK, following the same key hierarchy as other item types.
 
 File encryption:
 ```
-Original file → AES-256-GCM (or XChaCha20-Poly1305 for Vault) with per-file DEK
+Original file → AES-256-GCM (or XChaCha20-Poly1305 for Top Secret) with per-file DEK
               → encrypted file stored in app's documents directory
               → DEK encrypted by KEK, stored in database
 ```
@@ -129,13 +129,13 @@ Master password
   → HKDF (64 bytes)
       ├─ First 32 bytes: symmetric key
       │   ├─ SQLCipher database key (first 32 bytes)
-      │   └─ Standard KEK → encrypts DEKs for Protected items
+      │   └─ Secret KEK → encrypts DEKs for Secret items
       └─ Last 32 bytes: HMAC key for config integrity
 
 Secondary password
   + Secret salt (stored in config)
   → Argon2id (m=19456, t=2, p=1)
-  → Vault KEK → encrypts DEKs for Vault items
+  → Top Secret KEK → encrypts DEKs for Top Secret items
 ```
 
 The symmetric key is encrypted with AES-256-GCM and stored in the config file. The config file itself is integrity-verified with HMAC-SHA256.

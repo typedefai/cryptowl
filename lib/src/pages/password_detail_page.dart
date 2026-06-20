@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cryptowl/src/common/classification.dart';
 import 'package:cryptowl/src/pages/password_edit_page.dart';
 import 'package:flutter/material.dart';
@@ -157,7 +159,7 @@ class PasswordDetailPage extends ConsumerWidget {
                 protected: true,
                 value: password.isEncrypted && password.value.getText().isEmpty
                     ? 'Locked — ${password.isTopSecret ? "enter secondary password" : "authenticate"} to view'
-                    : password.value.getText(),
+                    : utf8.decode(password.value.binaryValue, allowMalformed: true),
               ),
               SizedBox(height: 20),
               FormInput(

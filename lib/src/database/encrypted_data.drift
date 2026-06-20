@@ -1,0 +1,23 @@
+import 'common.drift';
+
+CREATE TABLE t_data_encrypt_key (
+    id CHAR(36) NOT NULL PRIMARY KEY,
+    data TEXT NOT NULL,
+    nonce TEXT NOT NULL,
+    auth_tag TEXT NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE t_encrypted_data (
+    id CHAR(36) NOT NULL PRIMARY KEY,
+    dek_id CHAR(36) NOT NULL,
+    content BLOB NOT NULL,
+    algorithm_id TEXT NOT NULL,
+    auth_tag TEXT NOT NULL,
+    nonce TEXT NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at DATETIME DEFAULT NULL,
+    FOREIGN KEY (dek_id) REFERENCES t_data_encrypt_key (id)
+);

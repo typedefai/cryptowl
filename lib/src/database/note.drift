@@ -1,0 +1,58 @@
+import 'common.drift';
+import 'encrypted_data.drift';
+
+CREATE TABLE t_note (
+    id CHAR(36) NOT NULL PRIMARY KEY,
+    title TEXT,
+    content_json TEXT NOT NULL,
+    content_checksum TEXT NOT NULL,
+    content_plain TEXT NULL,
+    abstract TEXT,
+    classification CHAR(1) NOT NULL CHECK (classification IN ('C', 'S', 'T')),
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at DATETIME DEFAULT NULL
+);
+
+CREATE TABLE t_note_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    note_id CHAR(36) NOT NULL,
+    content_json TEXT NOT NULL,
+    content_checksum TEXT NOT NULL,
+    content_plain TEXT NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (note_id) REFERENCES t_note (id)
+);
+
+CREATE VIRTUAL TABLE t_note_idx USING FTS5 (
+    title,
+    content_plain,
+    content="t_note",
+    tokenize='jieba'
+);
+
+CREATE TRIGGER tri_on_note_inserted AFTER INSERT ON t_note WHEN new.deleted_at IS NULL BEGIN
+INSERT INTO t_note_idx (rowid, title, content_plain) VALUES (new.rowid, new.title, new.content_plain);
+END;
+
+CREATE TRIGGER tri_on_note_updated AFTER UPDATE ON t_note WHEN new.deleted_at IS NULL BEGIN
+INSERT INTO t_note_idx(t_note_idx, rowid, title, content_plain) VALUES('delete', old.rowid, old.title, old.content_plain);
+INSERT INTO t_note_idx (rowid, title, content_plain) VALUES (new.rowid, new.title, new.content_plain);
+END;
+
+CREATE TRIGGER tri_on_note_deleted AFTER UPDATE ON t_note WHEN new.deleted_at IS NOT NULL BEGIN
+INSERT INTO t_note_idx(t_note_idx, rowid, title, content_plain) VALUES('delete', old.rowid, old.title, old.content_plain);
+END;
+
+selectNotes:
+    SELECT id, classification, title, abstract, created_at, updated_at
+    FROM t_note
+    WHERE deleted_at IS NULL
+    ORDER BY $order;
+
+searchNotes:
+    SELECT n.id, n.title, n.classification, n.abstract, n.created_at, n.updated_at
+    FROM t_note_idx i
+    JOIN t_note n ON i.rowid = n.rowid
+    WHERE t_note_idx MATCH ? AND n.deleted_at IS NULL
+    ORDER BY rank;

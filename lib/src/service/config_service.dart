@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:convert/convert.dart';
@@ -12,99 +11,18 @@ import 'package:logging/logging.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
-import '../common/path_util.dart';
 import '../config/app_config.dart';
 import '../crypto/crockford_base32.dart';
 import 'version_service.dart';
 
-/// Hybrid secure store: tries FlutterSecureStorage (Keychain) first,
-/// falls back to file-based storage if Keychain is unavailable
-/// (e.g. ad-hoc signed debug builds on macOS).
-class _HybridSecureStore {
-  final _keychain = FlutterSecureStorage();
-  final Logger _logger;
-  bool _keychainAvailable = true;
-
-  _HybridSecureStore(this._logger);
-
-  Future<String> _filePath(String key) async {
-    final safeKey = key.replaceAll(RegExp(r'[^a-zA-Z0-9_\-]'), '_');
-    return PathUtil.getLocalPath('.secrets/$safeKey');
-  }
-
-  Future<ProtectedValue?> read(String key) async {
-    // Try Keychain first
-    if (_keychainAvailable) {
-      try {
-        final value = await _keychain.read(key: key);
-        if (value != null) {
-          _logger.fine("readSecureStore: key='$key' (keychain), found=true");
-          return CrockfordBase32.decode(value);
-        }
-        _logger.fine("readSecureStore: key='$key' (keychain), found=false");
-        return null;
-      } catch (e) {
-        _logger.warning("readSecureStore: keychain unavailable, falling back to file: $e");
-        _keychainAvailable = false;
-      }
-    }
-
-    // Fallback: file-based storage
-    try {
-      final path = await _filePath(key);
-      final file = File(path);
-      if (!await file.exists()) {
-        _logger.fine("readSecureStore: key='$key' (file), not found");
-        return null;
-      }
-      final value = await file.readAsString();
-      _logger.fine("readSecureStore: key='$key' (file), found=true");
-      return CrockfordBase32.decode(value.trim());
-    } catch (e) {
-      _logger.warning("readSecureStore: key='$key', error: $e");
-      return null;
-    }
-  }
-
-  Future<void> write(String key, ProtectedValue data) async {
-    final encoded = CrockfordBase32.encodeProtected(data);
-
-    // Try Keychain first
-    if (_keychainAvailable) {
-      try {
-        await _keychain.write(key: key, value: encoded);
-        _logger.fine("saveSecureStore: key='$key' (keychain), SUCCESS");
-        return;
-      } catch (e) {
-        _logger.warning("saveSecureStore: keychain unavailable, falling back to file: $e");
-        _keychainAvailable = false;
-      }
-    }
-
-    // Fallback: file-based storage
-    try {
-      final path = await _filePath(key);
-      final file = File(path);
-      await file.parent.create(recursive: true);
-      await file.writeAsString(encoded, flush: true);
-      _logger.fine("saveSecureStore: key='$key' (file), SUCCESS");
-    } catch (e, st) {
-      _logger.severe("saveSecureStore: key='$key', FAILED: $e", e, st);
-      rethrow;
-    }
-  }
-}
-
 class ConfigService {
   final logger = Logger('ConfigService');
-  late final _HybridSecureStore _secureStore;
+  final secureStore = FlutterSecureStorage();
   final hmac = CryptoHmac();
 
   final VersionService versionService;
 
-  ConfigService(this.versionService) {
-    _secureStore = _HybridSecureStore(logger);
-  }
+  ConfigService(this.versionService);
 
   Future<AppConfig> loadConfig(String content) async {
     try {
@@ -163,11 +81,25 @@ class ConfigService {
   }
 
   Future<ProtectedValue?> readSecureStore(String key) async {
-    return _secureStore.read(key);
+    logger.fine("readSecureStore: key='$key'");
+    String? value = await secureStore.read(key: key);
+    logger.fine("readSecureStore: key='$key', found=${value != null}");
+    if (value != null) {
+      return CrockfordBase32.decode(value);
+    }
+    return null;
   }
 
   Future<void> saveSecureStore(String key, ProtectedValue data) async {
-    return _secureStore.write(key, data);
+    final encoded = CrockfordBase32.encodeProtected(data);
+    logger.fine("saveSecureStore: key='$key', encodedLength=${encoded.length}");
+    try {
+      await secureStore.write(key: key, value: encoded);
+      logger.fine("saveSecureStore: key='$key', SUCCESS");
+    } catch (e, st) {
+      logger.severe("saveSecureStore: key='$key', FAILED: $e", e, st);
+      rethrow;
+    }
   }
 
   Future<Uint8List> generateEmergencyKit(String secretKey) async {

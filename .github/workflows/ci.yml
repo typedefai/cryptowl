@@ -3,9 +3,9 @@ run-name: Build & Test 🚀
 
 on:
   push:
-    branches: [main, feat/*]
+    branches: [master, feat/*]
   pull_request:
-    branches: [main]
+    branches: [master]
 
 env:
   FLUTTER_VERSION: '3.44.2'

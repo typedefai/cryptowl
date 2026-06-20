@@ -7,23 +7,41 @@ import '../domain/user.dart';
 
 class OnboardingNotifier extends StateNotifier<AsyncValue<bool>> {
   final Ref ref;
+  final logger = Logger("OnboardingNotifier");
+
   OnboardingNotifier(this.ref) : super(const AsyncValue.loading()) {
     check();
   }
 
   Future<void> check() async {
+    logger.fine("check() called");
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      return ref.read(appServiceProvider).isInitialized();
+      final result = await ref.read(appServiceProvider).isInitialized();
+      logger.fine("check() result: isInitialized=$result");
+      return result;
     });
+    if (state.hasError) {
+      logger.severe("check() error: ${state.error}");
+    }
   }
 
   Future<void> completeOnboarding(ProtectedValue password, String? hint) async {
+    logger.info("completeOnboarding() called");
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
+      logger.fine("completeOnboarding: calling initialize...");
       await ref.read(appServiceProvider).initialize(password, hint);
-      return ref.read(appServiceProvider).isInitialized();
+      logger.fine("completeOnboarding: initialize done, checking isInitialized...");
+      final result = await ref.read(appServiceProvider).isInitialized();
+      logger.fine("completeOnboarding: isInitialized=$result");
+      return result;
     });
+    if (state.hasError) {
+      logger.severe("completeOnboarding() error: ${state.error}");
+    } else {
+      logger.info("completeOnboarding() success: ${state.value}");
+    }
   }
 }
 

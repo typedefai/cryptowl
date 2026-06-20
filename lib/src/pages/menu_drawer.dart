@@ -55,12 +55,12 @@ class MenuDrawer extends ConsumerWidget {
                 ),
                 SizedBox(height: 20),
                 Text(
-                  "© by Riguz Lee, 2024-2025",
+                  "© by Riguz Lee, 2024-2026",
                   style: infoTextStyle,
                 ),
                 SizedBox(height: 10),
                 Text(
-                  "https://github.com/quillgen/cryptowl",
+                  "https://github.com/typedefai/cryptowl",
                   style: infoTextStyle,
                 )
               ],

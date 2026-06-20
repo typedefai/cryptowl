@@ -82,7 +82,7 @@ class IntroductionPage extends StatelessWidget {
         showDoneButton: true,
         globalFooter: SizedBox(
           height: 40,
-          child: const Text("Created by quillgen.com"),
+          child: const Text("Created by typedefai.com"),
         ),
         skip: const Text("Skip"),
         next: const Icon(Icons.arrow_right_alt),

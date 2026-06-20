@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:cryptowl/src/common/classification.dart';
 import 'package:cryptowl/src/crypto/aead_crypto.dart';

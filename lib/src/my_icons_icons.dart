@@ -11,7 +11,7 @@
 ///      fonts:
 ///       - asset: fonts/MyIcons.ttf
 ///
-/// 
+///
 /// * Linearicons Free, Copyright (C) Linearicons.com
 ///         Author:    Perxis
 ///         License:   CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)

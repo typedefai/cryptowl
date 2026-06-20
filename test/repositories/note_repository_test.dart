@@ -39,8 +39,8 @@ void main() {
   Future<void> createNotes() async {
     final sql = """
     INSERT INTO t_note
-    (id, title, content_json, content_checksum, content_plain, abstract, classification, created_at, updated_at, deleted_at) 
-    VALUES 
+    (id, title, content_json, content_checksum, content_plain, abstract, classification, created_at, updated_at, deleted_at)
+    VALUES
     ('213fef89-d636-4231-b1f9-d25876ef2430', null, '${contents[0]}', 'checksum1', '${plains[0]}', '${plains[0]}', 'C', '2022-07-25 09:28:42.015Z', '2022-07-25 09:28:42.015Z', null),
     ('213fef89-d636-4231-b1f9-d25876ef2431', null, '${contents[1]}', 'checksum2', '${plains[1]}', '${plains[1]}', 'C', '2022-07-26 09:28:42.015Z', '2022-07-26 09:28:42.015Z', null),
     ('213fef89-d636-4231-b1f9-d25876ef2432', 'Foobar', '${contents[2]}', 'checksum3', '${plains[2]}', '${plains[2]}', 'C', '2022-07-21 09:28:42.015Z', '2022-07-23 09:28:42.015Z', null),

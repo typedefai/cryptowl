@@ -10,49 +10,74 @@ class Categories extends Table with TableInfo<Categories, CategoryEntity> {
   Categories(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
-      'id', aliasedName, false,
-      hasAutoIncrement: true,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      $customConstraints: 'NOT NULL PRIMARY KEY AUTOINCREMENT');
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL PRIMARY KEY AUTOINCREMENT',
+  );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
-      'name', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
-  static const VerificationMeta _accessLevelMeta =
-      const VerificationMeta('accessLevel');
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _accessLevelMeta = const VerificationMeta(
+    'accessLevel',
+  );
   late final GeneratedColumn<int> accessLevel = GeneratedColumn<int>(
-      'access_level', aliasedName, false,
-      type: DriftSqlType.int,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
-  static const VerificationMeta _createTimeMeta =
-      const VerificationMeta('createTime');
+    'access_level',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _createTimeMeta = const VerificationMeta(
+    'createTime',
+  );
   late final GeneratedColumn<String> createTime = GeneratedColumn<String>(
-      'create_time', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
-  static const VerificationMeta _lastUpdateTimeMeta =
-      const VerificationMeta('lastUpdateTime');
+    'create_time',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _lastUpdateTimeMeta = const VerificationMeta(
+    'lastUpdateTime',
+  );
   late final GeneratedColumn<String> lastUpdateTime = GeneratedColumn<String>(
-      'last_update_time', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
+    'last_update_time',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, name, accessLevel, createTime, lastUpdateTime];
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    accessLevel,
+    createTime,
+    lastUpdateTime,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 'categories';
   @override
-  VerificationContext validateIntegrity(Insertable<CategoryEntity> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(
+    Insertable<CategoryEntity> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
@@ -60,31 +85,39 @@ class Categories extends Table with TableInfo<Categories, CategoryEntity> {
     }
     if (data.containsKey('name')) {
       context.handle(
-          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
     if (data.containsKey('access_level')) {
       context.handle(
+        _accessLevelMeta,
+        accessLevel.isAcceptableOrUnknown(
+          data['access_level']!,
           _accessLevelMeta,
-          accessLevel.isAcceptableOrUnknown(
-              data['access_level']!, _accessLevelMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_accessLevelMeta);
     }
     if (data.containsKey('create_time')) {
       context.handle(
-          _createTimeMeta,
-          createTime.isAcceptableOrUnknown(
-              data['create_time']!, _createTimeMeta));
+        _createTimeMeta,
+        createTime.isAcceptableOrUnknown(data['create_time']!, _createTimeMeta),
+      );
     } else if (isInserting) {
       context.missing(_createTimeMeta);
     }
     if (data.containsKey('last_update_time')) {
       context.handle(
+        _lastUpdateTimeMeta,
+        lastUpdateTime.isAcceptableOrUnknown(
+          data['last_update_time']!,
           _lastUpdateTimeMeta,
-          lastUpdateTime.isAcceptableOrUnknown(
-              data['last_update_time']!, _lastUpdateTimeMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_lastUpdateTimeMeta);
     }
@@ -97,16 +130,26 @@ class Categories extends Table with TableInfo<Categories, CategoryEntity> {
   CategoryEntity map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return CategoryEntity(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
-      name: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
-      accessLevel: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}access_level'])!,
-      createTime: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}create_time'])!,
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      accessLevel: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}access_level'],
+      )!,
+      createTime: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}create_time'],
+      )!,
       lastUpdateTime: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}last_update_time'])!,
+        DriftSqlType.string,
+        data['${effectivePrefix}last_update_time'],
+      )!,
     );
   }
 
@@ -125,12 +168,13 @@ class CategoryEntity extends DataClass implements Insertable<CategoryEntity> {
   final int accessLevel;
   final String createTime;
   final String lastUpdateTime;
-  const CategoryEntity(
-      {required this.id,
-      required this.name,
-      required this.accessLevel,
-      required this.createTime,
-      required this.lastUpdateTime});
+  const CategoryEntity({
+    required this.id,
+    required this.name,
+    required this.accessLevel,
+    required this.createTime,
+    required this.lastUpdateTime,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -152,8 +196,10 @@ class CategoryEntity extends DataClass implements Insertable<CategoryEntity> {
     );
   }
 
-  factory CategoryEntity.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory CategoryEntity.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return CategoryEntity(
       id: serializer.fromJson<int>(json['id']),
@@ -175,27 +221,29 @@ class CategoryEntity extends DataClass implements Insertable<CategoryEntity> {
     };
   }
 
-  CategoryEntity copyWith(
-          {int? id,
-          String? name,
-          int? accessLevel,
-          String? createTime,
-          String? lastUpdateTime}) =>
-      CategoryEntity(
-        id: id ?? this.id,
-        name: name ?? this.name,
-        accessLevel: accessLevel ?? this.accessLevel,
-        createTime: createTime ?? this.createTime,
-        lastUpdateTime: lastUpdateTime ?? this.lastUpdateTime,
-      );
+  CategoryEntity copyWith({
+    int? id,
+    String? name,
+    int? accessLevel,
+    String? createTime,
+    String? lastUpdateTime,
+  }) => CategoryEntity(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    accessLevel: accessLevel ?? this.accessLevel,
+    createTime: createTime ?? this.createTime,
+    lastUpdateTime: lastUpdateTime ?? this.lastUpdateTime,
+  );
   CategoryEntity copyWithCompanion(CategoriesCompanion data) {
     return CategoryEntity(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
-      accessLevel:
-          data.accessLevel.present ? data.accessLevel.value : this.accessLevel,
-      createTime:
-          data.createTime.present ? data.createTime.value : this.createTime,
+      accessLevel: data.accessLevel.present
+          ? data.accessLevel.value
+          : this.accessLevel,
+      createTime: data.createTime.present
+          ? data.createTime.value
+          : this.createTime,
       lastUpdateTime: data.lastUpdateTime.present
           ? data.lastUpdateTime.value
           : this.lastUpdateTime,
@@ -247,10 +295,10 @@ class CategoriesCompanion extends UpdateCompanion<CategoryEntity> {
     required int accessLevel,
     required String createTime,
     required String lastUpdateTime,
-  })  : name = Value(name),
-        accessLevel = Value(accessLevel),
-        createTime = Value(createTime),
-        lastUpdateTime = Value(lastUpdateTime);
+  }) : name = Value(name),
+       accessLevel = Value(accessLevel),
+       createTime = Value(createTime),
+       lastUpdateTime = Value(lastUpdateTime);
   static Insertable<CategoryEntity> custom({
     Expression<int>? id,
     Expression<String>? name,
@@ -267,12 +315,13 @@ class CategoriesCompanion extends UpdateCompanion<CategoryEntity> {
     });
   }
 
-  CategoriesCompanion copyWith(
-      {Value<int>? id,
-      Value<String>? name,
-      Value<int>? accessLevel,
-      Value<String>? createTime,
-      Value<String>? lastUpdateTime}) {
+  CategoriesCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<int>? accessLevel,
+    Value<String>? createTime,
+    Value<String>? lastUpdateTime,
+  }) {
     return CategoriesCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
@@ -324,48 +373,75 @@ class TDataEncryptKey extends Table
   TDataEncryptKey(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
-      'id', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL PRIMARY KEY');
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL PRIMARY KEY',
+  );
   static const VerificationMeta _dataMeta = const VerificationMeta('data');
   late final GeneratedColumn<String> data = GeneratedColumn<String>(
-      'data', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
+    'data',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
   static const VerificationMeta _nonceMeta = const VerificationMeta('nonce');
   late final GeneratedColumn<String> nonce = GeneratedColumn<String>(
-      'nonce', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
-  static const VerificationMeta _authTagMeta =
-      const VerificationMeta('authTag');
+    'nonce',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _authTagMeta = const VerificationMeta(
+    'authTag',
+  );
   late final GeneratedColumn<String> authTag = GeneratedColumn<String>(
-      'auth_tag', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
-  static const VerificationMeta _createdAtMeta =
-      const VerificationMeta('createdAt');
+    'auth_tag',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-      'created_at', aliasedName, false,
-      type: DriftSqlType.dateTime,
-      requiredDuringInsert: false,
-      $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
-      defaultValue: const CustomExpression('CURRENT_TIMESTAMP'));
-  static const VerificationMeta _updatedAtMeta =
-      const VerificationMeta('updatedAt');
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    defaultValue: const CustomExpression('CURRENT_TIMESTAMP'),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
   late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
-      'updated_at', aliasedName, false,
-      type: DriftSqlType.dateTime,
-      requiredDuringInsert: false,
-      $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
-      defaultValue: const CustomExpression('CURRENT_TIMESTAMP'));
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    defaultValue: const CustomExpression('CURRENT_TIMESTAMP'),
+  );
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, data, nonce, authTag, createdAt, updatedAt];
+  List<GeneratedColumn> get $columns => [
+    id,
+    data,
+    nonce,
+    authTag,
+    createdAt,
+    updatedAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -373,8 +449,9 @@ class TDataEncryptKey extends Table
   static const String $name = 't_data_encrypt_key';
   @override
   VerificationContext validateIntegrity(
-      Insertable<TDataEncryptKeyData> instance,
-      {bool isInserting = false}) {
+    Insertable<TDataEncryptKeyData> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
@@ -384,29 +461,39 @@ class TDataEncryptKey extends Table
     }
     if (data.containsKey('data')) {
       context.handle(
-          _dataMeta, this.data.isAcceptableOrUnknown(data['data']!, _dataMeta));
+        _dataMeta,
+        this.data.isAcceptableOrUnknown(data['data']!, _dataMeta),
+      );
     } else if (isInserting) {
       context.missing(_dataMeta);
     }
     if (data.containsKey('nonce')) {
       context.handle(
-          _nonceMeta, nonce.isAcceptableOrUnknown(data['nonce']!, _nonceMeta));
+        _nonceMeta,
+        nonce.isAcceptableOrUnknown(data['nonce']!, _nonceMeta),
+      );
     } else if (isInserting) {
       context.missing(_nonceMeta);
     }
     if (data.containsKey('auth_tag')) {
-      context.handle(_authTagMeta,
-          authTag.isAcceptableOrUnknown(data['auth_tag']!, _authTagMeta));
+      context.handle(
+        _authTagMeta,
+        authTag.isAcceptableOrUnknown(data['auth_tag']!, _authTagMeta),
+      );
     } else if (isInserting) {
       context.missing(_authTagMeta);
     }
     if (data.containsKey('created_at')) {
-      context.handle(_createdAtMeta,
-          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
     }
     if (data.containsKey('updated_at')) {
-      context.handle(_updatedAtMeta,
-          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
     }
     return context;
   }
@@ -417,18 +504,30 @@ class TDataEncryptKey extends Table
   TDataEncryptKeyData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return TDataEncryptKeyData(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
-      data: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}data'])!,
-      nonce: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}nonce'])!,
-      authTag: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}auth_tag'])!,
-      createdAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
-      updatedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      data: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}data'],
+      )!,
+      nonce: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nonce'],
+      )!,
+      authTag: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}auth_tag'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
     );
   }
 
@@ -449,13 +548,14 @@ class TDataEncryptKeyData extends DataClass
   final String authTag;
   final DateTime createdAt;
   final DateTime updatedAt;
-  const TDataEncryptKeyData(
-      {required this.id,
-      required this.data,
-      required this.nonce,
-      required this.authTag,
-      required this.createdAt,
-      required this.updatedAt});
+  const TDataEncryptKeyData({
+    required this.id,
+    required this.data,
+    required this.nonce,
+    required this.authTag,
+    required this.createdAt,
+    required this.updatedAt,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -479,8 +579,10 @@ class TDataEncryptKeyData extends DataClass
     );
   }
 
-  factory TDataEncryptKeyData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory TDataEncryptKeyData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return TDataEncryptKeyData(
       id: serializer.fromJson<String>(json['id']),
@@ -504,21 +606,21 @@ class TDataEncryptKeyData extends DataClass
     };
   }
 
-  TDataEncryptKeyData copyWith(
-          {String? id,
-          String? data,
-          String? nonce,
-          String? authTag,
-          DateTime? createdAt,
-          DateTime? updatedAt}) =>
-      TDataEncryptKeyData(
-        id: id ?? this.id,
-        data: data ?? this.data,
-        nonce: nonce ?? this.nonce,
-        authTag: authTag ?? this.authTag,
-        createdAt: createdAt ?? this.createdAt,
-        updatedAt: updatedAt ?? this.updatedAt,
-      );
+  TDataEncryptKeyData copyWith({
+    String? id,
+    String? data,
+    String? nonce,
+    String? authTag,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => TDataEncryptKeyData(
+    id: id ?? this.id,
+    data: data ?? this.data,
+    nonce: nonce ?? this.nonce,
+    authTag: authTag ?? this.authTag,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
   TDataEncryptKeyData copyWithCompanion(TDataEncryptKeyCompanion data) {
     return TDataEncryptKeyData(
       id: data.id.present ? data.id.value : this.id,
@@ -583,10 +685,10 @@ class TDataEncryptKeyCompanion extends UpdateCompanion<TDataEncryptKeyData> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
-  })  : id = Value(id),
-        data = Value(data),
-        nonce = Value(nonce),
-        authTag = Value(authTag);
+  }) : id = Value(id),
+       data = Value(data),
+       nonce = Value(nonce),
+       authTag = Value(authTag);
   static Insertable<TDataEncryptKeyData> custom({
     Expression<String>? id,
     Expression<String>? data,
@@ -607,14 +709,15 @@ class TDataEncryptKeyCompanion extends UpdateCompanion<TDataEncryptKeyData> {
     });
   }
 
-  TDataEncryptKeyCompanion copyWith(
-      {Value<String>? id,
-      Value<String>? data,
-      Value<String>? nonce,
-      Value<String>? authTag,
-      Value<DateTime>? createdAt,
-      Value<DateTime>? updatedAt,
-      Value<int>? rowid}) {
+  TDataEncryptKeyCompanion copyWith({
+    Value<String>? id,
+    Value<String>? data,
+    Value<String>? nonce,
+    Value<String>? authTag,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
     return TDataEncryptKeyCompanion(
       id: id ?? this.id,
       data: data ?? this.data,
@@ -676,87 +779,122 @@ class TEncryptedData extends Table
   TEncryptedData(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
-      'id', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL PRIMARY KEY');
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL PRIMARY KEY',
+  );
   static const VerificationMeta _dekIdMeta = const VerificationMeta('dekId');
   late final GeneratedColumn<String> dekId = GeneratedColumn<String>(
-      'dek_id', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
-  static const VerificationMeta _contentMeta =
-      const VerificationMeta('content');
+    'dek_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _contentMeta = const VerificationMeta(
+    'content',
+  );
   late final GeneratedColumn<Uint8List> content = GeneratedColumn<Uint8List>(
-      'content', aliasedName, false,
-      type: DriftSqlType.blob,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
-  static const VerificationMeta _algorithmIdMeta =
-      const VerificationMeta('algorithmId');
+    'content',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _algorithmIdMeta = const VerificationMeta(
+    'algorithmId',
+  );
   late final GeneratedColumn<String> algorithmId = GeneratedColumn<String>(
-      'algorithm_id', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
-  static const VerificationMeta _authTagMeta =
-      const VerificationMeta('authTag');
+    'algorithm_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _authTagMeta = const VerificationMeta(
+    'authTag',
+  );
   late final GeneratedColumn<String> authTag = GeneratedColumn<String>(
-      'auth_tag', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
+    'auth_tag',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
   static const VerificationMeta _nonceMeta = const VerificationMeta('nonce');
   late final GeneratedColumn<String> nonce = GeneratedColumn<String>(
-      'nonce', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
-  static const VerificationMeta _createdAtMeta =
-      const VerificationMeta('createdAt');
+    'nonce',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-      'created_at', aliasedName, false,
-      type: DriftSqlType.dateTime,
-      requiredDuringInsert: false,
-      $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
-      defaultValue: const CustomExpression('CURRENT_TIMESTAMP'));
-  static const VerificationMeta _updatedAtMeta =
-      const VerificationMeta('updatedAt');
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    defaultValue: const CustomExpression('CURRENT_TIMESTAMP'),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
   late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
-      'updated_at', aliasedName, false,
-      type: DriftSqlType.dateTime,
-      requiredDuringInsert: false,
-      $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
-      defaultValue: const CustomExpression('CURRENT_TIMESTAMP'));
-  static const VerificationMeta _deletedAtMeta =
-      const VerificationMeta('deletedAt');
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    defaultValue: const CustomExpression('CURRENT_TIMESTAMP'),
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
   late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
-      'deleted_at', aliasedName, true,
-      type: DriftSqlType.dateTime,
-      requiredDuringInsert: false,
-      $customConstraints: 'DEFAULT NULL',
-      defaultValue: const CustomExpression('NULL'));
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    $customConstraints: 'DEFAULT NULL',
+    defaultValue: const CustomExpression('NULL'),
+  );
   @override
   List<GeneratedColumn> get $columns => [
-        id,
-        dekId,
-        content,
-        algorithmId,
-        authTag,
-        nonce,
-        createdAt,
-        updatedAt,
-        deletedAt
-      ];
+    id,
+    dekId,
+    content,
+    algorithmId,
+    authTag,
+    nonce,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 't_encrypted_data';
   @override
-  VerificationContext validateIntegrity(Insertable<TEncryptedDataData> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(
+    Insertable<TEncryptedDataData> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
@@ -766,47 +904,64 @@ class TEncryptedData extends Table
     }
     if (data.containsKey('dek_id')) {
       context.handle(
-          _dekIdMeta, dekId.isAcceptableOrUnknown(data['dek_id']!, _dekIdMeta));
+        _dekIdMeta,
+        dekId.isAcceptableOrUnknown(data['dek_id']!, _dekIdMeta),
+      );
     } else if (isInserting) {
       context.missing(_dekIdMeta);
     }
     if (data.containsKey('content')) {
-      context.handle(_contentMeta,
-          content.isAcceptableOrUnknown(data['content']!, _contentMeta));
+      context.handle(
+        _contentMeta,
+        content.isAcceptableOrUnknown(data['content']!, _contentMeta),
+      );
     } else if (isInserting) {
       context.missing(_contentMeta);
     }
     if (data.containsKey('algorithm_id')) {
       context.handle(
+        _algorithmIdMeta,
+        algorithmId.isAcceptableOrUnknown(
+          data['algorithm_id']!,
           _algorithmIdMeta,
-          algorithmId.isAcceptableOrUnknown(
-              data['algorithm_id']!, _algorithmIdMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_algorithmIdMeta);
     }
     if (data.containsKey('auth_tag')) {
-      context.handle(_authTagMeta,
-          authTag.isAcceptableOrUnknown(data['auth_tag']!, _authTagMeta));
+      context.handle(
+        _authTagMeta,
+        authTag.isAcceptableOrUnknown(data['auth_tag']!, _authTagMeta),
+      );
     } else if (isInserting) {
       context.missing(_authTagMeta);
     }
     if (data.containsKey('nonce')) {
       context.handle(
-          _nonceMeta, nonce.isAcceptableOrUnknown(data['nonce']!, _nonceMeta));
+        _nonceMeta,
+        nonce.isAcceptableOrUnknown(data['nonce']!, _nonceMeta),
+      );
     } else if (isInserting) {
       context.missing(_nonceMeta);
     }
     if (data.containsKey('created_at')) {
-      context.handle(_createdAtMeta,
-          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
     }
     if (data.containsKey('updated_at')) {
-      context.handle(_updatedAtMeta,
-          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
     }
     if (data.containsKey('deleted_at')) {
-      context.handle(_deletedAtMeta,
-          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
     }
     return context;
   }
@@ -817,24 +972,42 @@ class TEncryptedData extends Table
   TEncryptedDataData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return TEncryptedDataData(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
-      dekId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}dek_id'])!,
-      content: attachedDatabase.typeMapping
-          .read(DriftSqlType.blob, data['${effectivePrefix}content'])!,
-      algorithmId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}algorithm_id'])!,
-      authTag: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}auth_tag'])!,
-      nonce: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}nonce'])!,
-      createdAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
-      updatedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
-      deletedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      dekId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}dek_id'],
+      )!,
+      content: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}content'],
+      )!,
+      algorithmId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}algorithm_id'],
+      )!,
+      authTag: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}auth_tag'],
+      )!,
+      nonce: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nonce'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
     );
   }
 
@@ -844,8 +1017,9 @@ class TEncryptedData extends Table
   }
 
   @override
-  List<String> get customConstraints =>
-      const ['FOREIGN KEY(dek_id)REFERENCES t_data_encrypt_key(id)'];
+  List<String> get customConstraints => const [
+    'FOREIGN KEY(dek_id)REFERENCES t_data_encrypt_key(id)',
+  ];
   @override
   bool get dontWriteConstraints => true;
 }
@@ -861,16 +1035,17 @@ class TEncryptedDataData extends DataClass
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
-  const TEncryptedDataData(
-      {required this.id,
-      required this.dekId,
-      required this.content,
-      required this.algorithmId,
-      required this.authTag,
-      required this.nonce,
-      required this.createdAt,
-      required this.updatedAt,
-      this.deletedAt});
+  const TEncryptedDataData({
+    required this.id,
+    required this.dekId,
+    required this.content,
+    required this.algorithmId,
+    required this.authTag,
+    required this.nonce,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -904,8 +1079,10 @@ class TEncryptedDataData extends DataClass
     );
   }
 
-  factory TEncryptedDataData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory TEncryptedDataData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return TEncryptedDataData(
       id: serializer.fromJson<String>(json['id']),
@@ -935,34 +1112,35 @@ class TEncryptedDataData extends DataClass
     };
   }
 
-  TEncryptedDataData copyWith(
-          {String? id,
-          String? dekId,
-          Uint8List? content,
-          String? algorithmId,
-          String? authTag,
-          String? nonce,
-          DateTime? createdAt,
-          DateTime? updatedAt,
-          Value<DateTime?> deletedAt = const Value.absent()}) =>
-      TEncryptedDataData(
-        id: id ?? this.id,
-        dekId: dekId ?? this.dekId,
-        content: content ?? this.content,
-        algorithmId: algorithmId ?? this.algorithmId,
-        authTag: authTag ?? this.authTag,
-        nonce: nonce ?? this.nonce,
-        createdAt: createdAt ?? this.createdAt,
-        updatedAt: updatedAt ?? this.updatedAt,
-        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
-      );
+  TEncryptedDataData copyWith({
+    String? id,
+    String? dekId,
+    Uint8List? content,
+    String? algorithmId,
+    String? authTag,
+    String? nonce,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => TEncryptedDataData(
+    id: id ?? this.id,
+    dekId: dekId ?? this.dekId,
+    content: content ?? this.content,
+    algorithmId: algorithmId ?? this.algorithmId,
+    authTag: authTag ?? this.authTag,
+    nonce: nonce ?? this.nonce,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
   TEncryptedDataData copyWithCompanion(TEncryptedDataCompanion data) {
     return TEncryptedDataData(
       id: data.id.present ? data.id.value : this.id,
       dekId: data.dekId.present ? data.dekId.value : this.dekId,
       content: data.content.present ? data.content.value : this.content,
-      algorithmId:
-          data.algorithmId.present ? data.algorithmId.value : this.algorithmId,
+      algorithmId: data.algorithmId.present
+          ? data.algorithmId.value
+          : this.algorithmId,
       authTag: data.authTag.present ? data.authTag.value : this.authTag,
       nonce: data.nonce.present ? data.nonce.value : this.nonce,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
@@ -988,8 +1166,17 @@ class TEncryptedDataData extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(id, dekId, $driftBlobEquality.hash(content),
-      algorithmId, authTag, nonce, createdAt, updatedAt, deletedAt);
+  int get hashCode => Object.hash(
+    id,
+    dekId,
+    $driftBlobEquality.hash(content),
+    algorithmId,
+    authTag,
+    nonce,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1039,12 +1226,12 @@ class TEncryptedDataCompanion extends UpdateCompanion<TEncryptedDataData> {
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
-  })  : id = Value(id),
-        dekId = Value(dekId),
-        content = Value(content),
-        algorithmId = Value(algorithmId),
-        authTag = Value(authTag),
-        nonce = Value(nonce);
+  }) : id = Value(id),
+       dekId = Value(dekId),
+       content = Value(content),
+       algorithmId = Value(algorithmId),
+       authTag = Value(authTag),
+       nonce = Value(nonce);
   static Insertable<TEncryptedDataData> custom({
     Expression<String>? id,
     Expression<String>? dekId,
@@ -1071,17 +1258,18 @@ class TEncryptedDataCompanion extends UpdateCompanion<TEncryptedDataData> {
     });
   }
 
-  TEncryptedDataCompanion copyWith(
-      {Value<String>? id,
-      Value<String>? dekId,
-      Value<Uint8List>? content,
-      Value<String>? algorithmId,
-      Value<String>? authTag,
-      Value<String>? nonce,
-      Value<DateTime>? createdAt,
-      Value<DateTime>? updatedAt,
-      Value<DateTime?>? deletedAt,
-      Value<int>? rowid}) {
+  TEncryptedDataCompanion copyWith({
+    Value<String>? id,
+    Value<String>? dekId,
+    Value<Uint8List>? content,
+    Value<String>? algorithmId,
+    Value<String>? authTag,
+    Value<String>? nonce,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
     return TEncryptedDataCompanion(
       id: id ?? this.id,
       dekId: dekId ?? this.dekId,
@@ -1157,98 +1345,137 @@ class TPassword extends Table with TableInfo<TPassword, TPasswordData> {
   TPassword(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
-      'id', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL PRIMARY KEY');
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL PRIMARY KEY',
+  );
   static const VerificationMeta _typeMeta = const VerificationMeta('type');
   late final GeneratedColumn<int> type = GeneratedColumn<int>(
-      'type', aliasedName, false,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      $customConstraints: 'NOT NULL DEFAULT 1',
-      defaultValue: const CustomExpression('1'));
-  static const VerificationMeta _categoryIdMeta =
-      const VerificationMeta('categoryId');
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 1',
+    defaultValue: const CustomExpression('1'),
+  );
+  static const VerificationMeta _categoryIdMeta = const VerificationMeta(
+    'categoryId',
+  );
   late final GeneratedColumn<int> categoryId = GeneratedColumn<int>(
-      'category_id', aliasedName, false,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      $customConstraints: 'NOT NULL DEFAULT 1',
-      defaultValue: const CustomExpression('1'));
-  static const VerificationMeta _classificationMeta =
-      const VerificationMeta('classification');
+    'category_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 1',
+    defaultValue: const CustomExpression('1'),
+  );
+  static const VerificationMeta _classificationMeta = const VerificationMeta(
+    'classification',
+  );
   late final GeneratedColumn<String> classification = GeneratedColumn<String>(
-      'classification', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints:
-          'NOT NULL CHECK (classification IN (\'C\', \'S\', \'T\'))');
+    'classification',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'NOT NULL CHECK (classification IN (\'C\', \'S\', \'T\'))',
+  );
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
-      'title', aliasedName, true,
-      type: DriftSqlType.string,
-      requiredDuringInsert: false,
-      $customConstraints: '');
-  static const VerificationMeta _encryptedDataIdMeta =
-      const VerificationMeta('encryptedDataId');
+    'title',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _encryptedDataIdMeta = const VerificationMeta(
+    'encryptedDataId',
+  );
   late final GeneratedColumn<String> encryptedDataId = GeneratedColumn<String>(
-      'encrypted_data_id', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
-  static const VerificationMeta _expireTimeMeta =
-      const VerificationMeta('expireTime');
+    'encrypted_data_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _expireTimeMeta = const VerificationMeta(
+    'expireTime',
+  );
   late final GeneratedColumn<DateTime> expireTime = GeneratedColumn<DateTime>(
-      'expire_time', aliasedName, true,
-      type: DriftSqlType.dateTime,
-      requiredDuringInsert: false,
-      $customConstraints: '');
-  static const VerificationMeta _createdAtMeta =
-      const VerificationMeta('createdAt');
+    'expire_time',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-      'created_at', aliasedName, false,
-      type: DriftSqlType.dateTime,
-      requiredDuringInsert: false,
-      $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
-      defaultValue: const CustomExpression('CURRENT_TIMESTAMP'));
-  static const VerificationMeta _updatedAtMeta =
-      const VerificationMeta('updatedAt');
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    defaultValue: const CustomExpression('CURRENT_TIMESTAMP'),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
   late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
-      'updated_at', aliasedName, false,
-      type: DriftSqlType.dateTime,
-      requiredDuringInsert: false,
-      $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
-      defaultValue: const CustomExpression('CURRENT_TIMESTAMP'));
-  static const VerificationMeta _deletedAtMeta =
-      const VerificationMeta('deletedAt');
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    defaultValue: const CustomExpression('CURRENT_TIMESTAMP'),
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
   late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
-      'deleted_at', aliasedName, true,
-      type: DriftSqlType.dateTime,
-      requiredDuringInsert: false,
-      $customConstraints: 'DEFAULT NULL',
-      defaultValue: const CustomExpression('NULL'));
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    $customConstraints: 'DEFAULT NULL',
+    defaultValue: const CustomExpression('NULL'),
+  );
   @override
   List<GeneratedColumn> get $columns => [
-        id,
-        type,
-        categoryId,
-        classification,
-        title,
-        encryptedDataId,
-        expireTime,
-        createdAt,
-        updatedAt,
-        deletedAt
-      ];
+    id,
+    type,
+    categoryId,
+    classification,
+    title,
+    encryptedDataId,
+    expireTime,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 't_password';
   @override
-  VerificationContext validateIntegrity(Insertable<TPasswordData> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(
+    Insertable<TPasswordData> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
@@ -1258,51 +1485,67 @@ class TPassword extends Table with TableInfo<TPassword, TPasswordData> {
     }
     if (data.containsKey('type')) {
       context.handle(
-          _typeMeta, type.isAcceptableOrUnknown(data['type']!, _typeMeta));
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
     }
     if (data.containsKey('category_id')) {
       context.handle(
-          _categoryIdMeta,
-          categoryId.isAcceptableOrUnknown(
-              data['category_id']!, _categoryIdMeta));
+        _categoryIdMeta,
+        categoryId.isAcceptableOrUnknown(data['category_id']!, _categoryIdMeta),
+      );
     }
     if (data.containsKey('classification')) {
       context.handle(
+        _classificationMeta,
+        classification.isAcceptableOrUnknown(
+          data['classification']!,
           _classificationMeta,
-          classification.isAcceptableOrUnknown(
-              data['classification']!, _classificationMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_classificationMeta);
     }
     if (data.containsKey('title')) {
       context.handle(
-          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
     }
     if (data.containsKey('encrypted_data_id')) {
       context.handle(
+        _encryptedDataIdMeta,
+        encryptedDataId.isAcceptableOrUnknown(
+          data['encrypted_data_id']!,
           _encryptedDataIdMeta,
-          encryptedDataId.isAcceptableOrUnknown(
-              data['encrypted_data_id']!, _encryptedDataIdMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_encryptedDataIdMeta);
     }
     if (data.containsKey('expire_time')) {
       context.handle(
-          _expireTimeMeta,
-          expireTime.isAcceptableOrUnknown(
-              data['expire_time']!, _expireTimeMeta));
+        _expireTimeMeta,
+        expireTime.isAcceptableOrUnknown(data['expire_time']!, _expireTimeMeta),
+      );
     }
     if (data.containsKey('created_at')) {
-      context.handle(_createdAtMeta,
-          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
     }
     if (data.containsKey('updated_at')) {
-      context.handle(_updatedAtMeta,
-          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
     }
     if (data.containsKey('deleted_at')) {
-      context.handle(_deletedAtMeta,
-          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
     }
     return context;
   }
@@ -1313,26 +1556,46 @@ class TPassword extends Table with TableInfo<TPassword, TPasswordData> {
   TPasswordData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return TPasswordData(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
-      type: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}type'])!,
-      categoryId: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}category_id'])!,
-      classification: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}classification'])!,
-      title: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}title']),
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}type'],
+      )!,
+      categoryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}category_id'],
+      )!,
+      classification: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}classification'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      ),
       encryptedDataId: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}encrypted_data_id'])!,
-      expireTime: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}expire_time']),
-      createdAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
-      updatedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
-      deletedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+        DriftSqlType.string,
+        data['${effectivePrefix}encrypted_data_id'],
+      )!,
+      expireTime: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}expire_time'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
     );
   }
 
@@ -1343,9 +1606,9 @@ class TPassword extends Table with TableInfo<TPassword, TPasswordData> {
 
   @override
   List<String> get customConstraints => const [
-        'FOREIGN KEY(category_id)REFERENCES categories(id)',
-        'FOREIGN KEY(encrypted_data_id)REFERENCES t_encrypted_data(id)'
-      ];
+    'FOREIGN KEY(category_id)REFERENCES categories(id)',
+    'FOREIGN KEY(encrypted_data_id)REFERENCES t_encrypted_data(id)',
+  ];
   @override
   bool get dontWriteConstraints => true;
 }
@@ -1361,17 +1624,18 @@ class TPasswordData extends DataClass implements Insertable<TPasswordData> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
-  const TPasswordData(
-      {required this.id,
-      required this.type,
-      required this.categoryId,
-      required this.classification,
-      this.title,
-      required this.encryptedDataId,
-      this.expireTime,
-      required this.createdAt,
-      required this.updatedAt,
-      this.deletedAt});
+  const TPasswordData({
+    required this.id,
+    required this.type,
+    required this.categoryId,
+    required this.classification,
+    this.title,
+    required this.encryptedDataId,
+    this.expireTime,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1400,8 +1664,9 @@ class TPasswordData extends DataClass implements Insertable<TPasswordData> {
       type: Value(type),
       categoryId: Value(categoryId),
       classification: Value(classification),
-      title:
-          title == null && nullToAbsent ? const Value.absent() : Value(title),
+      title: title == null && nullToAbsent
+          ? const Value.absent()
+          : Value(title),
       encryptedDataId: Value(encryptedDataId),
       expireTime: expireTime == null && nullToAbsent
           ? const Value.absent()
@@ -1414,8 +1679,10 @@ class TPasswordData extends DataClass implements Insertable<TPasswordData> {
     );
   }
 
-  factory TPasswordData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory TPasswordData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return TPasswordData(
       id: serializer.fromJson<String>(json['id']),
@@ -1447,35 +1714,36 @@ class TPasswordData extends DataClass implements Insertable<TPasswordData> {
     };
   }
 
-  TPasswordData copyWith(
-          {String? id,
-          int? type,
-          int? categoryId,
-          String? classification,
-          Value<String?> title = const Value.absent(),
-          String? encryptedDataId,
-          Value<DateTime?> expireTime = const Value.absent(),
-          DateTime? createdAt,
-          DateTime? updatedAt,
-          Value<DateTime?> deletedAt = const Value.absent()}) =>
-      TPasswordData(
-        id: id ?? this.id,
-        type: type ?? this.type,
-        categoryId: categoryId ?? this.categoryId,
-        classification: classification ?? this.classification,
-        title: title.present ? title.value : this.title,
-        encryptedDataId: encryptedDataId ?? this.encryptedDataId,
-        expireTime: expireTime.present ? expireTime.value : this.expireTime,
-        createdAt: createdAt ?? this.createdAt,
-        updatedAt: updatedAt ?? this.updatedAt,
-        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
-      );
+  TPasswordData copyWith({
+    String? id,
+    int? type,
+    int? categoryId,
+    String? classification,
+    Value<String?> title = const Value.absent(),
+    String? encryptedDataId,
+    Value<DateTime?> expireTime = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => TPasswordData(
+    id: id ?? this.id,
+    type: type ?? this.type,
+    categoryId: categoryId ?? this.categoryId,
+    classification: classification ?? this.classification,
+    title: title.present ? title.value : this.title,
+    encryptedDataId: encryptedDataId ?? this.encryptedDataId,
+    expireTime: expireTime.present ? expireTime.value : this.expireTime,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
   TPasswordData copyWithCompanion(TPasswordCompanion data) {
     return TPasswordData(
       id: data.id.present ? data.id.value : this.id,
       type: data.type.present ? data.type.value : this.type,
-      categoryId:
-          data.categoryId.present ? data.categoryId.value : this.categoryId,
+      categoryId: data.categoryId.present
+          ? data.categoryId.value
+          : this.categoryId,
       classification: data.classification.present
           ? data.classification.value
           : this.classification,
@@ -1483,8 +1751,9 @@ class TPasswordData extends DataClass implements Insertable<TPasswordData> {
       encryptedDataId: data.encryptedDataId.present
           ? data.encryptedDataId.value
           : this.encryptedDataId,
-      expireTime:
-          data.expireTime.present ? data.expireTime.value : this.expireTime,
+      expireTime: data.expireTime.present
+          ? data.expireTime.value
+          : this.expireTime,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
@@ -1509,8 +1778,18 @@ class TPasswordData extends DataClass implements Insertable<TPasswordData> {
   }
 
   @override
-  int get hashCode => Object.hash(id, type, categoryId, classification, title,
-      encryptedDataId, expireTime, createdAt, updatedAt, deletedAt);
+  int get hashCode => Object.hash(
+    id,
+    type,
+    categoryId,
+    classification,
+    title,
+    encryptedDataId,
+    expireTime,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1564,9 +1843,9 @@ class TPasswordCompanion extends UpdateCompanion<TPasswordData> {
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
-  })  : id = Value(id),
-        classification = Value(classification),
-        encryptedDataId = Value(encryptedDataId);
+  }) : id = Value(id),
+       classification = Value(classification),
+       encryptedDataId = Value(encryptedDataId);
   static Insertable<TPasswordData> custom({
     Expression<String>? id,
     Expression<int>? type,
@@ -1595,18 +1874,19 @@ class TPasswordCompanion extends UpdateCompanion<TPasswordData> {
     });
   }
 
-  TPasswordCompanion copyWith(
-      {Value<String>? id,
-      Value<int>? type,
-      Value<int>? categoryId,
-      Value<String>? classification,
-      Value<String?>? title,
-      Value<String>? encryptedDataId,
-      Value<DateTime?>? expireTime,
-      Value<DateTime>? createdAt,
-      Value<DateTime>? updatedAt,
-      Value<DateTime?>? deletedAt,
-      Value<int>? rowid}) {
+  TPasswordCompanion copyWith({
+    Value<String>? id,
+    Value<int>? type,
+    Value<int>? categoryId,
+    Value<String>? classification,
+    Value<String?>? title,
+    Value<String>? encryptedDataId,
+    Value<DateTime?>? expireTime,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
     return TPasswordCompanion(
       id: id ?? this.id,
       type: type ?? this.type,
@@ -1688,72 +1968,101 @@ class TPasswordAttribute extends Table
   TPasswordAttribute(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
-      'id', aliasedName, false,
-      hasAutoIncrement: true,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      $customConstraints: 'NOT NULL PRIMARY KEY AUTOINCREMENT');
-  static const VerificationMeta _passwordIdMeta =
-      const VerificationMeta('passwordId');
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL PRIMARY KEY AUTOINCREMENT',
+  );
+  static const VerificationMeta _passwordIdMeta = const VerificationMeta(
+    'passwordId',
+  );
   late final GeneratedColumn<String> passwordId = GeneratedColumn<String>(
-      'password_id', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
-  static const VerificationMeta _classificationMeta =
-      const VerificationMeta('classification');
+    'password_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _classificationMeta = const VerificationMeta(
+    'classification',
+  );
   late final GeneratedColumn<String> classification = GeneratedColumn<String>(
-      'classification', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints:
-          'NOT NULL CHECK (classification IN (\'C\', \'S\', \'T\'))');
+    'classification',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'NOT NULL CHECK (classification IN (\'C\', \'S\', \'T\'))',
+  );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
-      'name', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
   static const VerificationMeta _valueMeta = const VerificationMeta('value');
   late final GeneratedColumn<String> value = GeneratedColumn<String>(
-      'value', aliasedName, true,
-      type: DriftSqlType.string,
-      requiredDuringInsert: false,
-      $customConstraints: '');
-  static const VerificationMeta _encryptedDataIdMeta =
-      const VerificationMeta('encryptedDataId');
+    'value',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _encryptedDataIdMeta = const VerificationMeta(
+    'encryptedDataId',
+  );
   late final GeneratedColumn<String> encryptedDataId = GeneratedColumn<String>(
-      'encrypted_data_id', aliasedName, true,
-      type: DriftSqlType.string,
-      requiredDuringInsert: false,
-      $customConstraints: '');
-  static const VerificationMeta _createdAtMeta =
-      const VerificationMeta('createdAt');
+    'encrypted_data_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-      'created_at', aliasedName, false,
-      type: DriftSqlType.dateTime,
-      requiredDuringInsert: false,
-      $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
-      defaultValue: const CustomExpression('CURRENT_TIMESTAMP'));
-  static const VerificationMeta _updatedAtMeta =
-      const VerificationMeta('updatedAt');
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    defaultValue: const CustomExpression('CURRENT_TIMESTAMP'),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
   late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
-      'updated_at', aliasedName, false,
-      type: DriftSqlType.dateTime,
-      requiredDuringInsert: false,
-      $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
-      defaultValue: const CustomExpression('CURRENT_TIMESTAMP'));
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    defaultValue: const CustomExpression('CURRENT_TIMESTAMP'),
+  );
   @override
   List<GeneratedColumn> get $columns => [
-        id,
-        passwordId,
-        classification,
-        name,
-        value,
-        encryptedDataId,
-        createdAt,
-        updatedAt
-      ];
+    id,
+    passwordId,
+    classification,
+    name,
+    value,
+    encryptedDataId,
+    createdAt,
+    updatedAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1761,8 +2070,9 @@ class TPasswordAttribute extends Table
   static const String $name = 't_password_attribute';
   @override
   VerificationContext validateIntegrity(
-      Insertable<TPasswordAttributeData> instance,
-      {bool isInserting = false}) {
+    Insertable<TPasswordAttributeData> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
@@ -1770,43 +2080,57 @@ class TPasswordAttribute extends Table
     }
     if (data.containsKey('password_id')) {
       context.handle(
-          _passwordIdMeta,
-          passwordId.isAcceptableOrUnknown(
-              data['password_id']!, _passwordIdMeta));
+        _passwordIdMeta,
+        passwordId.isAcceptableOrUnknown(data['password_id']!, _passwordIdMeta),
+      );
     } else if (isInserting) {
       context.missing(_passwordIdMeta);
     }
     if (data.containsKey('classification')) {
       context.handle(
+        _classificationMeta,
+        classification.isAcceptableOrUnknown(
+          data['classification']!,
           _classificationMeta,
-          classification.isAcceptableOrUnknown(
-              data['classification']!, _classificationMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_classificationMeta);
     }
     if (data.containsKey('name')) {
       context.handle(
-          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
     if (data.containsKey('value')) {
       context.handle(
-          _valueMeta, value.isAcceptableOrUnknown(data['value']!, _valueMeta));
+        _valueMeta,
+        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
+      );
     }
     if (data.containsKey('encrypted_data_id')) {
       context.handle(
+        _encryptedDataIdMeta,
+        encryptedDataId.isAcceptableOrUnknown(
+          data['encrypted_data_id']!,
           _encryptedDataIdMeta,
-          encryptedDataId.isAcceptableOrUnknown(
-              data['encrypted_data_id']!, _encryptedDataIdMeta));
+        ),
+      );
     }
     if (data.containsKey('created_at')) {
-      context.handle(_createdAtMeta,
-          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
     }
     if (data.containsKey('updated_at')) {
-      context.handle(_updatedAtMeta,
-          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
     }
     return context;
   }
@@ -1817,22 +2141,38 @@ class TPasswordAttribute extends Table
   TPasswordAttributeData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return TPasswordAttributeData(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
-      passwordId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}password_id'])!,
-      classification: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}classification'])!,
-      name: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
-      value: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}value']),
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      passwordId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}password_id'],
+      )!,
+      classification: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}classification'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}value'],
+      ),
       encryptedDataId: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}encrypted_data_id']),
-      createdAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
-      updatedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+        DriftSqlType.string,
+        data['${effectivePrefix}encrypted_data_id'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
     );
   }
 
@@ -1842,8 +2182,9 @@ class TPasswordAttribute extends Table
   }
 
   @override
-  List<String> get customConstraints =>
-      const ['FOREIGN KEY(encrypted_data_id)REFERENCES t_encrypted_data(id)'];
+  List<String> get customConstraints => const [
+    'FOREIGN KEY(encrypted_data_id)REFERENCES t_encrypted_data(id)',
+  ];
   @override
   bool get dontWriteConstraints => true;
 }
@@ -1858,15 +2199,16 @@ class TPasswordAttributeData extends DataClass
   final String? encryptedDataId;
   final DateTime createdAt;
   final DateTime updatedAt;
-  const TPasswordAttributeData(
-      {required this.id,
-      required this.passwordId,
-      required this.classification,
-      required this.name,
-      this.value,
-      this.encryptedDataId,
-      required this.createdAt,
-      required this.updatedAt});
+  const TPasswordAttributeData({
+    required this.id,
+    required this.passwordId,
+    required this.classification,
+    required this.name,
+    this.value,
+    this.encryptedDataId,
+    required this.createdAt,
+    required this.updatedAt,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1891,8 +2233,9 @@ class TPasswordAttributeData extends DataClass
       passwordId: Value(passwordId),
       classification: Value(classification),
       name: Value(name),
-      value:
-          value == null && nullToAbsent ? const Value.absent() : Value(value),
+      value: value == null && nullToAbsent
+          ? const Value.absent()
+          : Value(value),
       encryptedDataId: encryptedDataId == null && nullToAbsent
           ? const Value.absent()
           : Value(encryptedDataId),
@@ -1901,8 +2244,10 @@ class TPasswordAttributeData extends DataClass
     );
   }
 
-  factory TPasswordAttributeData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory TPasswordAttributeData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return TPasswordAttributeData(
       id: serializer.fromJson<int>(json['id']),
@@ -1930,32 +2275,33 @@ class TPasswordAttributeData extends DataClass
     };
   }
 
-  TPasswordAttributeData copyWith(
-          {int? id,
-          String? passwordId,
-          String? classification,
-          String? name,
-          Value<String?> value = const Value.absent(),
-          Value<String?> encryptedDataId = const Value.absent(),
-          DateTime? createdAt,
-          DateTime? updatedAt}) =>
-      TPasswordAttributeData(
-        id: id ?? this.id,
-        passwordId: passwordId ?? this.passwordId,
-        classification: classification ?? this.classification,
-        name: name ?? this.name,
-        value: value.present ? value.value : this.value,
-        encryptedDataId: encryptedDataId.present
-            ? encryptedDataId.value
-            : this.encryptedDataId,
-        createdAt: createdAt ?? this.createdAt,
-        updatedAt: updatedAt ?? this.updatedAt,
-      );
+  TPasswordAttributeData copyWith({
+    int? id,
+    String? passwordId,
+    String? classification,
+    String? name,
+    Value<String?> value = const Value.absent(),
+    Value<String?> encryptedDataId = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => TPasswordAttributeData(
+    id: id ?? this.id,
+    passwordId: passwordId ?? this.passwordId,
+    classification: classification ?? this.classification,
+    name: name ?? this.name,
+    value: value.present ? value.value : this.value,
+    encryptedDataId: encryptedDataId.present
+        ? encryptedDataId.value
+        : this.encryptedDataId,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
   TPasswordAttributeData copyWithCompanion(TPasswordAttributeCompanion data) {
     return TPasswordAttributeData(
       id: data.id.present ? data.id.value : this.id,
-      passwordId:
-          data.passwordId.present ? data.passwordId.value : this.passwordId,
+      passwordId: data.passwordId.present
+          ? data.passwordId.value
+          : this.passwordId,
       classification: data.classification.present
           ? data.classification.value
           : this.classification,
@@ -1985,8 +2331,16 @@ class TPasswordAttributeData extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(id, passwordId, classification, name, value,
-      encryptedDataId, createdAt, updatedAt);
+  int get hashCode => Object.hash(
+    id,
+    passwordId,
+    classification,
+    name,
+    value,
+    encryptedDataId,
+    createdAt,
+    updatedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2030,9 +2384,9 @@ class TPasswordAttributeCompanion
     this.encryptedDataId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
-  })  : passwordId = Value(passwordId),
-        classification = Value(classification),
-        name = Value(name);
+  }) : passwordId = Value(passwordId),
+       classification = Value(classification),
+       name = Value(name);
   static Insertable<TPasswordAttributeData> custom({
     Expression<int>? id,
     Expression<String>? passwordId,
@@ -2055,15 +2409,16 @@ class TPasswordAttributeCompanion
     });
   }
 
-  TPasswordAttributeCompanion copyWith(
-      {Value<int>? id,
-      Value<String>? passwordId,
-      Value<String>? classification,
-      Value<String>? name,
-      Value<String?>? value,
-      Value<String?>? encryptedDataId,
-      Value<DateTime>? createdAt,
-      Value<DateTime>? updatedAt}) {
+  TPasswordAttributeCompanion copyWith({
+    Value<int>? id,
+    Value<String>? passwordId,
+    Value<String>? classification,
+    Value<String>? name,
+    Value<String?>? value,
+    Value<String?>? encryptedDataId,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+  }) {
     return TPasswordAttributeCompanion(
       id: id ?? this.id,
       passwordId: passwordId ?? this.passwordId,
@@ -2130,36 +2485,55 @@ class TPasswordHistory extends Table
   TPasswordHistory(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
-      'id', aliasedName, false,
-      hasAutoIncrement: true,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      $customConstraints: 'NOT NULL PRIMARY KEY AUTOINCREMENT');
-  static const VerificationMeta _passwordIdMeta =
-      const VerificationMeta('passwordId');
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL PRIMARY KEY AUTOINCREMENT',
+  );
+  static const VerificationMeta _passwordIdMeta = const VerificationMeta(
+    'passwordId',
+  );
   late final GeneratedColumn<String> passwordId = GeneratedColumn<String>(
-      'password_id', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
-  static const VerificationMeta _encryptedDataIdMeta =
-      const VerificationMeta('encryptedDataId');
+    'password_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _encryptedDataIdMeta = const VerificationMeta(
+    'encryptedDataId',
+  );
   late final GeneratedColumn<String> encryptedDataId = GeneratedColumn<String>(
-      'encrypted_data_id', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
-  static const VerificationMeta _createdAtMeta =
-      const VerificationMeta('createdAt');
+    'encrypted_data_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-      'created_at', aliasedName, false,
-      type: DriftSqlType.dateTime,
-      requiredDuringInsert: false,
-      $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
-      defaultValue: const CustomExpression('CURRENT_TIMESTAMP'));
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    defaultValue: const CustomExpression('CURRENT_TIMESTAMP'),
+  );
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, passwordId, encryptedDataId, createdAt];
+  List<GeneratedColumn> get $columns => [
+    id,
+    passwordId,
+    encryptedDataId,
+    createdAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -2167,8 +2541,9 @@ class TPasswordHistory extends Table
   static const String $name = 't_password_history';
   @override
   VerificationContext validateIntegrity(
-      Insertable<TPasswordHistoryData> instance,
-      {bool isInserting = false}) {
+    Insertable<TPasswordHistoryData> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
@@ -2176,23 +2551,28 @@ class TPasswordHistory extends Table
     }
     if (data.containsKey('password_id')) {
       context.handle(
-          _passwordIdMeta,
-          passwordId.isAcceptableOrUnknown(
-              data['password_id']!, _passwordIdMeta));
+        _passwordIdMeta,
+        passwordId.isAcceptableOrUnknown(data['password_id']!, _passwordIdMeta),
+      );
     } else if (isInserting) {
       context.missing(_passwordIdMeta);
     }
     if (data.containsKey('encrypted_data_id')) {
       context.handle(
+        _encryptedDataIdMeta,
+        encryptedDataId.isAcceptableOrUnknown(
+          data['encrypted_data_id']!,
           _encryptedDataIdMeta,
-          encryptedDataId.isAcceptableOrUnknown(
-              data['encrypted_data_id']!, _encryptedDataIdMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_encryptedDataIdMeta);
     }
     if (data.containsKey('created_at')) {
-      context.handle(_createdAtMeta,
-          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
     }
     return context;
   }
@@ -2203,14 +2583,22 @@ class TPasswordHistory extends Table
   TPasswordHistoryData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return TPasswordHistoryData(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
-      passwordId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}password_id'])!,
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      passwordId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}password_id'],
+      )!,
       encryptedDataId: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}encrypted_data_id'])!,
-      createdAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+        DriftSqlType.string,
+        data['${effectivePrefix}encrypted_data_id'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
     );
   }
 
@@ -2220,8 +2608,10 @@ class TPasswordHistory extends Table
   }
 
   @override
-  List<String> get customConstraints =>
-      const ['FOREIGN KEY(password_id)REFERENCES t_password(id)'];
+  List<String> get customConstraints => const [
+    'FOREIGN KEY(password_id)REFERENCES t_password(id)',
+    'FOREIGN KEY(encrypted_data_id)REFERENCES t_encrypted_data(id)',
+  ];
   @override
   bool get dontWriteConstraints => true;
 }
@@ -2232,11 +2622,12 @@ class TPasswordHistoryData extends DataClass
   final String passwordId;
   final String encryptedDataId;
   final DateTime createdAt;
-  const TPasswordHistoryData(
-      {required this.id,
-      required this.passwordId,
-      required this.encryptedDataId,
-      required this.createdAt});
+  const TPasswordHistoryData({
+    required this.id,
+    required this.passwordId,
+    required this.encryptedDataId,
+    required this.createdAt,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -2256,8 +2647,10 @@ class TPasswordHistoryData extends DataClass
     );
   }
 
-  factory TPasswordHistoryData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory TPasswordHistoryData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return TPasswordHistoryData(
       id: serializer.fromJson<int>(json['id']),
@@ -2277,22 +2670,23 @@ class TPasswordHistoryData extends DataClass
     };
   }
 
-  TPasswordHistoryData copyWith(
-          {int? id,
-          String? passwordId,
-          String? encryptedDataId,
-          DateTime? createdAt}) =>
-      TPasswordHistoryData(
-        id: id ?? this.id,
-        passwordId: passwordId ?? this.passwordId,
-        encryptedDataId: encryptedDataId ?? this.encryptedDataId,
-        createdAt: createdAt ?? this.createdAt,
-      );
+  TPasswordHistoryData copyWith({
+    int? id,
+    String? passwordId,
+    String? encryptedDataId,
+    DateTime? createdAt,
+  }) => TPasswordHistoryData(
+    id: id ?? this.id,
+    passwordId: passwordId ?? this.passwordId,
+    encryptedDataId: encryptedDataId ?? this.encryptedDataId,
+    createdAt: createdAt ?? this.createdAt,
+  );
   TPasswordHistoryData copyWithCompanion(TPasswordHistoryCompanion data) {
     return TPasswordHistoryData(
       id: data.id.present ? data.id.value : this.id,
-      passwordId:
-          data.passwordId.present ? data.passwordId.value : this.passwordId,
+      passwordId: data.passwordId.present
+          ? data.passwordId.value
+          : this.passwordId,
       encryptedDataId: data.encryptedDataId.present
           ? data.encryptedDataId.value
           : this.encryptedDataId,
@@ -2339,8 +2733,8 @@ class TPasswordHistoryCompanion extends UpdateCompanion<TPasswordHistoryData> {
     required String passwordId,
     required String encryptedDataId,
     this.createdAt = const Value.absent(),
-  })  : passwordId = Value(passwordId),
-        encryptedDataId = Value(encryptedDataId);
+  }) : passwordId = Value(passwordId),
+       encryptedDataId = Value(encryptedDataId);
   static Insertable<TPasswordHistoryData> custom({
     Expression<int>? id,
     Expression<String>? passwordId,
@@ -2355,11 +2749,12 @@ class TPasswordHistoryCompanion extends UpdateCompanion<TPasswordHistoryData> {
     });
   }
 
-  TPasswordHistoryCompanion copyWith(
-      {Value<int>? id,
-      Value<String>? passwordId,
-      Value<String>? encryptedDataId,
-      Value<DateTime>? createdAt}) {
+  TPasswordHistoryCompanion copyWith({
+    Value<int>? id,
+    Value<String>? passwordId,
+    Value<String>? encryptedDataId,
+    Value<DateTime>? createdAt,
+  }) {
     return TPasswordHistoryCompanion(
       id: id ?? this.id,
       passwordId: passwordId ?? this.passwordId,
@@ -2405,97 +2800,137 @@ class TNote extends Table with TableInfo<TNote, TNoteData> {
   TNote(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
-      'id', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL PRIMARY KEY');
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL PRIMARY KEY',
+  );
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
-      'title', aliasedName, true,
-      type: DriftSqlType.string,
-      requiredDuringInsert: false,
-      $customConstraints: '');
-  static const VerificationMeta _contentJsonMeta =
-      const VerificationMeta('contentJson');
+    'title',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _contentJsonMeta = const VerificationMeta(
+    'contentJson',
+  );
   late final GeneratedColumn<String> contentJson = GeneratedColumn<String>(
-      'content_json', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
-  static const VerificationMeta _contentChecksumMeta =
-      const VerificationMeta('contentChecksum');
+    'content_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _contentChecksumMeta = const VerificationMeta(
+    'contentChecksum',
+  );
   late final GeneratedColumn<String> contentChecksum = GeneratedColumn<String>(
-      'content_checksum', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
-  static const VerificationMeta _contentPlainMeta =
-      const VerificationMeta('contentPlain');
+    'content_checksum',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _contentPlainMeta = const VerificationMeta(
+    'contentPlain',
+  );
   late final GeneratedColumn<String> contentPlain = GeneratedColumn<String>(
-      'content_plain', aliasedName, true,
-      type: DriftSqlType.string,
-      requiredDuringInsert: false,
-      $customConstraints: 'NULL');
-  static const VerificationMeta _abstractMeta =
-      const VerificationMeta('abstract');
+    'content_plain',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL',
+  );
+  static const VerificationMeta _abstractMeta = const VerificationMeta(
+    'abstract',
+  );
   late final GeneratedColumn<String> abstract = GeneratedColumn<String>(
-      'abstract', aliasedName, true,
-      type: DriftSqlType.string,
-      requiredDuringInsert: false,
-      $customConstraints: '');
-  static const VerificationMeta _classificationMeta =
-      const VerificationMeta('classification');
+    'abstract',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _classificationMeta = const VerificationMeta(
+    'classification',
+  );
   late final GeneratedColumn<String> classification = GeneratedColumn<String>(
-      'classification', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints:
-          'NOT NULL CHECK (classification IN (\'C\', \'S\', \'T\'))');
-  static const VerificationMeta _createdAtMeta =
-      const VerificationMeta('createdAt');
+    'classification',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'NOT NULL CHECK (classification IN (\'C\', \'S\', \'T\'))',
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-      'created_at', aliasedName, false,
-      type: DriftSqlType.dateTime,
-      requiredDuringInsert: false,
-      $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
-      defaultValue: const CustomExpression('CURRENT_TIMESTAMP'));
-  static const VerificationMeta _updatedAtMeta =
-      const VerificationMeta('updatedAt');
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    defaultValue: const CustomExpression('CURRENT_TIMESTAMP'),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
   late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
-      'updated_at', aliasedName, false,
-      type: DriftSqlType.dateTime,
-      requiredDuringInsert: false,
-      $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
-      defaultValue: const CustomExpression('CURRENT_TIMESTAMP'));
-  static const VerificationMeta _deletedAtMeta =
-      const VerificationMeta('deletedAt');
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    defaultValue: const CustomExpression('CURRENT_TIMESTAMP'),
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
   late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
-      'deleted_at', aliasedName, true,
-      type: DriftSqlType.dateTime,
-      requiredDuringInsert: false,
-      $customConstraints: 'DEFAULT NULL',
-      defaultValue: const CustomExpression('NULL'));
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    $customConstraints: 'DEFAULT NULL',
+    defaultValue: const CustomExpression('NULL'),
+  );
   @override
   List<GeneratedColumn> get $columns => [
-        id,
-        title,
-        contentJson,
-        contentChecksum,
-        contentPlain,
-        abstract,
-        classification,
-        createdAt,
-        updatedAt,
-        deletedAt
-      ];
+    id,
+    title,
+    contentJson,
+    contentChecksum,
+    contentPlain,
+    abstract,
+    classification,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 't_note';
   @override
-  VerificationContext validateIntegrity(Insertable<TNoteData> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(
+    Insertable<TNoteData> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
@@ -2505,53 +2940,75 @@ class TNote extends Table with TableInfo<TNote, TNoteData> {
     }
     if (data.containsKey('title')) {
       context.handle(
-          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
     }
     if (data.containsKey('content_json')) {
       context.handle(
+        _contentJsonMeta,
+        contentJson.isAcceptableOrUnknown(
+          data['content_json']!,
           _contentJsonMeta,
-          contentJson.isAcceptableOrUnknown(
-              data['content_json']!, _contentJsonMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_contentJsonMeta);
     }
     if (data.containsKey('content_checksum')) {
       context.handle(
+        _contentChecksumMeta,
+        contentChecksum.isAcceptableOrUnknown(
+          data['content_checksum']!,
           _contentChecksumMeta,
-          contentChecksum.isAcceptableOrUnknown(
-              data['content_checksum']!, _contentChecksumMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_contentChecksumMeta);
     }
     if (data.containsKey('content_plain')) {
       context.handle(
+        _contentPlainMeta,
+        contentPlain.isAcceptableOrUnknown(
+          data['content_plain']!,
           _contentPlainMeta,
-          contentPlain.isAcceptableOrUnknown(
-              data['content_plain']!, _contentPlainMeta));
+        ),
+      );
     }
     if (data.containsKey('abstract')) {
-      context.handle(_abstractMeta,
-          abstract.isAcceptableOrUnknown(data['abstract']!, _abstractMeta));
+      context.handle(
+        _abstractMeta,
+        abstract.isAcceptableOrUnknown(data['abstract']!, _abstractMeta),
+      );
     }
     if (data.containsKey('classification')) {
       context.handle(
+        _classificationMeta,
+        classification.isAcceptableOrUnknown(
+          data['classification']!,
           _classificationMeta,
-          classification.isAcceptableOrUnknown(
-              data['classification']!, _classificationMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_classificationMeta);
     }
     if (data.containsKey('created_at')) {
-      context.handle(_createdAtMeta,
-          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
     }
     if (data.containsKey('updated_at')) {
-      context.handle(_updatedAtMeta,
-          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
     }
     if (data.containsKey('deleted_at')) {
-      context.handle(_deletedAtMeta,
-          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
     }
     return context;
   }
@@ -2562,26 +3019,46 @@ class TNote extends Table with TableInfo<TNote, TNoteData> {
   TNoteData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return TNoteData(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
-      title: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}title']),
-      contentJson: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}content_json'])!,
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      ),
+      contentJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content_json'],
+      )!,
       contentChecksum: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}content_checksum'])!,
-      contentPlain: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}content_plain']),
-      abstract: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}abstract']),
-      classification: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}classification'])!,
-      createdAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
-      updatedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
-      deletedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+        DriftSqlType.string,
+        data['${effectivePrefix}content_checksum'],
+      )!,
+      contentPlain: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content_plain'],
+      ),
+      abstract: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}abstract'],
+      ),
+      classification: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}classification'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
     );
   }
 
@@ -2605,17 +3082,18 @@ class TNoteData extends DataClass implements Insertable<TNoteData> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
-  const TNoteData(
-      {required this.id,
-      this.title,
-      required this.contentJson,
-      required this.contentChecksum,
-      this.contentPlain,
-      this.abstract,
-      required this.classification,
-      required this.createdAt,
-      required this.updatedAt,
-      this.deletedAt});
+  const TNoteData({
+    required this.id,
+    this.title,
+    required this.contentJson,
+    required this.contentChecksum,
+    this.contentPlain,
+    this.abstract,
+    required this.classification,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -2643,8 +3121,9 @@ class TNoteData extends DataClass implements Insertable<TNoteData> {
   TNoteCompanion toCompanion(bool nullToAbsent) {
     return TNoteCompanion(
       id: Value(id),
-      title:
-          title == null && nullToAbsent ? const Value.absent() : Value(title),
+      title: title == null && nullToAbsent
+          ? const Value.absent()
+          : Value(title),
       contentJson: Value(contentJson),
       contentChecksum: Value(contentChecksum),
       contentPlain: contentPlain == null && nullToAbsent
@@ -2662,8 +3141,10 @@ class TNoteData extends DataClass implements Insertable<TNoteData> {
     );
   }
 
-  factory TNoteData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory TNoteData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return TNoteData(
       id: serializer.fromJson<String>(json['id']),
@@ -2695,36 +3176,36 @@ class TNoteData extends DataClass implements Insertable<TNoteData> {
     };
   }
 
-  TNoteData copyWith(
-          {String? id,
-          Value<String?> title = const Value.absent(),
-          String? contentJson,
-          String? contentChecksum,
-          Value<String?> contentPlain = const Value.absent(),
-          Value<String?> abstract = const Value.absent(),
-          String? classification,
-          DateTime? createdAt,
-          DateTime? updatedAt,
-          Value<DateTime?> deletedAt = const Value.absent()}) =>
-      TNoteData(
-        id: id ?? this.id,
-        title: title.present ? title.value : this.title,
-        contentJson: contentJson ?? this.contentJson,
-        contentChecksum: contentChecksum ?? this.contentChecksum,
-        contentPlain:
-            contentPlain.present ? contentPlain.value : this.contentPlain,
-        abstract: abstract.present ? abstract.value : this.abstract,
-        classification: classification ?? this.classification,
-        createdAt: createdAt ?? this.createdAt,
-        updatedAt: updatedAt ?? this.updatedAt,
-        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
-      );
+  TNoteData copyWith({
+    String? id,
+    Value<String?> title = const Value.absent(),
+    String? contentJson,
+    String? contentChecksum,
+    Value<String?> contentPlain = const Value.absent(),
+    Value<String?> abstract = const Value.absent(),
+    String? classification,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => TNoteData(
+    id: id ?? this.id,
+    title: title.present ? title.value : this.title,
+    contentJson: contentJson ?? this.contentJson,
+    contentChecksum: contentChecksum ?? this.contentChecksum,
+    contentPlain: contentPlain.present ? contentPlain.value : this.contentPlain,
+    abstract: abstract.present ? abstract.value : this.abstract,
+    classification: classification ?? this.classification,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
   TNoteData copyWithCompanion(TNoteCompanion data) {
     return TNoteData(
       id: data.id.present ? data.id.value : this.id,
       title: data.title.present ? data.title.value : this.title,
-      contentJson:
-          data.contentJson.present ? data.contentJson.value : this.contentJson,
+      contentJson: data.contentJson.present
+          ? data.contentJson.value
+          : this.contentJson,
       contentChecksum: data.contentChecksum.present
           ? data.contentChecksum.value
           : this.contentChecksum,
@@ -2759,8 +3240,18 @@ class TNoteData extends DataClass implements Insertable<TNoteData> {
   }
 
   @override
-  int get hashCode => Object.hash(id, title, contentJson, contentChecksum,
-      contentPlain, abstract, classification, createdAt, updatedAt, deletedAt);
+  int get hashCode => Object.hash(
+    id,
+    title,
+    contentJson,
+    contentChecksum,
+    contentPlain,
+    abstract,
+    classification,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2814,10 +3305,10 @@ class TNoteCompanion extends UpdateCompanion<TNoteData> {
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
-  })  : id = Value(id),
-        contentJson = Value(contentJson),
-        contentChecksum = Value(contentChecksum),
-        classification = Value(classification);
+  }) : id = Value(id),
+       contentJson = Value(contentJson),
+       contentChecksum = Value(contentChecksum),
+       classification = Value(classification);
   static Insertable<TNoteData> custom({
     Expression<String>? id,
     Expression<String>? title,
@@ -2846,18 +3337,19 @@ class TNoteCompanion extends UpdateCompanion<TNoteData> {
     });
   }
 
-  TNoteCompanion copyWith(
-      {Value<String>? id,
-      Value<String?>? title,
-      Value<String>? contentJson,
-      Value<String>? contentChecksum,
-      Value<String?>? contentPlain,
-      Value<String?>? abstract,
-      Value<String>? classification,
-      Value<DateTime>? createdAt,
-      Value<DateTime>? updatedAt,
-      Value<DateTime?>? deletedAt,
-      Value<int>? rowid}) {
+  TNoteCompanion copyWith({
+    Value<String>? id,
+    Value<String?>? title,
+    Value<String>? contentJson,
+    Value<String>? contentChecksum,
+    Value<String?>? contentPlain,
+    Value<String?>? abstract,
+    Value<String>? classification,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
     return TNoteCompanion(
       id: id ?? this.id,
       title: title ?? this.title,
@@ -2939,95 +3431,138 @@ class TNoteHistory extends Table
   TNoteHistory(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
-      'id', aliasedName, false,
-      hasAutoIncrement: true,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      $customConstraints: 'PRIMARY KEY AUTOINCREMENT');
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'PRIMARY KEY AUTOINCREMENT',
+  );
   static const VerificationMeta _noteIdMeta = const VerificationMeta('noteId');
   late final GeneratedColumn<String> noteId = GeneratedColumn<String>(
-      'note_id', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
-  static const VerificationMeta _contentJsonMeta =
-      const VerificationMeta('contentJson');
+    'note_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _contentJsonMeta = const VerificationMeta(
+    'contentJson',
+  );
   late final GeneratedColumn<String> contentJson = GeneratedColumn<String>(
-      'content_json', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
-  static const VerificationMeta _contentChecksumMeta =
-      const VerificationMeta('contentChecksum');
+    'content_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _contentChecksumMeta = const VerificationMeta(
+    'contentChecksum',
+  );
   late final GeneratedColumn<String> contentChecksum = GeneratedColumn<String>(
-      'content_checksum', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
-  static const VerificationMeta _contentPlainMeta =
-      const VerificationMeta('contentPlain');
+    'content_checksum',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _contentPlainMeta = const VerificationMeta(
+    'contentPlain',
+  );
   late final GeneratedColumn<String> contentPlain = GeneratedColumn<String>(
-      'content_plain', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
-  static const VerificationMeta _createdAtMeta =
-      const VerificationMeta('createdAt');
+    'content_plain',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-      'created_at', aliasedName, false,
-      type: DriftSqlType.dateTime,
-      requiredDuringInsert: false,
-      $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
-      defaultValue: const CustomExpression('CURRENT_TIMESTAMP'));
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    defaultValue: const CustomExpression('CURRENT_TIMESTAMP'),
+  );
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, noteId, contentJson, contentChecksum, contentPlain, createdAt];
+  List<GeneratedColumn> get $columns => [
+    id,
+    noteId,
+    contentJson,
+    contentChecksum,
+    contentPlain,
+    createdAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 't_note_history';
   @override
-  VerificationContext validateIntegrity(Insertable<TNoteHistoryData> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(
+    Insertable<TNoteHistoryData> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
     if (data.containsKey('note_id')) {
-      context.handle(_noteIdMeta,
-          noteId.isAcceptableOrUnknown(data['note_id']!, _noteIdMeta));
+      context.handle(
+        _noteIdMeta,
+        noteId.isAcceptableOrUnknown(data['note_id']!, _noteIdMeta),
+      );
     } else if (isInserting) {
       context.missing(_noteIdMeta);
     }
     if (data.containsKey('content_json')) {
       context.handle(
+        _contentJsonMeta,
+        contentJson.isAcceptableOrUnknown(
+          data['content_json']!,
           _contentJsonMeta,
-          contentJson.isAcceptableOrUnknown(
-              data['content_json']!, _contentJsonMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_contentJsonMeta);
     }
     if (data.containsKey('content_checksum')) {
       context.handle(
+        _contentChecksumMeta,
+        contentChecksum.isAcceptableOrUnknown(
+          data['content_checksum']!,
           _contentChecksumMeta,
-          contentChecksum.isAcceptableOrUnknown(
-              data['content_checksum']!, _contentChecksumMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_contentChecksumMeta);
     }
     if (data.containsKey('content_plain')) {
       context.handle(
+        _contentPlainMeta,
+        contentPlain.isAcceptableOrUnknown(
+          data['content_plain']!,
           _contentPlainMeta,
-          contentPlain.isAcceptableOrUnknown(
-              data['content_plain']!, _contentPlainMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_contentPlainMeta);
     }
     if (data.containsKey('created_at')) {
-      context.handle(_createdAtMeta,
-          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
     }
     return context;
   }
@@ -3038,18 +3573,30 @@ class TNoteHistory extends Table
   TNoteHistoryData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return TNoteHistoryData(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
-      noteId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}note_id'])!,
-      contentJson: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}content_json'])!,
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      noteId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note_id'],
+      )!,
+      contentJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content_json'],
+      )!,
       contentChecksum: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}content_checksum'])!,
-      contentPlain: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}content_plain'])!,
-      createdAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+        DriftSqlType.string,
+        data['${effectivePrefix}content_checksum'],
+      )!,
+      contentPlain: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content_plain'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
     );
   }
 
@@ -3059,8 +3606,9 @@ class TNoteHistory extends Table
   }
 
   @override
-  List<String> get customConstraints =>
-      const ['FOREIGN KEY(note_id)REFERENCES t_note(id)'];
+  List<String> get customConstraints => const [
+    'FOREIGN KEY(note_id)REFERENCES t_note(id)',
+  ];
   @override
   bool get dontWriteConstraints => true;
 }
@@ -3073,13 +3621,14 @@ class TNoteHistoryData extends DataClass
   final String contentChecksum;
   final String contentPlain;
   final DateTime createdAt;
-  const TNoteHistoryData(
-      {required this.id,
-      required this.noteId,
-      required this.contentJson,
-      required this.contentChecksum,
-      required this.contentPlain,
-      required this.createdAt});
+  const TNoteHistoryData({
+    required this.id,
+    required this.noteId,
+    required this.contentJson,
+    required this.contentChecksum,
+    required this.contentPlain,
+    required this.createdAt,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -3103,8 +3652,10 @@ class TNoteHistoryData extends DataClass
     );
   }
 
-  factory TNoteHistoryData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory TNoteHistoryData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return TNoteHistoryData(
       id: serializer.fromJson<int>(json['id']),
@@ -3128,27 +3679,28 @@ class TNoteHistoryData extends DataClass
     };
   }
 
-  TNoteHistoryData copyWith(
-          {int? id,
-          String? noteId,
-          String? contentJson,
-          String? contentChecksum,
-          String? contentPlain,
-          DateTime? createdAt}) =>
-      TNoteHistoryData(
-        id: id ?? this.id,
-        noteId: noteId ?? this.noteId,
-        contentJson: contentJson ?? this.contentJson,
-        contentChecksum: contentChecksum ?? this.contentChecksum,
-        contentPlain: contentPlain ?? this.contentPlain,
-        createdAt: createdAt ?? this.createdAt,
-      );
+  TNoteHistoryData copyWith({
+    int? id,
+    String? noteId,
+    String? contentJson,
+    String? contentChecksum,
+    String? contentPlain,
+    DateTime? createdAt,
+  }) => TNoteHistoryData(
+    id: id ?? this.id,
+    noteId: noteId ?? this.noteId,
+    contentJson: contentJson ?? this.contentJson,
+    contentChecksum: contentChecksum ?? this.contentChecksum,
+    contentPlain: contentPlain ?? this.contentPlain,
+    createdAt: createdAt ?? this.createdAt,
+  );
   TNoteHistoryData copyWithCompanion(TNoteHistoryCompanion data) {
     return TNoteHistoryData(
       id: data.id.present ? data.id.value : this.id,
       noteId: data.noteId.present ? data.noteId.value : this.noteId,
-      contentJson:
-          data.contentJson.present ? data.contentJson.value : this.contentJson,
+      contentJson: data.contentJson.present
+          ? data.contentJson.value
+          : this.contentJson,
       contentChecksum: data.contentChecksum.present
           ? data.contentChecksum.value
           : this.contentChecksum,
@@ -3174,7 +3726,13 @@ class TNoteHistoryData extends DataClass
 
   @override
   int get hashCode => Object.hash(
-      id, noteId, contentJson, contentChecksum, contentPlain, createdAt);
+    id,
+    noteId,
+    contentJson,
+    contentChecksum,
+    contentPlain,
+    createdAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3209,10 +3767,10 @@ class TNoteHistoryCompanion extends UpdateCompanion<TNoteHistoryData> {
     required String contentChecksum,
     required String contentPlain,
     this.createdAt = const Value.absent(),
-  })  : noteId = Value(noteId),
-        contentJson = Value(contentJson),
-        contentChecksum = Value(contentChecksum),
-        contentPlain = Value(contentPlain);
+  }) : noteId = Value(noteId),
+       contentJson = Value(contentJson),
+       contentChecksum = Value(contentChecksum),
+       contentPlain = Value(contentPlain);
   static Insertable<TNoteHistoryData> custom({
     Expression<int>? id,
     Expression<String>? noteId,
@@ -3231,13 +3789,14 @@ class TNoteHistoryCompanion extends UpdateCompanion<TNoteHistoryData> {
     });
   }
 
-  TNoteHistoryCompanion copyWith(
-      {Value<int>? id,
-      Value<String>? noteId,
-      Value<String>? contentJson,
-      Value<String>? contentChecksum,
-      Value<String>? contentPlain,
-      Value<DateTime>? createdAt}) {
+  TNoteHistoryCompanion copyWith({
+    Value<int>? id,
+    Value<String>? noteId,
+    Value<String>? contentJson,
+    Value<String>? contentChecksum,
+    Value<String>? contentPlain,
+    Value<DateTime>? createdAt,
+  }) {
     return TNoteHistoryCompanion(
       id: id ?? this.id,
       noteId: noteId ?? this.noteId,
@@ -3286,211 +3845,6 @@ class TNoteHistoryCompanion extends UpdateCompanion<TNoteHistoryData> {
   }
 }
 
-class TNoteIdx extends Table
-    with
-        TableInfo<TNoteIdx, TNoteIdxData>,
-        VirtualTableInfo<TNoteIdx, TNoteIdxData> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  TNoteIdx(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _titleMeta = const VerificationMeta('title');
-  late final GeneratedColumn<String> title = GeneratedColumn<String>(
-      'title', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: '');
-  static const VerificationMeta _contentPlainMeta =
-      const VerificationMeta('contentPlain');
-  late final GeneratedColumn<String> contentPlain = GeneratedColumn<String>(
-      'content_plain', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: '');
-  @override
-  List<GeneratedColumn> get $columns => [title, contentPlain];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 't_note_idx';
-  @override
-  VerificationContext validateIntegrity(Insertable<TNoteIdxData> instance,
-      {bool isInserting = false}) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('title')) {
-      context.handle(
-          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
-    } else if (isInserting) {
-      context.missing(_titleMeta);
-    }
-    if (data.containsKey('content_plain')) {
-      context.handle(
-          _contentPlainMeta,
-          contentPlain.isAcceptableOrUnknown(
-              data['content_plain']!, _contentPlainMeta));
-    } else if (isInserting) {
-      context.missing(_contentPlainMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => const {};
-  @override
-  TNoteIdxData map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return TNoteIdxData(
-      title: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
-      contentPlain: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}content_plain'])!,
-    );
-  }
-
-  @override
-  TNoteIdx createAlias(String alias) {
-    return TNoteIdx(attachedDatabase, alias);
-  }
-
-  @override
-  bool get dontWriteConstraints => true;
-  @override
-  String get moduleAndArgs =>
-      'FTS5(title, content_plain, content="t_note", tokenize=\'jieba\')';
-}
-
-class TNoteIdxData extends DataClass implements Insertable<TNoteIdxData> {
-  final String title;
-  final String contentPlain;
-  const TNoteIdxData({required this.title, required this.contentPlain});
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['title'] = Variable<String>(title);
-    map['content_plain'] = Variable<String>(contentPlain);
-    return map;
-  }
-
-  TNoteIdxCompanion toCompanion(bool nullToAbsent) {
-    return TNoteIdxCompanion(
-      title: Value(title),
-      contentPlain: Value(contentPlain),
-    );
-  }
-
-  factory TNoteIdxData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return TNoteIdxData(
-      title: serializer.fromJson<String>(json['title']),
-      contentPlain: serializer.fromJson<String>(json['content_plain']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'title': serializer.toJson<String>(title),
-      'content_plain': serializer.toJson<String>(contentPlain),
-    };
-  }
-
-  TNoteIdxData copyWith({String? title, String? contentPlain}) => TNoteIdxData(
-        title: title ?? this.title,
-        contentPlain: contentPlain ?? this.contentPlain,
-      );
-  TNoteIdxData copyWithCompanion(TNoteIdxCompanion data) {
-    return TNoteIdxData(
-      title: data.title.present ? data.title.value : this.title,
-      contentPlain: data.contentPlain.present
-          ? data.contentPlain.value
-          : this.contentPlain,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('TNoteIdxData(')
-          ..write('title: $title, ')
-          ..write('contentPlain: $contentPlain')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(title, contentPlain);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is TNoteIdxData &&
-          other.title == this.title &&
-          other.contentPlain == this.contentPlain);
-}
-
-class TNoteIdxCompanion extends UpdateCompanion<TNoteIdxData> {
-  final Value<String> title;
-  final Value<String> contentPlain;
-  final Value<int> rowid;
-  const TNoteIdxCompanion({
-    this.title = const Value.absent(),
-    this.contentPlain = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  TNoteIdxCompanion.insert({
-    required String title,
-    required String contentPlain,
-    this.rowid = const Value.absent(),
-  })  : title = Value(title),
-        contentPlain = Value(contentPlain);
-  static Insertable<TNoteIdxData> custom({
-    Expression<String>? title,
-    Expression<String>? contentPlain,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (title != null) 'title': title,
-      if (contentPlain != null) 'content_plain': contentPlain,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  TNoteIdxCompanion copyWith(
-      {Value<String>? title, Value<String>? contentPlain, Value<int>? rowid}) {
-    return TNoteIdxCompanion(
-      title: title ?? this.title,
-      contentPlain: contentPlain ?? this.contentPlain,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (title.present) {
-      map['title'] = Variable<String>(title.value);
-    }
-    if (contentPlain.present) {
-      map['content_plain'] = Variable<String>(contentPlain.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('TNoteIdxCompanion(')
-          ..write('title: $title, ')
-          ..write('contentPlain: $contentPlain, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
 abstract class _$SqliteDb extends GeneratedDatabase {
   _$SqliteDb(QueryExecutor e) : super(e);
   $SqliteDbManager get managers => $SqliteDbManager(this);
@@ -3502,84 +3856,71 @@ abstract class _$SqliteDb extends GeneratedDatabase {
   late final TPasswordHistory tPasswordHistory = TPasswordHistory(this);
   late final TNote tNote = TNote(this);
   late final TNoteHistory tNoteHistory = TNoteHistory(this);
-  late final TNoteIdx tNoteIdx = TNoteIdx(this);
-  late final Trigger triOnNoteInserted = Trigger(
-      'CREATE TRIGGER tri_on_note_inserted AFTER INSERT ON t_note WHEN new.deleted_at IS NULL BEGIN INSERT INTO t_note_idx ("rowid", title, content_plain) VALUES (new."rowid", new.title, new.content_plain);END',
-      'tri_on_note_inserted');
-  late final Trigger triOnNoteUpdated = Trigger(
-      'CREATE TRIGGER tri_on_note_updated AFTER UPDATE ON t_note WHEN new.deleted_at IS NULL BEGIN INSERT INTO t_note_idx (t_note_idx, "rowid", title, content_plain) VALUES (\'delete\', old."rowid", old.title, old.content_plain);INSERT INTO t_note_idx ("rowid", title, content_plain) VALUES (new."rowid", new.title, new.content_plain);END',
-      'tri_on_note_updated');
-  late final Trigger triOnNoteDeleted = Trigger(
-      'CREATE TRIGGER tri_on_note_deleted AFTER UPDATE ON t_note WHEN new.deleted_at IS NOT NULL BEGIN INSERT INTO t_note_idx (t_note_idx, "rowid", title, content_plain) VALUES (\'delete\', old."rowid", old.title, old.content_plain);END',
-      'tri_on_note_deleted');
   Selectable<SelectPasswordsResult> selectPasswords(
-      SelectPasswords$order order) {
+    SelectPasswords$order order,
+  ) {
     var $arrayStartIndex = 1;
     final generatedorder = $write(
-        order?.call(this.tPassword) ?? const OrderBy.nothing(),
-        startIndex: $arrayStartIndex);
+      order?.call(this.tPassword) ?? const OrderBy.nothing(),
+      startIndex: $arrayStartIndex,
+    );
     $arrayStartIndex += generatedorder.amountOfVariables;
     return customSelect(
-        'SELECT id, type, classification, title, expire_time, category_id, created_at, updated_at FROM t_password WHERE deleted_at IS NULL ${generatedorder.sql}',
-        variables: [
-          ...generatedorder.introducedVariables
-        ],
-        readsFrom: {
-          tPassword,
-          ...generatedorder.watchedTables,
-        }).map((QueryRow row) => SelectPasswordsResult(
-          id: row.read<String>('id'),
-          type: row.read<int>('type'),
-          classification: row.read<String>('classification'),
-          title: row.readNullable<String>('title'),
-          expireTime: row.readNullable<DateTime>('expire_time'),
-          categoryId: row.read<int>('category_id'),
-          createdAt: row.read<DateTime>('created_at'),
-          updatedAt: row.read<DateTime>('updated_at'),
-        ));
+      'SELECT id, type, classification, title, expire_time, category_id, created_at, updated_at FROM t_password WHERE deleted_at IS NULL ${generatedorder.sql}',
+      variables: [...generatedorder.introducedVariables],
+      readsFrom: {tPassword, ...generatedorder.watchedTables},
+    ).map(
+      (QueryRow row) => SelectPasswordsResult(
+        id: row.read<String>('id'),
+        type: row.read<int>('type'),
+        classification: row.read<String>('classification'),
+        title: row.readNullable<String>('title'),
+        expireTime: row.readNullable<DateTime>('expire_time'),
+        categoryId: row.read<int>('category_id'),
+        createdAt: row.read<DateTime>('created_at'),
+        updatedAt: row.read<DateTime>('updated_at'),
+      ),
+    );
   }
 
   Selectable<SelectNotesResult> selectNotes(SelectNotes$order order) {
     var $arrayStartIndex = 1;
     final generatedorder = $write(
-        order?.call(this.tNote) ?? const OrderBy.nothing(),
-        startIndex: $arrayStartIndex);
+      order?.call(this.tNote) ?? const OrderBy.nothing(),
+      startIndex: $arrayStartIndex,
+    );
     $arrayStartIndex += generatedorder.amountOfVariables;
     return customSelect(
-        'SELECT id, classification, title, abstract, created_at, updated_at FROM t_note WHERE deleted_at IS NULL ${generatedorder.sql}',
-        variables: [
-          ...generatedorder.introducedVariables
-        ],
-        readsFrom: {
-          tNote,
-          ...generatedorder.watchedTables,
-        }).map((QueryRow row) => SelectNotesResult(
-          id: row.read<String>('id'),
-          classification: row.read<String>('classification'),
-          title: row.readNullable<String>('title'),
-          abstract: row.readNullable<String>('abstract'),
-          createdAt: row.read<DateTime>('created_at'),
-          updatedAt: row.read<DateTime>('updated_at'),
-        ));
+      'SELECT id, classification, title, abstract, created_at, updated_at FROM t_note WHERE deleted_at IS NULL ${generatedorder.sql}',
+      variables: [...generatedorder.introducedVariables],
+      readsFrom: {tNote, ...generatedorder.watchedTables},
+    ).map(
+      (QueryRow row) => SelectNotesResult(
+        id: row.read<String>('id'),
+        classification: row.read<String>('classification'),
+        title: row.readNullable<String>('title'),
+        abstract: row.readNullable<String>('abstract'),
+        createdAt: row.read<DateTime>('created_at'),
+        updatedAt: row.read<DateTime>('updated_at'),
+      ),
+    );
   }
 
   Selectable<SearchNotesResult> searchNotes(String var1) {
     return customSelect(
-        'SELECT n.id, n.title, n.classification, n.abstract, n.created_at, n.updated_at FROM t_note_idx AS i JOIN t_note AS n ON i."rowid" = n."rowid" WHERE t_note_idx MATCH ?1 AND n.deleted_at IS NULL ORDER BY rank',
-        variables: [
-          Variable<String>(var1)
-        ],
-        readsFrom: {
-          tNote,
-          tNoteIdx,
-        }).map((QueryRow row) => SearchNotesResult(
-          id: row.read<String>('id'),
-          title: row.readNullable<String>('title'),
-          classification: row.read<String>('classification'),
-          abstract: row.readNullable<String>('abstract'),
-          createdAt: row.read<DateTime>('created_at'),
-          updatedAt: row.read<DateTime>('updated_at'),
-        ));
+      'SELECT n.id, n.title, n.classification, n.abstract, n.created_at, n.updated_at FROM t_note_idx AS i JOIN t_note AS n ON i."rowid" = n."rowid" WHERE t_note_idx MATCH ?1 AND n.deleted_at IS NULL ORDER BY rank',
+      variables: [Variable<String>(var1)],
+      readsFrom: {tNote},
+    ).map(
+      (QueryRow row) => SearchNotesResult(
+        id: row.read<String>('id'),
+        title: row.readNullable<String>('title'),
+        classification: row.read<String>('classification'),
+        abstract: row.readNullable<String>('abstract'),
+        createdAt: row.read<DateTime>('created_at'),
+        updatedAt: row.read<DateTime>('updated_at'),
+      ),
+    );
   }
 
   @override
@@ -3587,64 +3928,33 @@ abstract class _$SqliteDb extends GeneratedDatabase {
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
-        categories,
-        tDataEncryptKey,
-        tEncryptedData,
-        tPassword,
-        tPasswordAttribute,
-        tPasswordHistory,
-        tNote,
-        tNoteHistory,
-        tNoteIdx,
-        triOnNoteInserted,
-        triOnNoteUpdated,
-        triOnNoteDeleted
-      ];
-  @override
-  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
-        [
-          WritePropagation(
-            on: TableUpdateQuery.onTableName('t_note',
-                limitUpdateKind: UpdateKind.insert),
-            result: [
-              TableUpdate('t_note_idx', kind: UpdateKind.insert),
-            ],
-          ),
-          WritePropagation(
-            on: TableUpdateQuery.onTableName('t_note',
-                limitUpdateKind: UpdateKind.update),
-            result: [
-              TableUpdate('t_note_idx', kind: UpdateKind.insert),
-            ],
-          ),
-          WritePropagation(
-            on: TableUpdateQuery.onTableName('t_note',
-                limitUpdateKind: UpdateKind.update),
-            result: [
-              TableUpdate('t_note_idx', kind: UpdateKind.insert),
-            ],
-          ),
-        ],
-      );
-  @override
-  DriftDatabaseOptions get options =>
-      const DriftDatabaseOptions(storeDateTimeAsText: true);
+    categories,
+    tDataEncryptKey,
+    tEncryptedData,
+    tPassword,
+    tPasswordAttribute,
+    tPasswordHistory,
+    tNote,
+    tNoteHistory,
+  ];
 }
 
-typedef $CategoriesCreateCompanionBuilder = CategoriesCompanion Function({
-  Value<int> id,
-  required String name,
-  required int accessLevel,
-  required String createTime,
-  required String lastUpdateTime,
-});
-typedef $CategoriesUpdateCompanionBuilder = CategoriesCompanion Function({
-  Value<int> id,
-  Value<String> name,
-  Value<int> accessLevel,
-  Value<String> createTime,
-  Value<String> lastUpdateTime,
-});
+typedef $CategoriesCreateCompanionBuilder =
+    CategoriesCompanion Function({
+      Value<int> id,
+      required String name,
+      required int accessLevel,
+      required String createTime,
+      required String lastUpdateTime,
+    });
+typedef $CategoriesUpdateCompanionBuilder =
+    CategoriesCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<int> accessLevel,
+      Value<String> createTime,
+      Value<String> lastUpdateTime,
+    });
 
 class $CategoriesFilterComposer extends Composer<_$SqliteDb, Categories> {
   $CategoriesFilterComposer({
@@ -3655,20 +3965,29 @@ class $CategoriesFilterComposer extends Composer<_$SqliteDb, Categories> {
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get name => $composableBuilder(
-      column: $table.name, builder: (column) => ColumnFilters(column));
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<int> get accessLevel => $composableBuilder(
-      column: $table.accessLevel, builder: (column) => ColumnFilters(column));
+    column: $table.accessLevel,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get createTime => $composableBuilder(
-      column: $table.createTime, builder: (column) => ColumnFilters(column));
+    column: $table.createTime,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get lastUpdateTime => $composableBuilder(
-      column: $table.lastUpdateTime,
-      builder: (column) => ColumnFilters(column));
+    column: $table.lastUpdateTime,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $CategoriesOrderingComposer extends Composer<_$SqliteDb, Categories> {
@@ -3680,20 +3999,29 @@ class $CategoriesOrderingComposer extends Composer<_$SqliteDb, Categories> {
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get name => $composableBuilder(
-      column: $table.name, builder: (column) => ColumnOrderings(column));
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<int> get accessLevel => $composableBuilder(
-      column: $table.accessLevel, builder: (column) => ColumnOrderings(column));
+    column: $table.accessLevel,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get createTime => $composableBuilder(
-      column: $table.createTime, builder: (column) => ColumnOrderings(column));
+    column: $table.createTime,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get lastUpdateTime => $composableBuilder(
-      column: $table.lastUpdateTime,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.lastUpdateTime,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $CategoriesAnnotationComposer extends Composer<_$SqliteDb, Categories> {
@@ -3711,29 +4039,42 @@ class $CategoriesAnnotationComposer extends Composer<_$SqliteDb, Categories> {
       $composableBuilder(column: $table.name, builder: (column) => column);
 
   GeneratedColumn<int> get accessLevel => $composableBuilder(
-      column: $table.accessLevel, builder: (column) => column);
+    column: $table.accessLevel,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get createTime => $composableBuilder(
-      column: $table.createTime, builder: (column) => column);
+    column: $table.createTime,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get lastUpdateTime => $composableBuilder(
-      column: $table.lastUpdateTime, builder: (column) => column);
+    column: $table.lastUpdateTime,
+    builder: (column) => column,
+  );
 }
 
-class $CategoriesTableManager extends RootTableManager<
-    _$SqliteDb,
-    Categories,
-    CategoryEntity,
-    $CategoriesFilterComposer,
-    $CategoriesOrderingComposer,
-    $CategoriesAnnotationComposer,
-    $CategoriesCreateCompanionBuilder,
-    $CategoriesUpdateCompanionBuilder,
-    (CategoryEntity, BaseReferences<_$SqliteDb, Categories, CategoryEntity>),
-    CategoryEntity,
-    PrefetchHooks Function()> {
+class $CategoriesTableManager
+    extends
+        RootTableManager<
+          _$SqliteDb,
+          Categories,
+          CategoryEntity,
+          $CategoriesFilterComposer,
+          $CategoriesOrderingComposer,
+          $CategoriesAnnotationComposer,
+          $CategoriesCreateCompanionBuilder,
+          $CategoriesUpdateCompanionBuilder,
+          (
+            CategoryEntity,
+            BaseReferences<_$SqliteDb, Categories, CategoryEntity>,
+          ),
+          CategoryEntity,
+          PrefetchHooks Function()
+        > {
   $CategoriesTableManager(_$SqliteDb db, Categories table)
-      : super(TableManagerState(
+    : super(
+        TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -3742,73 +4083,76 @@ class $CategoriesTableManager extends RootTableManager<
               $CategoriesOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $CategoriesAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            Value<String> name = const Value.absent(),
-            Value<int> accessLevel = const Value.absent(),
-            Value<String> createTime = const Value.absent(),
-            Value<String> lastUpdateTime = const Value.absent(),
-          }) =>
-              CategoriesCompanion(
-            id: id,
-            name: name,
-            accessLevel: accessLevel,
-            createTime: createTime,
-            lastUpdateTime: lastUpdateTime,
-          ),
-          createCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            required String name,
-            required int accessLevel,
-            required String createTime,
-            required String lastUpdateTime,
-          }) =>
-              CategoriesCompanion.insert(
-            id: id,
-            name: name,
-            accessLevel: accessLevel,
-            createTime: createTime,
-            lastUpdateTime: lastUpdateTime,
-          ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<int> accessLevel = const Value.absent(),
+                Value<String> createTime = const Value.absent(),
+                Value<String> lastUpdateTime = const Value.absent(),
+              }) => CategoriesCompanion(
+                id: id,
+                name: name,
+                accessLevel: accessLevel,
+                createTime: createTime,
+                lastUpdateTime: lastUpdateTime,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                required int accessLevel,
+                required String createTime,
+                required String lastUpdateTime,
+              }) => CategoriesCompanion.insert(
+                id: id,
+                name: name,
+                accessLevel: accessLevel,
+                createTime: createTime,
+                lastUpdateTime: lastUpdateTime,
+              ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
-        ));
+        ),
+      );
 }
 
-typedef $CategoriesProcessedTableManager = ProcessedTableManager<
-    _$SqliteDb,
-    Categories,
-    CategoryEntity,
-    $CategoriesFilterComposer,
-    $CategoriesOrderingComposer,
-    $CategoriesAnnotationComposer,
-    $CategoriesCreateCompanionBuilder,
-    $CategoriesUpdateCompanionBuilder,
-    (CategoryEntity, BaseReferences<_$SqliteDb, Categories, CategoryEntity>),
-    CategoryEntity,
-    PrefetchHooks Function()>;
-typedef $TDataEncryptKeyCreateCompanionBuilder = TDataEncryptKeyCompanion
-    Function({
-  required String id,
-  required String data,
-  required String nonce,
-  required String authTag,
-  Value<DateTime> createdAt,
-  Value<DateTime> updatedAt,
-  Value<int> rowid,
-});
-typedef $TDataEncryptKeyUpdateCompanionBuilder = TDataEncryptKeyCompanion
-    Function({
-  Value<String> id,
-  Value<String> data,
-  Value<String> nonce,
-  Value<String> authTag,
-  Value<DateTime> createdAt,
-  Value<DateTime> updatedAt,
-  Value<int> rowid,
-});
+typedef $CategoriesProcessedTableManager =
+    ProcessedTableManager<
+      _$SqliteDb,
+      Categories,
+      CategoryEntity,
+      $CategoriesFilterComposer,
+      $CategoriesOrderingComposer,
+      $CategoriesAnnotationComposer,
+      $CategoriesCreateCompanionBuilder,
+      $CategoriesUpdateCompanionBuilder,
+      (CategoryEntity, BaseReferences<_$SqliteDb, Categories, CategoryEntity>),
+      CategoryEntity,
+      PrefetchHooks Function()
+    >;
+typedef $TDataEncryptKeyCreateCompanionBuilder =
+    TDataEncryptKeyCompanion Function({
+      required String id,
+      required String data,
+      required String nonce,
+      required String authTag,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+typedef $TDataEncryptKeyUpdateCompanionBuilder =
+    TDataEncryptKeyCompanion Function({
+      Value<String> id,
+      Value<String> data,
+      Value<String> nonce,
+      Value<String> authTag,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
 
 class $TDataEncryptKeyFilterComposer
     extends Composer<_$SqliteDb, TDataEncryptKey> {
@@ -3820,22 +4164,34 @@ class $TDataEncryptKeyFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get data => $composableBuilder(
-      column: $table.data, builder: (column) => ColumnFilters(column));
+    column: $table.data,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get nonce => $composableBuilder(
-      column: $table.nonce, builder: (column) => ColumnFilters(column));
+    column: $table.nonce,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get authTag => $composableBuilder(
-      column: $table.authTag, builder: (column) => ColumnFilters(column));
+    column: $table.authTag,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
-      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $TDataEncryptKeyOrderingComposer
@@ -3848,22 +4204,34 @@ class $TDataEncryptKeyOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get data => $composableBuilder(
-      column: $table.data, builder: (column) => ColumnOrderings(column));
+    column: $table.data,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get nonce => $composableBuilder(
-      column: $table.nonce, builder: (column) => ColumnOrderings(column));
+    column: $table.nonce,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get authTag => $composableBuilder(
-      column: $table.authTag, builder: (column) => ColumnOrderings(column));
+    column: $table.authTag,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
-      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $TDataEncryptKeyAnnotationComposer
@@ -3894,23 +4262,27 @@ class $TDataEncryptKeyAnnotationComposer
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
-class $TDataEncryptKeyTableManager extends RootTableManager<
-    _$SqliteDb,
-    TDataEncryptKey,
-    TDataEncryptKeyData,
-    $TDataEncryptKeyFilterComposer,
-    $TDataEncryptKeyOrderingComposer,
-    $TDataEncryptKeyAnnotationComposer,
-    $TDataEncryptKeyCreateCompanionBuilder,
-    $TDataEncryptKeyUpdateCompanionBuilder,
-    (
-      TDataEncryptKeyData,
-      BaseReferences<_$SqliteDb, TDataEncryptKey, TDataEncryptKeyData>
-    ),
-    TDataEncryptKeyData,
-    PrefetchHooks Function()> {
+class $TDataEncryptKeyTableManager
+    extends
+        RootTableManager<
+          _$SqliteDb,
+          TDataEncryptKey,
+          TDataEncryptKeyData,
+          $TDataEncryptKeyFilterComposer,
+          $TDataEncryptKeyOrderingComposer,
+          $TDataEncryptKeyAnnotationComposer,
+          $TDataEncryptKeyCreateCompanionBuilder,
+          $TDataEncryptKeyUpdateCompanionBuilder,
+          (
+            TDataEncryptKeyData,
+            BaseReferences<_$SqliteDb, TDataEncryptKey, TDataEncryptKeyData>,
+          ),
+          TDataEncryptKeyData,
+          PrefetchHooks Function()
+        > {
   $TDataEncryptKeyTableManager(_$SqliteDb db, TDataEncryptKey table)
-      : super(TableManagerState(
+    : super(
+        TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -3919,90 +4291,93 @@ class $TDataEncryptKeyTableManager extends RootTableManager<
               $TDataEncryptKeyOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $TDataEncryptKeyAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<String> id = const Value.absent(),
-            Value<String> data = const Value.absent(),
-            Value<String> nonce = const Value.absent(),
-            Value<String> authTag = const Value.absent(),
-            Value<DateTime> createdAt = const Value.absent(),
-            Value<DateTime> updatedAt = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              TDataEncryptKeyCompanion(
-            id: id,
-            data: data,
-            nonce: nonce,
-            authTag: authTag,
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-            rowid: rowid,
-          ),
-          createCompanionCallback: ({
-            required String id,
-            required String data,
-            required String nonce,
-            required String authTag,
-            Value<DateTime> createdAt = const Value.absent(),
-            Value<DateTime> updatedAt = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              TDataEncryptKeyCompanion.insert(
-            id: id,
-            data: data,
-            nonce: nonce,
-            authTag: authTag,
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-            rowid: rowid,
-          ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> data = const Value.absent(),
+                Value<String> nonce = const Value.absent(),
+                Value<String> authTag = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TDataEncryptKeyCompanion(
+                id: id,
+                data: data,
+                nonce: nonce,
+                authTag: authTag,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String data,
+                required String nonce,
+                required String authTag,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TDataEncryptKeyCompanion.insert(
+                id: id,
+                data: data,
+                nonce: nonce,
+                authTag: authTag,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
-        ));
+        ),
+      );
 }
 
-typedef $TDataEncryptKeyProcessedTableManager = ProcessedTableManager<
-    _$SqliteDb,
-    TDataEncryptKey,
-    TDataEncryptKeyData,
-    $TDataEncryptKeyFilterComposer,
-    $TDataEncryptKeyOrderingComposer,
-    $TDataEncryptKeyAnnotationComposer,
-    $TDataEncryptKeyCreateCompanionBuilder,
-    $TDataEncryptKeyUpdateCompanionBuilder,
-    (
+typedef $TDataEncryptKeyProcessedTableManager =
+    ProcessedTableManager<
+      _$SqliteDb,
+      TDataEncryptKey,
       TDataEncryptKeyData,
-      BaseReferences<_$SqliteDb, TDataEncryptKey, TDataEncryptKeyData>
-    ),
-    TDataEncryptKeyData,
-    PrefetchHooks Function()>;
-typedef $TEncryptedDataCreateCompanionBuilder = TEncryptedDataCompanion
-    Function({
-  required String id,
-  required String dekId,
-  required Uint8List content,
-  required String algorithmId,
-  required String authTag,
-  required String nonce,
-  Value<DateTime> createdAt,
-  Value<DateTime> updatedAt,
-  Value<DateTime?> deletedAt,
-  Value<int> rowid,
-});
-typedef $TEncryptedDataUpdateCompanionBuilder = TEncryptedDataCompanion
-    Function({
-  Value<String> id,
-  Value<String> dekId,
-  Value<Uint8List> content,
-  Value<String> algorithmId,
-  Value<String> authTag,
-  Value<String> nonce,
-  Value<DateTime> createdAt,
-  Value<DateTime> updatedAt,
-  Value<DateTime?> deletedAt,
-  Value<int> rowid,
-});
+      $TDataEncryptKeyFilterComposer,
+      $TDataEncryptKeyOrderingComposer,
+      $TDataEncryptKeyAnnotationComposer,
+      $TDataEncryptKeyCreateCompanionBuilder,
+      $TDataEncryptKeyUpdateCompanionBuilder,
+      (
+        TDataEncryptKeyData,
+        BaseReferences<_$SqliteDb, TDataEncryptKey, TDataEncryptKeyData>,
+      ),
+      TDataEncryptKeyData,
+      PrefetchHooks Function()
+    >;
+typedef $TEncryptedDataCreateCompanionBuilder =
+    TEncryptedDataCompanion Function({
+      required String id,
+      required String dekId,
+      required Uint8List content,
+      required String algorithmId,
+      required String authTag,
+      required String nonce,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $TEncryptedDataUpdateCompanionBuilder =
+    TEncryptedDataCompanion Function({
+      Value<String> id,
+      Value<String> dekId,
+      Value<Uint8List> content,
+      Value<String> algorithmId,
+      Value<String> authTag,
+      Value<String> nonce,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
 
 class $TEncryptedDataFilterComposer
     extends Composer<_$SqliteDb, TEncryptedData> {
@@ -4014,31 +4389,49 @@ class $TEncryptedDataFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get dekId => $composableBuilder(
-      column: $table.dekId, builder: (column) => ColumnFilters(column));
+    column: $table.dekId,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<Uint8List> get content => $composableBuilder(
-      column: $table.content, builder: (column) => ColumnFilters(column));
+    column: $table.content,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get algorithmId => $composableBuilder(
-      column: $table.algorithmId, builder: (column) => ColumnFilters(column));
+    column: $table.algorithmId,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get authTag => $composableBuilder(
-      column: $table.authTag, builder: (column) => ColumnFilters(column));
+    column: $table.authTag,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get nonce => $composableBuilder(
-      column: $table.nonce, builder: (column) => ColumnFilters(column));
+    column: $table.nonce,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
-      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
-      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $TEncryptedDataOrderingComposer
@@ -4051,31 +4444,49 @@ class $TEncryptedDataOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get dekId => $composableBuilder(
-      column: $table.dekId, builder: (column) => ColumnOrderings(column));
+    column: $table.dekId,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<Uint8List> get content => $composableBuilder(
-      column: $table.content, builder: (column) => ColumnOrderings(column));
+    column: $table.content,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get algorithmId => $composableBuilder(
-      column: $table.algorithmId, builder: (column) => ColumnOrderings(column));
+    column: $table.algorithmId,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get authTag => $composableBuilder(
-      column: $table.authTag, builder: (column) => ColumnOrderings(column));
+    column: $table.authTag,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get nonce => $composableBuilder(
-      column: $table.nonce, builder: (column) => ColumnOrderings(column));
+    column: $table.nonce,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
-      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
-      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $TEncryptedDataAnnotationComposer
@@ -4097,7 +4508,9 @@ class $TEncryptedDataAnnotationComposer
       $composableBuilder(column: $table.content, builder: (column) => column);
 
   GeneratedColumn<String> get algorithmId => $composableBuilder(
-      column: $table.algorithmId, builder: (column) => column);
+    column: $table.algorithmId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get authTag =>
       $composableBuilder(column: $table.authTag, builder: (column) => column);
@@ -4115,23 +4528,27 @@ class $TEncryptedDataAnnotationComposer
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
 }
 
-class $TEncryptedDataTableManager extends RootTableManager<
-    _$SqliteDb,
-    TEncryptedData,
-    TEncryptedDataData,
-    $TEncryptedDataFilterComposer,
-    $TEncryptedDataOrderingComposer,
-    $TEncryptedDataAnnotationComposer,
-    $TEncryptedDataCreateCompanionBuilder,
-    $TEncryptedDataUpdateCompanionBuilder,
-    (
-      TEncryptedDataData,
-      BaseReferences<_$SqliteDb, TEncryptedData, TEncryptedDataData>
-    ),
-    TEncryptedDataData,
-    PrefetchHooks Function()> {
+class $TEncryptedDataTableManager
+    extends
+        RootTableManager<
+          _$SqliteDb,
+          TEncryptedData,
+          TEncryptedDataData,
+          $TEncryptedDataFilterComposer,
+          $TEncryptedDataOrderingComposer,
+          $TEncryptedDataAnnotationComposer,
+          $TEncryptedDataCreateCompanionBuilder,
+          $TEncryptedDataUpdateCompanionBuilder,
+          (
+            TEncryptedDataData,
+            BaseReferences<_$SqliteDb, TEncryptedData, TEncryptedDataData>,
+          ),
+          TEncryptedDataData,
+          PrefetchHooks Function()
+        > {
   $TEncryptedDataTableManager(_$SqliteDb db, TEncryptedData table)
-      : super(TableManagerState(
+    : super(
+        TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -4140,102 +4557,107 @@ class $TEncryptedDataTableManager extends RootTableManager<
               $TEncryptedDataOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $TEncryptedDataAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<String> id = const Value.absent(),
-            Value<String> dekId = const Value.absent(),
-            Value<Uint8List> content = const Value.absent(),
-            Value<String> algorithmId = const Value.absent(),
-            Value<String> authTag = const Value.absent(),
-            Value<String> nonce = const Value.absent(),
-            Value<DateTime> createdAt = const Value.absent(),
-            Value<DateTime> updatedAt = const Value.absent(),
-            Value<DateTime?> deletedAt = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              TEncryptedDataCompanion(
-            id: id,
-            dekId: dekId,
-            content: content,
-            algorithmId: algorithmId,
-            authTag: authTag,
-            nonce: nonce,
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-            deletedAt: deletedAt,
-            rowid: rowid,
-          ),
-          createCompanionCallback: ({
-            required String id,
-            required String dekId,
-            required Uint8List content,
-            required String algorithmId,
-            required String authTag,
-            required String nonce,
-            Value<DateTime> createdAt = const Value.absent(),
-            Value<DateTime> updatedAt = const Value.absent(),
-            Value<DateTime?> deletedAt = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              TEncryptedDataCompanion.insert(
-            id: id,
-            dekId: dekId,
-            content: content,
-            algorithmId: algorithmId,
-            authTag: authTag,
-            nonce: nonce,
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-            deletedAt: deletedAt,
-            rowid: rowid,
-          ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> dekId = const Value.absent(),
+                Value<Uint8List> content = const Value.absent(),
+                Value<String> algorithmId = const Value.absent(),
+                Value<String> authTag = const Value.absent(),
+                Value<String> nonce = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TEncryptedDataCompanion(
+                id: id,
+                dekId: dekId,
+                content: content,
+                algorithmId: algorithmId,
+                authTag: authTag,
+                nonce: nonce,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String dekId,
+                required Uint8List content,
+                required String algorithmId,
+                required String authTag,
+                required String nonce,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TEncryptedDataCompanion.insert(
+                id: id,
+                dekId: dekId,
+                content: content,
+                algorithmId: algorithmId,
+                authTag: authTag,
+                nonce: nonce,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
-        ));
+        ),
+      );
 }
 
-typedef $TEncryptedDataProcessedTableManager = ProcessedTableManager<
-    _$SqliteDb,
-    TEncryptedData,
-    TEncryptedDataData,
-    $TEncryptedDataFilterComposer,
-    $TEncryptedDataOrderingComposer,
-    $TEncryptedDataAnnotationComposer,
-    $TEncryptedDataCreateCompanionBuilder,
-    $TEncryptedDataUpdateCompanionBuilder,
-    (
+typedef $TEncryptedDataProcessedTableManager =
+    ProcessedTableManager<
+      _$SqliteDb,
+      TEncryptedData,
       TEncryptedDataData,
-      BaseReferences<_$SqliteDb, TEncryptedData, TEncryptedDataData>
-    ),
-    TEncryptedDataData,
-    PrefetchHooks Function()>;
-typedef $TPasswordCreateCompanionBuilder = TPasswordCompanion Function({
-  required String id,
-  Value<int> type,
-  Value<int> categoryId,
-  required String classification,
-  Value<String?> title,
-  required String encryptedDataId,
-  Value<DateTime?> expireTime,
-  Value<DateTime> createdAt,
-  Value<DateTime> updatedAt,
-  Value<DateTime?> deletedAt,
-  Value<int> rowid,
-});
-typedef $TPasswordUpdateCompanionBuilder = TPasswordCompanion Function({
-  Value<String> id,
-  Value<int> type,
-  Value<int> categoryId,
-  Value<String> classification,
-  Value<String?> title,
-  Value<String> encryptedDataId,
-  Value<DateTime?> expireTime,
-  Value<DateTime> createdAt,
-  Value<DateTime> updatedAt,
-  Value<DateTime?> deletedAt,
-  Value<int> rowid,
-});
+      $TEncryptedDataFilterComposer,
+      $TEncryptedDataOrderingComposer,
+      $TEncryptedDataAnnotationComposer,
+      $TEncryptedDataCreateCompanionBuilder,
+      $TEncryptedDataUpdateCompanionBuilder,
+      (
+        TEncryptedDataData,
+        BaseReferences<_$SqliteDb, TEncryptedData, TEncryptedDataData>,
+      ),
+      TEncryptedDataData,
+      PrefetchHooks Function()
+    >;
+typedef $TPasswordCreateCompanionBuilder =
+    TPasswordCompanion Function({
+      required String id,
+      Value<int> type,
+      Value<int> categoryId,
+      required String classification,
+      Value<String?> title,
+      required String encryptedDataId,
+      Value<DateTime?> expireTime,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $TPasswordUpdateCompanionBuilder =
+    TPasswordCompanion Function({
+      Value<String> id,
+      Value<int> type,
+      Value<int> categoryId,
+      Value<String> classification,
+      Value<String?> title,
+      Value<String> encryptedDataId,
+      Value<DateTime?> expireTime,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
 
 class $TPasswordFilterComposer extends Composer<_$SqliteDb, TPassword> {
   $TPasswordFilterComposer({
@@ -4246,36 +4668,54 @@ class $TPasswordFilterComposer extends Composer<_$SqliteDb, TPassword> {
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<int> get type => $composableBuilder(
-      column: $table.type, builder: (column) => ColumnFilters(column));
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<int> get categoryId => $composableBuilder(
-      column: $table.categoryId, builder: (column) => ColumnFilters(column));
+    column: $table.categoryId,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get classification => $composableBuilder(
-      column: $table.classification,
-      builder: (column) => ColumnFilters(column));
+    column: $table.classification,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get title => $composableBuilder(
-      column: $table.title, builder: (column) => ColumnFilters(column));
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get encryptedDataId => $composableBuilder(
-      column: $table.encryptedDataId,
-      builder: (column) => ColumnFilters(column));
+    column: $table.encryptedDataId,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get expireTime => $composableBuilder(
-      column: $table.expireTime, builder: (column) => ColumnFilters(column));
+    column: $table.expireTime,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
-      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
-      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $TPasswordOrderingComposer extends Composer<_$SqliteDb, TPassword> {
@@ -4287,36 +4727,54 @@ class $TPasswordOrderingComposer extends Composer<_$SqliteDb, TPassword> {
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<int> get type => $composableBuilder(
-      column: $table.type, builder: (column) => ColumnOrderings(column));
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<int> get categoryId => $composableBuilder(
-      column: $table.categoryId, builder: (column) => ColumnOrderings(column));
+    column: $table.categoryId,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get classification => $composableBuilder(
-      column: $table.classification,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.classification,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get title => $composableBuilder(
-      column: $table.title, builder: (column) => ColumnOrderings(column));
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get encryptedDataId => $composableBuilder(
-      column: $table.encryptedDataId,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.encryptedDataId,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get expireTime => $composableBuilder(
-      column: $table.expireTime, builder: (column) => ColumnOrderings(column));
+    column: $table.expireTime,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
-      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
-      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $TPasswordAnnotationComposer extends Composer<_$SqliteDb, TPassword> {
@@ -4334,19 +4792,27 @@ class $TPasswordAnnotationComposer extends Composer<_$SqliteDb, TPassword> {
       $composableBuilder(column: $table.type, builder: (column) => column);
 
   GeneratedColumn<int> get categoryId => $composableBuilder(
-      column: $table.categoryId, builder: (column) => column);
+    column: $table.categoryId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get classification => $composableBuilder(
-      column: $table.classification, builder: (column) => column);
+    column: $table.classification,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get title =>
       $composableBuilder(column: $table.title, builder: (column) => column);
 
   GeneratedColumn<String> get encryptedDataId => $composableBuilder(
-      column: $table.encryptedDataId, builder: (column) => column);
+    column: $table.encryptedDataId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get expireTime => $composableBuilder(
-      column: $table.expireTime, builder: (column) => column);
+    column: $table.expireTime,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -4358,20 +4824,24 @@ class $TPasswordAnnotationComposer extends Composer<_$SqliteDb, TPassword> {
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
 }
 
-class $TPasswordTableManager extends RootTableManager<
-    _$SqliteDb,
-    TPassword,
-    TPasswordData,
-    $TPasswordFilterComposer,
-    $TPasswordOrderingComposer,
-    $TPasswordAnnotationComposer,
-    $TPasswordCreateCompanionBuilder,
-    $TPasswordUpdateCompanionBuilder,
-    (TPasswordData, BaseReferences<_$SqliteDb, TPassword, TPasswordData>),
-    TPasswordData,
-    PrefetchHooks Function()> {
+class $TPasswordTableManager
+    extends
+        RootTableManager<
+          _$SqliteDb,
+          TPassword,
+          TPasswordData,
+          $TPasswordFilterComposer,
+          $TPasswordOrderingComposer,
+          $TPasswordAnnotationComposer,
+          $TPasswordCreateCompanionBuilder,
+          $TPasswordUpdateCompanionBuilder,
+          (TPasswordData, BaseReferences<_$SqliteDb, TPassword, TPasswordData>),
+          TPasswordData,
+          PrefetchHooks Function()
+        > {
   $TPasswordTableManager(_$SqliteDb db, TPassword table)
-      : super(TableManagerState(
+    : super(
+        TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -4380,99 +4850,102 @@ class $TPasswordTableManager extends RootTableManager<
               $TPasswordOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $TPasswordAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<String> id = const Value.absent(),
-            Value<int> type = const Value.absent(),
-            Value<int> categoryId = const Value.absent(),
-            Value<String> classification = const Value.absent(),
-            Value<String?> title = const Value.absent(),
-            Value<String> encryptedDataId = const Value.absent(),
-            Value<DateTime?> expireTime = const Value.absent(),
-            Value<DateTime> createdAt = const Value.absent(),
-            Value<DateTime> updatedAt = const Value.absent(),
-            Value<DateTime?> deletedAt = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              TPasswordCompanion(
-            id: id,
-            type: type,
-            categoryId: categoryId,
-            classification: classification,
-            title: title,
-            encryptedDataId: encryptedDataId,
-            expireTime: expireTime,
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-            deletedAt: deletedAt,
-            rowid: rowid,
-          ),
-          createCompanionCallback: ({
-            required String id,
-            Value<int> type = const Value.absent(),
-            Value<int> categoryId = const Value.absent(),
-            required String classification,
-            Value<String?> title = const Value.absent(),
-            required String encryptedDataId,
-            Value<DateTime?> expireTime = const Value.absent(),
-            Value<DateTime> createdAt = const Value.absent(),
-            Value<DateTime> updatedAt = const Value.absent(),
-            Value<DateTime?> deletedAt = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              TPasswordCompanion.insert(
-            id: id,
-            type: type,
-            categoryId: categoryId,
-            classification: classification,
-            title: title,
-            encryptedDataId: encryptedDataId,
-            expireTime: expireTime,
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-            deletedAt: deletedAt,
-            rowid: rowid,
-          ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<int> type = const Value.absent(),
+                Value<int> categoryId = const Value.absent(),
+                Value<String> classification = const Value.absent(),
+                Value<String?> title = const Value.absent(),
+                Value<String> encryptedDataId = const Value.absent(),
+                Value<DateTime?> expireTime = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TPasswordCompanion(
+                id: id,
+                type: type,
+                categoryId: categoryId,
+                classification: classification,
+                title: title,
+                encryptedDataId: encryptedDataId,
+                expireTime: expireTime,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<int> type = const Value.absent(),
+                Value<int> categoryId = const Value.absent(),
+                required String classification,
+                Value<String?> title = const Value.absent(),
+                required String encryptedDataId,
+                Value<DateTime?> expireTime = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TPasswordCompanion.insert(
+                id: id,
+                type: type,
+                categoryId: categoryId,
+                classification: classification,
+                title: title,
+                encryptedDataId: encryptedDataId,
+                expireTime: expireTime,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
-        ));
+        ),
+      );
 }
 
-typedef $TPasswordProcessedTableManager = ProcessedTableManager<
-    _$SqliteDb,
-    TPassword,
-    TPasswordData,
-    $TPasswordFilterComposer,
-    $TPasswordOrderingComposer,
-    $TPasswordAnnotationComposer,
-    $TPasswordCreateCompanionBuilder,
-    $TPasswordUpdateCompanionBuilder,
-    (TPasswordData, BaseReferences<_$SqliteDb, TPassword, TPasswordData>),
-    TPasswordData,
-    PrefetchHooks Function()>;
-typedef $TPasswordAttributeCreateCompanionBuilder = TPasswordAttributeCompanion
-    Function({
-  Value<int> id,
-  required String passwordId,
-  required String classification,
-  required String name,
-  Value<String?> value,
-  Value<String?> encryptedDataId,
-  Value<DateTime> createdAt,
-  Value<DateTime> updatedAt,
-});
-typedef $TPasswordAttributeUpdateCompanionBuilder = TPasswordAttributeCompanion
-    Function({
-  Value<int> id,
-  Value<String> passwordId,
-  Value<String> classification,
-  Value<String> name,
-  Value<String?> value,
-  Value<String?> encryptedDataId,
-  Value<DateTime> createdAt,
-  Value<DateTime> updatedAt,
-});
+typedef $TPasswordProcessedTableManager =
+    ProcessedTableManager<
+      _$SqliteDb,
+      TPassword,
+      TPasswordData,
+      $TPasswordFilterComposer,
+      $TPasswordOrderingComposer,
+      $TPasswordAnnotationComposer,
+      $TPasswordCreateCompanionBuilder,
+      $TPasswordUpdateCompanionBuilder,
+      (TPasswordData, BaseReferences<_$SqliteDb, TPassword, TPasswordData>),
+      TPasswordData,
+      PrefetchHooks Function()
+    >;
+typedef $TPasswordAttributeCreateCompanionBuilder =
+    TPasswordAttributeCompanion Function({
+      Value<int> id,
+      required String passwordId,
+      required String classification,
+      required String name,
+      Value<String?> value,
+      Value<String?> encryptedDataId,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+typedef $TPasswordAttributeUpdateCompanionBuilder =
+    TPasswordAttributeCompanion Function({
+      Value<int> id,
+      Value<String> passwordId,
+      Value<String> classification,
+      Value<String> name,
+      Value<String?> value,
+      Value<String?> encryptedDataId,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
 
 class $TPasswordAttributeFilterComposer
     extends Composer<_$SqliteDb, TPasswordAttribute> {
@@ -4484,30 +4957,44 @@ class $TPasswordAttributeFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get passwordId => $composableBuilder(
-      column: $table.passwordId, builder: (column) => ColumnFilters(column));
+    column: $table.passwordId,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get classification => $composableBuilder(
-      column: $table.classification,
-      builder: (column) => ColumnFilters(column));
+    column: $table.classification,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get name => $composableBuilder(
-      column: $table.name, builder: (column) => ColumnFilters(column));
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get value => $composableBuilder(
-      column: $table.value, builder: (column) => ColumnFilters(column));
+    column: $table.value,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get encryptedDataId => $composableBuilder(
-      column: $table.encryptedDataId,
-      builder: (column) => ColumnFilters(column));
+    column: $table.encryptedDataId,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
-      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $TPasswordAttributeOrderingComposer
@@ -4520,30 +5007,44 @@ class $TPasswordAttributeOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get passwordId => $composableBuilder(
-      column: $table.passwordId, builder: (column) => ColumnOrderings(column));
+    column: $table.passwordId,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get classification => $composableBuilder(
-      column: $table.classification,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.classification,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get name => $composableBuilder(
-      column: $table.name, builder: (column) => ColumnOrderings(column));
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get value => $composableBuilder(
-      column: $table.value, builder: (column) => ColumnOrderings(column));
+    column: $table.value,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get encryptedDataId => $composableBuilder(
-      column: $table.encryptedDataId,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.encryptedDataId,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
-      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $TPasswordAttributeAnnotationComposer
@@ -4559,10 +5060,14 @@ class $TPasswordAttributeAnnotationComposer
       $composableBuilder(column: $table.id, builder: (column) => column);
 
   GeneratedColumn<String> get passwordId => $composableBuilder(
-      column: $table.passwordId, builder: (column) => column);
+    column: $table.passwordId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get classification => $composableBuilder(
-      column: $table.classification, builder: (column) => column);
+    column: $table.classification,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
@@ -4571,7 +5076,9 @@ class $TPasswordAttributeAnnotationComposer
       $composableBuilder(column: $table.value, builder: (column) => column);
 
   GeneratedColumn<String> get encryptedDataId => $composableBuilder(
-      column: $table.encryptedDataId, builder: (column) => column);
+    column: $table.encryptedDataId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -4580,23 +5087,31 @@ class $TPasswordAttributeAnnotationComposer
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
-class $TPasswordAttributeTableManager extends RootTableManager<
-    _$SqliteDb,
-    TPasswordAttribute,
-    TPasswordAttributeData,
-    $TPasswordAttributeFilterComposer,
-    $TPasswordAttributeOrderingComposer,
-    $TPasswordAttributeAnnotationComposer,
-    $TPasswordAttributeCreateCompanionBuilder,
-    $TPasswordAttributeUpdateCompanionBuilder,
-    (
-      TPasswordAttributeData,
-      BaseReferences<_$SqliteDb, TPasswordAttribute, TPasswordAttributeData>
-    ),
-    TPasswordAttributeData,
-    PrefetchHooks Function()> {
+class $TPasswordAttributeTableManager
+    extends
+        RootTableManager<
+          _$SqliteDb,
+          TPasswordAttribute,
+          TPasswordAttributeData,
+          $TPasswordAttributeFilterComposer,
+          $TPasswordAttributeOrderingComposer,
+          $TPasswordAttributeAnnotationComposer,
+          $TPasswordAttributeCreateCompanionBuilder,
+          $TPasswordAttributeUpdateCompanionBuilder,
+          (
+            TPasswordAttributeData,
+            BaseReferences<
+              _$SqliteDb,
+              TPasswordAttribute,
+              TPasswordAttributeData
+            >,
+          ),
+          TPasswordAttributeData,
+          PrefetchHooks Function()
+        > {
   $TPasswordAttributeTableManager(_$SqliteDb db, TPasswordAttribute table)
-      : super(TableManagerState(
+    : super(
+        TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -4605,82 +5120,85 @@ class $TPasswordAttributeTableManager extends RootTableManager<
               $TPasswordAttributeOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $TPasswordAttributeAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            Value<String> passwordId = const Value.absent(),
-            Value<String> classification = const Value.absent(),
-            Value<String> name = const Value.absent(),
-            Value<String?> value = const Value.absent(),
-            Value<String?> encryptedDataId = const Value.absent(),
-            Value<DateTime> createdAt = const Value.absent(),
-            Value<DateTime> updatedAt = const Value.absent(),
-          }) =>
-              TPasswordAttributeCompanion(
-            id: id,
-            passwordId: passwordId,
-            classification: classification,
-            name: name,
-            value: value,
-            encryptedDataId: encryptedDataId,
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-          ),
-          createCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            required String passwordId,
-            required String classification,
-            required String name,
-            Value<String?> value = const Value.absent(),
-            Value<String?> encryptedDataId = const Value.absent(),
-            Value<DateTime> createdAt = const Value.absent(),
-            Value<DateTime> updatedAt = const Value.absent(),
-          }) =>
-              TPasswordAttributeCompanion.insert(
-            id: id,
-            passwordId: passwordId,
-            classification: classification,
-            name: name,
-            value: value,
-            encryptedDataId: encryptedDataId,
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-          ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> passwordId = const Value.absent(),
+                Value<String> classification = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String?> value = const Value.absent(),
+                Value<String?> encryptedDataId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => TPasswordAttributeCompanion(
+                id: id,
+                passwordId: passwordId,
+                classification: classification,
+                name: name,
+                value: value,
+                encryptedDataId: encryptedDataId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String passwordId,
+                required String classification,
+                required String name,
+                Value<String?> value = const Value.absent(),
+                Value<String?> encryptedDataId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => TPasswordAttributeCompanion.insert(
+                id: id,
+                passwordId: passwordId,
+                classification: classification,
+                name: name,
+                value: value,
+                encryptedDataId: encryptedDataId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
-        ));
+        ),
+      );
 }
 
-typedef $TPasswordAttributeProcessedTableManager = ProcessedTableManager<
-    _$SqliteDb,
-    TPasswordAttribute,
-    TPasswordAttributeData,
-    $TPasswordAttributeFilterComposer,
-    $TPasswordAttributeOrderingComposer,
-    $TPasswordAttributeAnnotationComposer,
-    $TPasswordAttributeCreateCompanionBuilder,
-    $TPasswordAttributeUpdateCompanionBuilder,
-    (
+typedef $TPasswordAttributeProcessedTableManager =
+    ProcessedTableManager<
+      _$SqliteDb,
+      TPasswordAttribute,
       TPasswordAttributeData,
-      BaseReferences<_$SqliteDb, TPasswordAttribute, TPasswordAttributeData>
-    ),
-    TPasswordAttributeData,
-    PrefetchHooks Function()>;
-typedef $TPasswordHistoryCreateCompanionBuilder = TPasswordHistoryCompanion
-    Function({
-  Value<int> id,
-  required String passwordId,
-  required String encryptedDataId,
-  Value<DateTime> createdAt,
-});
-typedef $TPasswordHistoryUpdateCompanionBuilder = TPasswordHistoryCompanion
-    Function({
-  Value<int> id,
-  Value<String> passwordId,
-  Value<String> encryptedDataId,
-  Value<DateTime> createdAt,
-});
+      $TPasswordAttributeFilterComposer,
+      $TPasswordAttributeOrderingComposer,
+      $TPasswordAttributeAnnotationComposer,
+      $TPasswordAttributeCreateCompanionBuilder,
+      $TPasswordAttributeUpdateCompanionBuilder,
+      (
+        TPasswordAttributeData,
+        BaseReferences<_$SqliteDb, TPasswordAttribute, TPasswordAttributeData>,
+      ),
+      TPasswordAttributeData,
+      PrefetchHooks Function()
+    >;
+typedef $TPasswordHistoryCreateCompanionBuilder =
+    TPasswordHistoryCompanion Function({
+      Value<int> id,
+      required String passwordId,
+      required String encryptedDataId,
+      Value<DateTime> createdAt,
+    });
+typedef $TPasswordHistoryUpdateCompanionBuilder =
+    TPasswordHistoryCompanion Function({
+      Value<int> id,
+      Value<String> passwordId,
+      Value<String> encryptedDataId,
+      Value<DateTime> createdAt,
+    });
 
 class $TPasswordHistoryFilterComposer
     extends Composer<_$SqliteDb, TPasswordHistory> {
@@ -4692,17 +5210,24 @@ class $TPasswordHistoryFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get passwordId => $composableBuilder(
-      column: $table.passwordId, builder: (column) => ColumnFilters(column));
+    column: $table.passwordId,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get encryptedDataId => $composableBuilder(
-      column: $table.encryptedDataId,
-      builder: (column) => ColumnFilters(column));
+    column: $table.encryptedDataId,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $TPasswordHistoryOrderingComposer
@@ -4715,17 +5240,24 @@ class $TPasswordHistoryOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get passwordId => $composableBuilder(
-      column: $table.passwordId, builder: (column) => ColumnOrderings(column));
+    column: $table.passwordId,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get encryptedDataId => $composableBuilder(
-      column: $table.encryptedDataId,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.encryptedDataId,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $TPasswordHistoryAnnotationComposer
@@ -4741,32 +5273,40 @@ class $TPasswordHistoryAnnotationComposer
       $composableBuilder(column: $table.id, builder: (column) => column);
 
   GeneratedColumn<String> get passwordId => $composableBuilder(
-      column: $table.passwordId, builder: (column) => column);
+    column: $table.passwordId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get encryptedDataId => $composableBuilder(
-      column: $table.encryptedDataId, builder: (column) => column);
+    column: $table.encryptedDataId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 }
 
-class $TPasswordHistoryTableManager extends RootTableManager<
-    _$SqliteDb,
-    TPasswordHistory,
-    TPasswordHistoryData,
-    $TPasswordHistoryFilterComposer,
-    $TPasswordHistoryOrderingComposer,
-    $TPasswordHistoryAnnotationComposer,
-    $TPasswordHistoryCreateCompanionBuilder,
-    $TPasswordHistoryUpdateCompanionBuilder,
-    (
-      TPasswordHistoryData,
-      BaseReferences<_$SqliteDb, TPasswordHistory, TPasswordHistoryData>
-    ),
-    TPasswordHistoryData,
-    PrefetchHooks Function()> {
+class $TPasswordHistoryTableManager
+    extends
+        RootTableManager<
+          _$SqliteDb,
+          TPasswordHistory,
+          TPasswordHistoryData,
+          $TPasswordHistoryFilterComposer,
+          $TPasswordHistoryOrderingComposer,
+          $TPasswordHistoryAnnotationComposer,
+          $TPasswordHistoryCreateCompanionBuilder,
+          $TPasswordHistoryUpdateCompanionBuilder,
+          (
+            TPasswordHistoryData,
+            BaseReferences<_$SqliteDb, TPasswordHistory, TPasswordHistoryData>,
+          ),
+          TPasswordHistoryData,
+          PrefetchHooks Function()
+        > {
   $TPasswordHistoryTableManager(_$SqliteDb db, TPasswordHistory table)
-      : super(TableManagerState(
+    : super(
+        TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -4775,78 +5315,83 @@ class $TPasswordHistoryTableManager extends RootTableManager<
               $TPasswordHistoryOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $TPasswordHistoryAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            Value<String> passwordId = const Value.absent(),
-            Value<String> encryptedDataId = const Value.absent(),
-            Value<DateTime> createdAt = const Value.absent(),
-          }) =>
-              TPasswordHistoryCompanion(
-            id: id,
-            passwordId: passwordId,
-            encryptedDataId: encryptedDataId,
-            createdAt: createdAt,
-          ),
-          createCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            required String passwordId,
-            required String encryptedDataId,
-            Value<DateTime> createdAt = const Value.absent(),
-          }) =>
-              TPasswordHistoryCompanion.insert(
-            id: id,
-            passwordId: passwordId,
-            encryptedDataId: encryptedDataId,
-            createdAt: createdAt,
-          ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> passwordId = const Value.absent(),
+                Value<String> encryptedDataId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => TPasswordHistoryCompanion(
+                id: id,
+                passwordId: passwordId,
+                encryptedDataId: encryptedDataId,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String passwordId,
+                required String encryptedDataId,
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => TPasswordHistoryCompanion.insert(
+                id: id,
+                passwordId: passwordId,
+                encryptedDataId: encryptedDataId,
+                createdAt: createdAt,
+              ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
-        ));
+        ),
+      );
 }
 
-typedef $TPasswordHistoryProcessedTableManager = ProcessedTableManager<
-    _$SqliteDb,
-    TPasswordHistory,
-    TPasswordHistoryData,
-    $TPasswordHistoryFilterComposer,
-    $TPasswordHistoryOrderingComposer,
-    $TPasswordHistoryAnnotationComposer,
-    $TPasswordHistoryCreateCompanionBuilder,
-    $TPasswordHistoryUpdateCompanionBuilder,
-    (
+typedef $TPasswordHistoryProcessedTableManager =
+    ProcessedTableManager<
+      _$SqliteDb,
+      TPasswordHistory,
       TPasswordHistoryData,
-      BaseReferences<_$SqliteDb, TPasswordHistory, TPasswordHistoryData>
-    ),
-    TPasswordHistoryData,
-    PrefetchHooks Function()>;
-typedef $TNoteCreateCompanionBuilder = TNoteCompanion Function({
-  required String id,
-  Value<String?> title,
-  required String contentJson,
-  required String contentChecksum,
-  Value<String?> contentPlain,
-  Value<String?> abstract,
-  required String classification,
-  Value<DateTime> createdAt,
-  Value<DateTime> updatedAt,
-  Value<DateTime?> deletedAt,
-  Value<int> rowid,
-});
-typedef $TNoteUpdateCompanionBuilder = TNoteCompanion Function({
-  Value<String> id,
-  Value<String?> title,
-  Value<String> contentJson,
-  Value<String> contentChecksum,
-  Value<String?> contentPlain,
-  Value<String?> abstract,
-  Value<String> classification,
-  Value<DateTime> createdAt,
-  Value<DateTime> updatedAt,
-  Value<DateTime?> deletedAt,
-  Value<int> rowid,
-});
+      $TPasswordHistoryFilterComposer,
+      $TPasswordHistoryOrderingComposer,
+      $TPasswordHistoryAnnotationComposer,
+      $TPasswordHistoryCreateCompanionBuilder,
+      $TPasswordHistoryUpdateCompanionBuilder,
+      (
+        TPasswordHistoryData,
+        BaseReferences<_$SqliteDb, TPasswordHistory, TPasswordHistoryData>,
+      ),
+      TPasswordHistoryData,
+      PrefetchHooks Function()
+    >;
+typedef $TNoteCreateCompanionBuilder =
+    TNoteCompanion Function({
+      required String id,
+      Value<String?> title,
+      required String contentJson,
+      required String contentChecksum,
+      Value<String?> contentPlain,
+      Value<String?> abstract,
+      required String classification,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $TNoteUpdateCompanionBuilder =
+    TNoteCompanion Function({
+      Value<String> id,
+      Value<String?> title,
+      Value<String> contentJson,
+      Value<String> contentChecksum,
+      Value<String?> contentPlain,
+      Value<String?> abstract,
+      Value<String> classification,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
 
 class $TNoteFilterComposer extends Composer<_$SqliteDb, TNote> {
   $TNoteFilterComposer({
@@ -4857,36 +5402,54 @@ class $TNoteFilterComposer extends Composer<_$SqliteDb, TNote> {
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get title => $composableBuilder(
-      column: $table.title, builder: (column) => ColumnFilters(column));
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get contentJson => $composableBuilder(
-      column: $table.contentJson, builder: (column) => ColumnFilters(column));
+    column: $table.contentJson,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get contentChecksum => $composableBuilder(
-      column: $table.contentChecksum,
-      builder: (column) => ColumnFilters(column));
+    column: $table.contentChecksum,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get contentPlain => $composableBuilder(
-      column: $table.contentPlain, builder: (column) => ColumnFilters(column));
+    column: $table.contentPlain,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get abstract => $composableBuilder(
-      column: $table.abstract, builder: (column) => ColumnFilters(column));
+    column: $table.abstract,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get classification => $composableBuilder(
-      column: $table.classification,
-      builder: (column) => ColumnFilters(column));
+    column: $table.classification,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
-      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
-      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $TNoteOrderingComposer extends Composer<_$SqliteDb, TNote> {
@@ -4898,37 +5461,54 @@ class $TNoteOrderingComposer extends Composer<_$SqliteDb, TNote> {
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get title => $composableBuilder(
-      column: $table.title, builder: (column) => ColumnOrderings(column));
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get contentJson => $composableBuilder(
-      column: $table.contentJson, builder: (column) => ColumnOrderings(column));
+    column: $table.contentJson,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get contentChecksum => $composableBuilder(
-      column: $table.contentChecksum,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.contentChecksum,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get contentPlain => $composableBuilder(
-      column: $table.contentPlain,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.contentPlain,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get abstract => $composableBuilder(
-      column: $table.abstract, builder: (column) => ColumnOrderings(column));
+    column: $table.abstract,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get classification => $composableBuilder(
-      column: $table.classification,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.classification,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
-      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
-      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $TNoteAnnotationComposer extends Composer<_$SqliteDb, TNote> {
@@ -4946,19 +5526,27 @@ class $TNoteAnnotationComposer extends Composer<_$SqliteDb, TNote> {
       $composableBuilder(column: $table.title, builder: (column) => column);
 
   GeneratedColumn<String> get contentJson => $composableBuilder(
-      column: $table.contentJson, builder: (column) => column);
+    column: $table.contentJson,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get contentChecksum => $composableBuilder(
-      column: $table.contentChecksum, builder: (column) => column);
+    column: $table.contentChecksum,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get contentPlain => $composableBuilder(
-      column: $table.contentPlain, builder: (column) => column);
+    column: $table.contentPlain,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get abstract =>
       $composableBuilder(column: $table.abstract, builder: (column) => column);
 
   GeneratedColumn<String> get classification => $composableBuilder(
-      column: $table.classification, builder: (column) => column);
+    column: $table.classification,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -4970,20 +5558,24 @@ class $TNoteAnnotationComposer extends Composer<_$SqliteDb, TNote> {
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
 }
 
-class $TNoteTableManager extends RootTableManager<
-    _$SqliteDb,
-    TNote,
-    TNoteData,
-    $TNoteFilterComposer,
-    $TNoteOrderingComposer,
-    $TNoteAnnotationComposer,
-    $TNoteCreateCompanionBuilder,
-    $TNoteUpdateCompanionBuilder,
-    (TNoteData, BaseReferences<_$SqliteDb, TNote, TNoteData>),
-    TNoteData,
-    PrefetchHooks Function()> {
+class $TNoteTableManager
+    extends
+        RootTableManager<
+          _$SqliteDb,
+          TNote,
+          TNoteData,
+          $TNoteFilterComposer,
+          $TNoteOrderingComposer,
+          $TNoteAnnotationComposer,
+          $TNoteCreateCompanionBuilder,
+          $TNoteUpdateCompanionBuilder,
+          (TNoteData, BaseReferences<_$SqliteDb, TNote, TNoteData>),
+          TNoteData,
+          PrefetchHooks Function()
+        > {
   $TNoteTableManager(_$SqliteDb db, TNote table)
-      : super(TableManagerState(
+    : super(
+        TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -4992,93 +5584,98 @@ class $TNoteTableManager extends RootTableManager<
               $TNoteOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $TNoteAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<String> id = const Value.absent(),
-            Value<String?> title = const Value.absent(),
-            Value<String> contentJson = const Value.absent(),
-            Value<String> contentChecksum = const Value.absent(),
-            Value<String?> contentPlain = const Value.absent(),
-            Value<String?> abstract = const Value.absent(),
-            Value<String> classification = const Value.absent(),
-            Value<DateTime> createdAt = const Value.absent(),
-            Value<DateTime> updatedAt = const Value.absent(),
-            Value<DateTime?> deletedAt = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              TNoteCompanion(
-            id: id,
-            title: title,
-            contentJson: contentJson,
-            contentChecksum: contentChecksum,
-            contentPlain: contentPlain,
-            abstract: abstract,
-            classification: classification,
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-            deletedAt: deletedAt,
-            rowid: rowid,
-          ),
-          createCompanionCallback: ({
-            required String id,
-            Value<String?> title = const Value.absent(),
-            required String contentJson,
-            required String contentChecksum,
-            Value<String?> contentPlain = const Value.absent(),
-            Value<String?> abstract = const Value.absent(),
-            required String classification,
-            Value<DateTime> createdAt = const Value.absent(),
-            Value<DateTime> updatedAt = const Value.absent(),
-            Value<DateTime?> deletedAt = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              TNoteCompanion.insert(
-            id: id,
-            title: title,
-            contentJson: contentJson,
-            contentChecksum: contentChecksum,
-            contentPlain: contentPlain,
-            abstract: abstract,
-            classification: classification,
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-            deletedAt: deletedAt,
-            rowid: rowid,
-          ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String?> title = const Value.absent(),
+                Value<String> contentJson = const Value.absent(),
+                Value<String> contentChecksum = const Value.absent(),
+                Value<String?> contentPlain = const Value.absent(),
+                Value<String?> abstract = const Value.absent(),
+                Value<String> classification = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TNoteCompanion(
+                id: id,
+                title: title,
+                contentJson: contentJson,
+                contentChecksum: contentChecksum,
+                contentPlain: contentPlain,
+                abstract: abstract,
+                classification: classification,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String?> title = const Value.absent(),
+                required String contentJson,
+                required String contentChecksum,
+                Value<String?> contentPlain = const Value.absent(),
+                Value<String?> abstract = const Value.absent(),
+                required String classification,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TNoteCompanion.insert(
+                id: id,
+                title: title,
+                contentJson: contentJson,
+                contentChecksum: contentChecksum,
+                contentPlain: contentPlain,
+                abstract: abstract,
+                classification: classification,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
-        ));
+        ),
+      );
 }
 
-typedef $TNoteProcessedTableManager = ProcessedTableManager<
-    _$SqliteDb,
-    TNote,
-    TNoteData,
-    $TNoteFilterComposer,
-    $TNoteOrderingComposer,
-    $TNoteAnnotationComposer,
-    $TNoteCreateCompanionBuilder,
-    $TNoteUpdateCompanionBuilder,
-    (TNoteData, BaseReferences<_$SqliteDb, TNote, TNoteData>),
-    TNoteData,
-    PrefetchHooks Function()>;
-typedef $TNoteHistoryCreateCompanionBuilder = TNoteHistoryCompanion Function({
-  Value<int> id,
-  required String noteId,
-  required String contentJson,
-  required String contentChecksum,
-  required String contentPlain,
-  Value<DateTime> createdAt,
-});
-typedef $TNoteHistoryUpdateCompanionBuilder = TNoteHistoryCompanion Function({
-  Value<int> id,
-  Value<String> noteId,
-  Value<String> contentJson,
-  Value<String> contentChecksum,
-  Value<String> contentPlain,
-  Value<DateTime> createdAt,
-});
+typedef $TNoteProcessedTableManager =
+    ProcessedTableManager<
+      _$SqliteDb,
+      TNote,
+      TNoteData,
+      $TNoteFilterComposer,
+      $TNoteOrderingComposer,
+      $TNoteAnnotationComposer,
+      $TNoteCreateCompanionBuilder,
+      $TNoteUpdateCompanionBuilder,
+      (TNoteData, BaseReferences<_$SqliteDb, TNote, TNoteData>),
+      TNoteData,
+      PrefetchHooks Function()
+    >;
+typedef $TNoteHistoryCreateCompanionBuilder =
+    TNoteHistoryCompanion Function({
+      Value<int> id,
+      required String noteId,
+      required String contentJson,
+      required String contentChecksum,
+      required String contentPlain,
+      Value<DateTime> createdAt,
+    });
+typedef $TNoteHistoryUpdateCompanionBuilder =
+    TNoteHistoryCompanion Function({
+      Value<int> id,
+      Value<String> noteId,
+      Value<String> contentJson,
+      Value<String> contentChecksum,
+      Value<String> contentPlain,
+      Value<DateTime> createdAt,
+    });
 
 class $TNoteHistoryFilterComposer extends Composer<_$SqliteDb, TNoteHistory> {
   $TNoteHistoryFilterComposer({
@@ -5089,23 +5686,34 @@ class $TNoteHistoryFilterComposer extends Composer<_$SqliteDb, TNoteHistory> {
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get noteId => $composableBuilder(
-      column: $table.noteId, builder: (column) => ColumnFilters(column));
+    column: $table.noteId,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get contentJson => $composableBuilder(
-      column: $table.contentJson, builder: (column) => ColumnFilters(column));
+    column: $table.contentJson,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get contentChecksum => $composableBuilder(
-      column: $table.contentChecksum,
-      builder: (column) => ColumnFilters(column));
+    column: $table.contentChecksum,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get contentPlain => $composableBuilder(
-      column: $table.contentPlain, builder: (column) => ColumnFilters(column));
+    column: $table.contentPlain,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $TNoteHistoryOrderingComposer extends Composer<_$SqliteDb, TNoteHistory> {
@@ -5117,24 +5725,34 @@ class $TNoteHistoryOrderingComposer extends Composer<_$SqliteDb, TNoteHistory> {
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get noteId => $composableBuilder(
-      column: $table.noteId, builder: (column) => ColumnOrderings(column));
+    column: $table.noteId,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get contentJson => $composableBuilder(
-      column: $table.contentJson, builder: (column) => ColumnOrderings(column));
+    column: $table.contentJson,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get contentChecksum => $composableBuilder(
-      column: $table.contentChecksum,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.contentChecksum,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get contentPlain => $composableBuilder(
-      column: $table.contentPlain,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.contentPlain,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $TNoteHistoryAnnotationComposer
@@ -5153,35 +5771,45 @@ class $TNoteHistoryAnnotationComposer
       $composableBuilder(column: $table.noteId, builder: (column) => column);
 
   GeneratedColumn<String> get contentJson => $composableBuilder(
-      column: $table.contentJson, builder: (column) => column);
+    column: $table.contentJson,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get contentChecksum => $composableBuilder(
-      column: $table.contentChecksum, builder: (column) => column);
+    column: $table.contentChecksum,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get contentPlain => $composableBuilder(
-      column: $table.contentPlain, builder: (column) => column);
+    column: $table.contentPlain,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 }
 
-class $TNoteHistoryTableManager extends RootTableManager<
-    _$SqliteDb,
-    TNoteHistory,
-    TNoteHistoryData,
-    $TNoteHistoryFilterComposer,
-    $TNoteHistoryOrderingComposer,
-    $TNoteHistoryAnnotationComposer,
-    $TNoteHistoryCreateCompanionBuilder,
-    $TNoteHistoryUpdateCompanionBuilder,
-    (
-      TNoteHistoryData,
-      BaseReferences<_$SqliteDb, TNoteHistory, TNoteHistoryData>
-    ),
-    TNoteHistoryData,
-    PrefetchHooks Function()> {
+class $TNoteHistoryTableManager
+    extends
+        RootTableManager<
+          _$SqliteDb,
+          TNoteHistory,
+          TNoteHistoryData,
+          $TNoteHistoryFilterComposer,
+          $TNoteHistoryOrderingComposer,
+          $TNoteHistoryAnnotationComposer,
+          $TNoteHistoryCreateCompanionBuilder,
+          $TNoteHistoryUpdateCompanionBuilder,
+          (
+            TNoteHistoryData,
+            BaseReferences<_$SqliteDb, TNoteHistory, TNoteHistoryData>,
+          ),
+          TNoteHistoryData,
+          PrefetchHooks Function()
+        > {
   $TNoteHistoryTableManager(_$SqliteDb db, TNoteHistory table)
-      : super(TableManagerState(
+    : super(
+        TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -5190,178 +5818,63 @@ class $TNoteHistoryTableManager extends RootTableManager<
               $TNoteHistoryOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $TNoteHistoryAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            Value<String> noteId = const Value.absent(),
-            Value<String> contentJson = const Value.absent(),
-            Value<String> contentChecksum = const Value.absent(),
-            Value<String> contentPlain = const Value.absent(),
-            Value<DateTime> createdAt = const Value.absent(),
-          }) =>
-              TNoteHistoryCompanion(
-            id: id,
-            noteId: noteId,
-            contentJson: contentJson,
-            contentChecksum: contentChecksum,
-            contentPlain: contentPlain,
-            createdAt: createdAt,
-          ),
-          createCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            required String noteId,
-            required String contentJson,
-            required String contentChecksum,
-            required String contentPlain,
-            Value<DateTime> createdAt = const Value.absent(),
-          }) =>
-              TNoteHistoryCompanion.insert(
-            id: id,
-            noteId: noteId,
-            contentJson: contentJson,
-            contentChecksum: contentChecksum,
-            contentPlain: contentPlain,
-            createdAt: createdAt,
-          ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> noteId = const Value.absent(),
+                Value<String> contentJson = const Value.absent(),
+                Value<String> contentChecksum = const Value.absent(),
+                Value<String> contentPlain = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => TNoteHistoryCompanion(
+                id: id,
+                noteId: noteId,
+                contentJson: contentJson,
+                contentChecksum: contentChecksum,
+                contentPlain: contentPlain,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String noteId,
+                required String contentJson,
+                required String contentChecksum,
+                required String contentPlain,
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => TNoteHistoryCompanion.insert(
+                id: id,
+                noteId: noteId,
+                contentJson: contentJson,
+                contentChecksum: contentChecksum,
+                contentPlain: contentPlain,
+                createdAt: createdAt,
+              ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
-        ));
+        ),
+      );
 }
 
-typedef $TNoteHistoryProcessedTableManager = ProcessedTableManager<
-    _$SqliteDb,
-    TNoteHistory,
-    TNoteHistoryData,
-    $TNoteHistoryFilterComposer,
-    $TNoteHistoryOrderingComposer,
-    $TNoteHistoryAnnotationComposer,
-    $TNoteHistoryCreateCompanionBuilder,
-    $TNoteHistoryUpdateCompanionBuilder,
-    (
+typedef $TNoteHistoryProcessedTableManager =
+    ProcessedTableManager<
+      _$SqliteDb,
+      TNoteHistory,
       TNoteHistoryData,
-      BaseReferences<_$SqliteDb, TNoteHistory, TNoteHistoryData>
-    ),
-    TNoteHistoryData,
-    PrefetchHooks Function()>;
-typedef $TNoteIdxCreateCompanionBuilder = TNoteIdxCompanion Function({
-  required String title,
-  required String contentPlain,
-  Value<int> rowid,
-});
-typedef $TNoteIdxUpdateCompanionBuilder = TNoteIdxCompanion Function({
-  Value<String> title,
-  Value<String> contentPlain,
-  Value<int> rowid,
-});
-
-class $TNoteIdxFilterComposer extends Composer<_$SqliteDb, TNoteIdx> {
-  $TNoteIdxFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<String> get title => $composableBuilder(
-      column: $table.title, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get contentPlain => $composableBuilder(
-      column: $table.contentPlain, builder: (column) => ColumnFilters(column));
-}
-
-class $TNoteIdxOrderingComposer extends Composer<_$SqliteDb, TNoteIdx> {
-  $TNoteIdxOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get title => $composableBuilder(
-      column: $table.title, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get contentPlain => $composableBuilder(
-      column: $table.contentPlain,
-      builder: (column) => ColumnOrderings(column));
-}
-
-class $TNoteIdxAnnotationComposer extends Composer<_$SqliteDb, TNoteIdx> {
-  $TNoteIdxAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<String> get title =>
-      $composableBuilder(column: $table.title, builder: (column) => column);
-
-  GeneratedColumn<String> get contentPlain => $composableBuilder(
-      column: $table.contentPlain, builder: (column) => column);
-}
-
-class $TNoteIdxTableManager extends RootTableManager<
-    _$SqliteDb,
-    TNoteIdx,
-    TNoteIdxData,
-    $TNoteIdxFilterComposer,
-    $TNoteIdxOrderingComposer,
-    $TNoteIdxAnnotationComposer,
-    $TNoteIdxCreateCompanionBuilder,
-    $TNoteIdxUpdateCompanionBuilder,
-    (TNoteIdxData, BaseReferences<_$SqliteDb, TNoteIdx, TNoteIdxData>),
-    TNoteIdxData,
-    PrefetchHooks Function()> {
-  $TNoteIdxTableManager(_$SqliteDb db, TNoteIdx table)
-      : super(TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $TNoteIdxFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $TNoteIdxOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $TNoteIdxAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<String> title = const Value.absent(),
-            Value<String> contentPlain = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              TNoteIdxCompanion(
-            title: title,
-            contentPlain: contentPlain,
-            rowid: rowid,
-          ),
-          createCompanionCallback: ({
-            required String title,
-            required String contentPlain,
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              TNoteIdxCompanion.insert(
-            title: title,
-            contentPlain: contentPlain,
-            rowid: rowid,
-          ),
-          withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
-              .toList(),
-          prefetchHooksCallback: null,
-        ));
-}
-
-typedef $TNoteIdxProcessedTableManager = ProcessedTableManager<
-    _$SqliteDb,
-    TNoteIdx,
-    TNoteIdxData,
-    $TNoteIdxFilterComposer,
-    $TNoteIdxOrderingComposer,
-    $TNoteIdxAnnotationComposer,
-    $TNoteIdxCreateCompanionBuilder,
-    $TNoteIdxUpdateCompanionBuilder,
-    (TNoteIdxData, BaseReferences<_$SqliteDb, TNoteIdx, TNoteIdxData>),
-    TNoteIdxData,
-    PrefetchHooks Function()>;
+      $TNoteHistoryFilterComposer,
+      $TNoteHistoryOrderingComposer,
+      $TNoteHistoryAnnotationComposer,
+      $TNoteHistoryCreateCompanionBuilder,
+      $TNoteHistoryUpdateCompanionBuilder,
+      (
+        TNoteHistoryData,
+        BaseReferences<_$SqliteDb, TNoteHistory, TNoteHistoryData>,
+      ),
+      TNoteHistoryData,
+      PrefetchHooks Function()
+    >;
 
 class $SqliteDbManager {
   final _$SqliteDb _db;
@@ -5381,8 +5894,6 @@ class $SqliteDbManager {
   $TNoteTableManager get tNote => $TNoteTableManager(_db, _db.tNote);
   $TNoteHistoryTableManager get tNoteHistory =>
       $TNoteHistoryTableManager(_db, _db.tNoteHistory);
-  $TNoteIdxTableManager get tNoteIdx =>
-      $TNoteIdxTableManager(_db, _db.tNoteIdx);
 }
 
 class SelectPasswordsResult {

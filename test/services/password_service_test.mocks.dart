@@ -33,108 +33,58 @@ import 'package:riverpod/src/internals.dart' as _i2;
 
 class _FakeProviderContainer_0 extends _i1.SmartFake
     implements _i2.ProviderContainer {
-  _FakeProviderContainer_0(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeProviderContainer_0(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeKeepAliveLink_1 extends _i1.SmartFake implements _i2.KeepAliveLink {
-  _FakeKeepAliveLink_1(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeKeepAliveLink_1(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeProviderSubscription_2<State1> extends _i1.SmartFake
     implements _i2.ProviderSubscription<State1> {
-  _FakeProviderSubscription_2(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeProviderSubscription_2(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeCryptoGraphyHkdf_3 extends _i1.SmartFake
     implements _i3.CryptoGraphyHkdf {
-  _FakeCryptoGraphyHkdf_3(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeCryptoGraphyHkdf_3(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeNativeArgon2_4 extends _i1.SmartFake implements _i4.NativeArgon2 {
-  _FakeNativeArgon2_4(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeNativeArgon2_4(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeCryptographyAesGcm_5 extends _i1.SmartFake
     implements _i5.CryptographyAesGcm {
-  _FakeCryptographyAesGcm_5(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeCryptographyAesGcm_5(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeConfigService_6 extends _i1.SmartFake implements _i6.ConfigService {
-  _FakeConfigService_6(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeConfigService_6(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeProtectedValue_7 extends _i1.SmartFake
     implements _i7.ProtectedValue {
-  _FakeProtectedValue_7(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeProtectedValue_7(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeAuthEncryptedResult_8 extends _i1.SmartFake
     implements _i5.AuthEncryptedResult {
-  _FakeAuthEncryptedResult_8(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeAuthEncryptedResult_8(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeAppConfig_9 extends _i1.SmartFake implements _i8.AppConfig {
-  _FakeAppConfig_9(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeAppConfig_9(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 /// A class which mocks [Ref].
@@ -143,262 +93,177 @@ class _FakeAppConfig_9 extends _i1.SmartFake implements _i8.AppConfig {
 class MockRef<State extends Object?> extends _i1.Mock
     implements _i2.Ref<State> {
   @override
-  _i2.ProviderContainer get container => (super.noSuchMethod(
-        Invocation.getter(#container),
-        returnValue: _FakeProviderContainer_0(
-          this,
-          Invocation.getter(#container),
-        ),
-        returnValueForMissingStub: _FakeProviderContainer_0(
-          this,
-          Invocation.getter(#container),
-        ),
-      ) as _i2.ProviderContainer);
+  _i2.ProviderContainer get container =>
+      (super.noSuchMethod(
+            Invocation.getter(#container),
+            returnValue: _FakeProviderContainer_0(
+              this,
+              Invocation.getter(#container),
+            ),
+            returnValueForMissingStub: _FakeProviderContainer_0(
+              this,
+              Invocation.getter(#container),
+            ),
+          )
+          as _i2.ProviderContainer);
 
   @override
-  T refresh<T>(_i2.Refreshable<T>? provider) => (super.noSuchMethod(
-        Invocation.method(
-          #refresh,
-          [provider],
-        ),
-        returnValue: _i9.dummyValue<T>(
-          this,
-          Invocation.method(
-            #refresh,
-            [provider],
-          ),
-        ),
-        returnValueForMissingStub: _i9.dummyValue<T>(
-          this,
-          Invocation.method(
-            #refresh,
-            [provider],
-          ),
-        ),
-      ) as T);
+  T refresh<T>(_i2.Refreshable<T>? provider) =>
+      (super.noSuchMethod(
+            Invocation.method(#refresh, [provider]),
+            returnValue: _i9.dummyValue<T>(
+              this,
+              Invocation.method(#refresh, [provider]),
+            ),
+            returnValueForMissingStub: _i9.dummyValue<T>(
+              this,
+              Invocation.method(#refresh, [provider]),
+            ),
+          )
+          as T);
 
   @override
   void invalidate(_i2.ProviderOrFamily? provider) => super.noSuchMethod(
-        Invocation.method(
-          #invalidate,
-          [provider],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#invalidate, [provider]),
+    returnValueForMissingStub: null,
+  );
 
   @override
   void notifyListeners() => super.noSuchMethod(
-        Invocation.method(
-          #notifyListeners,
-          [],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#notifyListeners, []),
+    returnValueForMissingStub: null,
+  );
 
   @override
   void listenSelf(
-    void Function(
-      State?,
-      State,
-    )? listener, {
-    void Function(
-      Object,
-      StackTrace,
-    )? onError,
-  }) =>
-      super.noSuchMethod(
-        Invocation.method(
-          #listenSelf,
-          [listener],
-          {#onError: onError},
-        ),
-        returnValueForMissingStub: null,
-      );
+    void Function(State?, State)? listener, {
+    void Function(Object, StackTrace)? onError,
+  }) => super.noSuchMethod(
+    Invocation.method(#listenSelf, [listener], {#onError: onError}),
+    returnValueForMissingStub: null,
+  );
 
   @override
   void invalidateSelf() => super.noSuchMethod(
-        Invocation.method(
-          #invalidateSelf,
-          [],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#invalidateSelf, []),
+    returnValueForMissingStub: null,
+  );
 
   @override
   void onAddListener(void Function()? cb) => super.noSuchMethod(
-        Invocation.method(
-          #onAddListener,
-          [cb],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#onAddListener, [cb]),
+    returnValueForMissingStub: null,
+  );
 
   @override
   void onRemoveListener(void Function()? cb) => super.noSuchMethod(
-        Invocation.method(
-          #onRemoveListener,
-          [cb],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#onRemoveListener, [cb]),
+    returnValueForMissingStub: null,
+  );
 
   @override
   void onResume(void Function()? cb) => super.noSuchMethod(
-        Invocation.method(
-          #onResume,
-          [cb],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#onResume, [cb]),
+    returnValueForMissingStub: null,
+  );
 
   @override
   void onCancel(void Function()? cb) => super.noSuchMethod(
-        Invocation.method(
-          #onCancel,
-          [cb],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#onCancel, [cb]),
+    returnValueForMissingStub: null,
+  );
 
   @override
   void onDispose(void Function()? cb) => super.noSuchMethod(
-        Invocation.method(
-          #onDispose,
-          [cb],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#onDispose, [cb]),
+    returnValueForMissingStub: null,
+  );
 
   @override
-  T read<T>(_i2.ProviderListenable<T>? provider) => (super.noSuchMethod(
-        Invocation.method(
-          #read,
-          [provider],
-        ),
-        returnValue: _i9.dummyValue<T>(
-          this,
-          Invocation.method(
-            #read,
-            [provider],
-          ),
-        ),
-        returnValueForMissingStub: _i9.dummyValue<T>(
-          this,
-          Invocation.method(
-            #read,
-            [provider],
-          ),
-        ),
-      ) as T);
+  T read<T>(_i2.ProviderListenable<T>? provider) =>
+      (super.noSuchMethod(
+            Invocation.method(#read, [provider]),
+            returnValue: _i9.dummyValue<T>(
+              this,
+              Invocation.method(#read, [provider]),
+            ),
+            returnValueForMissingStub: _i9.dummyValue<T>(
+              this,
+              Invocation.method(#read, [provider]),
+            ),
+          )
+          as T);
 
   @override
-  bool exists(_i2.ProviderBase<Object?>? provider) => (super.noSuchMethod(
-        Invocation.method(
-          #exists,
-          [provider],
-        ),
-        returnValue: false,
-        returnValueForMissingStub: false,
-      ) as bool);
+  bool exists(_i2.ProviderBase<Object?>? provider) =>
+      (super.noSuchMethod(
+            Invocation.method(#exists, [provider]),
+            returnValue: false,
+            returnValueForMissingStub: false,
+          )
+          as bool);
 
   @override
-  T watch<T>(_i2.ProviderListenable<T>? provider) => (super.noSuchMethod(
-        Invocation.method(
-          #watch,
-          [provider],
-        ),
-        returnValue: _i9.dummyValue<T>(
-          this,
-          Invocation.method(
-            #watch,
-            [provider],
-          ),
-        ),
-        returnValueForMissingStub: _i9.dummyValue<T>(
-          this,
-          Invocation.method(
-            #watch,
-            [provider],
-          ),
-        ),
-      ) as T);
+  T watch<T>(_i2.ProviderListenable<T>? provider) =>
+      (super.noSuchMethod(
+            Invocation.method(#watch, [provider]),
+            returnValue: _i9.dummyValue<T>(
+              this,
+              Invocation.method(#watch, [provider]),
+            ),
+            returnValueForMissingStub: _i9.dummyValue<T>(
+              this,
+              Invocation.method(#watch, [provider]),
+            ),
+          )
+          as T);
 
   @override
-  _i2.KeepAliveLink keepAlive() => (super.noSuchMethod(
-        Invocation.method(
-          #keepAlive,
-          [],
-        ),
-        returnValue: _FakeKeepAliveLink_1(
-          this,
-          Invocation.method(
-            #keepAlive,
-            [],
-          ),
-        ),
-        returnValueForMissingStub: _FakeKeepAliveLink_1(
-          this,
-          Invocation.method(
-            #keepAlive,
-            [],
-          ),
-        ),
-      ) as _i2.KeepAliveLink);
+  _i2.KeepAliveLink keepAlive() =>
+      (super.noSuchMethod(
+            Invocation.method(#keepAlive, []),
+            returnValue: _FakeKeepAliveLink_1(
+              this,
+              Invocation.method(#keepAlive, []),
+            ),
+            returnValueForMissingStub: _FakeKeepAliveLink_1(
+              this,
+              Invocation.method(#keepAlive, []),
+            ),
+          )
+          as _i2.KeepAliveLink);
 
   @override
   _i2.ProviderSubscription<T> listen<T>(
     _i2.ProviderListenable<T>? provider,
-    void Function(
-      T?,
-      T,
-    )? listener, {
-    void Function(
-      Object,
-      StackTrace,
-    )? onError,
+    void Function(T?, T)? listener, {
+    void Function(Object, StackTrace)? onError,
     bool? fireImmediately,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listen,
-          [
-            provider,
-            listener,
-          ],
-          {
-            #onError: onError,
-            #fireImmediately: fireImmediately,
-          },
-        ),
-        returnValue: _FakeProviderSubscription_2<T>(
-          this,
-          Invocation.method(
-            #listen,
-            [
-              provider,
-              listener,
-            ],
-            {
-              #onError: onError,
-              #fireImmediately: fireImmediately,
-            },
-          ),
-        ),
-        returnValueForMissingStub: _FakeProviderSubscription_2<T>(
-          this,
-          Invocation.method(
-            #listen,
-            [
-              provider,
-              listener,
-            ],
-            {
-              #onError: onError,
-              #fireImmediately: fireImmediately,
-            },
-          ),
-        ),
-      ) as _i2.ProviderSubscription<T>);
+            Invocation.method(
+              #listen,
+              [provider, listener],
+              {#onError: onError, #fireImmediately: fireImmediately},
+            ),
+            returnValue: _FakeProviderSubscription_2<T>(
+              this,
+              Invocation.method(
+                #listen,
+                [provider, listener],
+                {#onError: onError, #fireImmediately: fireImmediately},
+              ),
+            ),
+            returnValueForMissingStub: _FakeProviderSubscription_2<T>(
+              this,
+              Invocation.method(
+                #listen,
+                [provider, listener],
+                {#onError: onError, #fireImmediately: fireImmediately},
+              ),
+            ),
+          )
+          as _i2.ProviderSubscription<T>);
 }
 
 /// A class which mocks [KdfService].
@@ -406,56 +271,61 @@ class MockRef<State extends Object?> extends _i1.Mock
 /// See the documentation for Mockito's code generation for more information.
 class MockKdfService extends _i1.Mock implements _i10.KdfService {
   @override
-  _i3.CryptoGraphyHkdf get hkdf => (super.noSuchMethod(
-        Invocation.getter(#hkdf),
-        returnValue: _FakeCryptoGraphyHkdf_3(
-          this,
-          Invocation.getter(#hkdf),
-        ),
-        returnValueForMissingStub: _FakeCryptoGraphyHkdf_3(
-          this,
-          Invocation.getter(#hkdf),
-        ),
-      ) as _i3.CryptoGraphyHkdf);
+  _i3.CryptoGraphyHkdf get hkdf =>
+      (super.noSuchMethod(
+            Invocation.getter(#hkdf),
+            returnValue: _FakeCryptoGraphyHkdf_3(
+              this,
+              Invocation.getter(#hkdf),
+            ),
+            returnValueForMissingStub: _FakeCryptoGraphyHkdf_3(
+              this,
+              Invocation.getter(#hkdf),
+            ),
+          )
+          as _i3.CryptoGraphyHkdf);
 
   @override
-  _i4.NativeArgon2 get argon2 => (super.noSuchMethod(
-        Invocation.getter(#argon2),
-        returnValue: _FakeNativeArgon2_4(
-          this,
-          Invocation.getter(#argon2),
-        ),
-        returnValueForMissingStub: _FakeNativeArgon2_4(
-          this,
-          Invocation.getter(#argon2),
-        ),
-      ) as _i4.NativeArgon2);
+  _i4.NativeArgon2 get argon2 =>
+      (super.noSuchMethod(
+            Invocation.getter(#argon2),
+            returnValue: _FakeNativeArgon2_4(this, Invocation.getter(#argon2)),
+            returnValueForMissingStub: _FakeNativeArgon2_4(
+              this,
+              Invocation.getter(#argon2),
+            ),
+          )
+          as _i4.NativeArgon2);
 
   @override
-  _i5.CryptographyAesGcm get aeadCrypto => (super.noSuchMethod(
-        Invocation.getter(#aeadCrypto),
-        returnValue: _FakeCryptographyAesGcm_5(
-          this,
-          Invocation.getter(#aeadCrypto),
-        ),
-        returnValueForMissingStub: _FakeCryptographyAesGcm_5(
-          this,
-          Invocation.getter(#aeadCrypto),
-        ),
-      ) as _i5.CryptographyAesGcm);
+  _i5.CryptographyAesGcm get aeadCrypto =>
+      (super.noSuchMethod(
+            Invocation.getter(#aeadCrypto),
+            returnValue: _FakeCryptographyAesGcm_5(
+              this,
+              Invocation.getter(#aeadCrypto),
+            ),
+            returnValueForMissingStub: _FakeCryptographyAesGcm_5(
+              this,
+              Invocation.getter(#aeadCrypto),
+            ),
+          )
+          as _i5.CryptographyAesGcm);
 
   @override
-  _i6.ConfigService get configService => (super.noSuchMethod(
-        Invocation.getter(#configService),
-        returnValue: _FakeConfigService_6(
-          this,
-          Invocation.getter(#configService),
-        ),
-        returnValueForMissingStub: _FakeConfigService_6(
-          this,
-          Invocation.getter(#configService),
-        ),
-      ) as _i6.ConfigService);
+  _i6.ConfigService get configService =>
+      (super.noSuchMethod(
+            Invocation.getter(#configService),
+            returnValue: _FakeConfigService_6(
+              this,
+              Invocation.getter(#configService),
+            ),
+            returnValueForMissingStub: _FakeConfigService_6(
+              this,
+              Invocation.getter(#configService),
+            ),
+          )
+          as _i6.ConfigService);
 
   @override
   _i11.Future<_i7.ProtectedValue> createTransformedMasterKey(
@@ -464,39 +334,33 @@ class MockKdfService extends _i1.Mock implements _i10.KdfService {
     _i12.Uint8List? salt,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #createTransformedMasterKey,
-          [
-            masterPassword,
-            secretKey,
-            salt,
-          ],
-        ),
-        returnValue:
-            _i11.Future<_i7.ProtectedValue>.value(_FakeProtectedValue_7(
-          this,
-          Invocation.method(
-            #createTransformedMasterKey,
-            [
+            Invocation.method(#createTransformedMasterKey, [
               masterPassword,
               secretKey,
               salt,
-            ],
-          ),
-        )),
-        returnValueForMissingStub:
-            _i11.Future<_i7.ProtectedValue>.value(_FakeProtectedValue_7(
-          this,
-          Invocation.method(
-            #createTransformedMasterKey,
-            [
-              masterPassword,
-              secretKey,
-              salt,
-            ],
-          ),
-        )),
-      ) as _i11.Future<_i7.ProtectedValue>);
+            ]),
+            returnValue: _i11.Future<_i7.ProtectedValue>.value(
+              _FakeProtectedValue_7(
+                this,
+                Invocation.method(#createTransformedMasterKey, [
+                  masterPassword,
+                  secretKey,
+                  salt,
+                ]),
+              ),
+            ),
+            returnValueForMissingStub: _i11.Future<_i7.ProtectedValue>.value(
+              _FakeProtectedValue_7(
+                this,
+                Invocation.method(#createTransformedMasterKey, [
+                  masterPassword,
+                  secretKey,
+                  salt,
+                ]),
+              ),
+            ),
+          )
+          as _i11.Future<_i7.ProtectedValue>);
 
   @override
   _i11.Future<_i7.ProtectedValue> createStretchedMasterKey(
@@ -505,39 +369,33 @@ class MockKdfService extends _i1.Mock implements _i10.KdfService {
     _i12.Uint8List? masterSeed,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #createStretchedMasterKey,
-          [
-            transformedMasterKey,
-            instanceId,
-            masterSeed,
-          ],
-        ),
-        returnValue:
-            _i11.Future<_i7.ProtectedValue>.value(_FakeProtectedValue_7(
-          this,
-          Invocation.method(
-            #createStretchedMasterKey,
-            [
+            Invocation.method(#createStretchedMasterKey, [
               transformedMasterKey,
               instanceId,
               masterSeed,
-            ],
-          ),
-        )),
-        returnValueForMissingStub:
-            _i11.Future<_i7.ProtectedValue>.value(_FakeProtectedValue_7(
-          this,
-          Invocation.method(
-            #createStretchedMasterKey,
-            [
-              transformedMasterKey,
-              instanceId,
-              masterSeed,
-            ],
-          ),
-        )),
-      ) as _i11.Future<_i7.ProtectedValue>);
+            ]),
+            returnValue: _i11.Future<_i7.ProtectedValue>.value(
+              _FakeProtectedValue_7(
+                this,
+                Invocation.method(#createStretchedMasterKey, [
+                  transformedMasterKey,
+                  instanceId,
+                  masterSeed,
+                ]),
+              ),
+            ),
+            returnValueForMissingStub: _i11.Future<_i7.ProtectedValue>.value(
+              _FakeProtectedValue_7(
+                this,
+                Invocation.method(#createStretchedMasterKey, [
+                  transformedMasterKey,
+                  instanceId,
+                  masterSeed,
+                ]),
+              ),
+            ),
+          )
+          as _i11.Future<_i7.ProtectedValue>);
 
   @override
   _i11.Future<_i5.AuthEncryptedResult> createProtectedSymmetricKey(
@@ -547,93 +405,75 @@ class MockKdfService extends _i1.Mock implements _i10.KdfService {
     _i12.Uint8List? instanceId,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #createProtectedSymmetricKey,
-          [
-            symmetricKey,
-            stretchedMasterKey,
-            nonce,
-            instanceId,
-          ],
-        ),
-        returnValue: _i11.Future<_i5.AuthEncryptedResult>.value(
-            _FakeAuthEncryptedResult_8(
-          this,
-          Invocation.method(
-            #createProtectedSymmetricKey,
-            [
+            Invocation.method(#createProtectedSymmetricKey, [
               symmetricKey,
               stretchedMasterKey,
               nonce,
               instanceId,
-            ],
-          ),
-        )),
-        returnValueForMissingStub: _i11.Future<_i5.AuthEncryptedResult>.value(
-            _FakeAuthEncryptedResult_8(
-          this,
-          Invocation.method(
-            #createProtectedSymmetricKey,
-            [
-              symmetricKey,
-              stretchedMasterKey,
-              nonce,
-              instanceId,
-            ],
-          ),
-        )),
-      ) as _i11.Future<_i5.AuthEncryptedResult>);
+            ]),
+            returnValue: _i11.Future<_i5.AuthEncryptedResult>.value(
+              _FakeAuthEncryptedResult_8(
+                this,
+                Invocation.method(#createProtectedSymmetricKey, [
+                  symmetricKey,
+                  stretchedMasterKey,
+                  nonce,
+                  instanceId,
+                ]),
+              ),
+            ),
+            returnValueForMissingStub:
+                _i11.Future<_i5.AuthEncryptedResult>.value(
+                  _FakeAuthEncryptedResult_8(
+                    this,
+                    Invocation.method(#createProtectedSymmetricKey, [
+                      symmetricKey,
+                      stretchedMasterKey,
+                      nonce,
+                      instanceId,
+                    ]),
+                  ),
+                ),
+          )
+          as _i11.Future<_i5.AuthEncryptedResult>);
 
   @override
-  _i11.Future<String> generateUUID() => (super.noSuchMethod(
-        Invocation.method(
-          #generateUUID,
-          [],
-        ),
-        returnValue: _i11.Future<String>.value(_i9.dummyValue<String>(
-          this,
-          Invocation.method(
-            #generateUUID,
-            [],
-          ),
-        )),
-        returnValueForMissingStub:
-            _i11.Future<String>.value(_i9.dummyValue<String>(
-          this,
-          Invocation.method(
-            #generateUUID,
-            [],
-          ),
-        )),
-      ) as _i11.Future<String>);
+  _i11.Future<String> generateUUID() =>
+      (super.noSuchMethod(
+            Invocation.method(#generateUUID, []),
+            returnValue: _i11.Future<String>.value(
+              _i9.dummyValue<String>(
+                this,
+                Invocation.method(#generateUUID, []),
+              ),
+            ),
+            returnValueForMissingStub: _i11.Future<String>.value(
+              _i9.dummyValue<String>(
+                this,
+                Invocation.method(#generateUUID, []),
+              ),
+            ),
+          )
+          as _i11.Future<String>);
 
   @override
   _i11.Future<_i7.ProtectedValue> generateRandomBytes({int? length = 32}) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #generateRandomBytes,
-          [],
-          {#length: length},
-        ),
-        returnValue:
-            _i11.Future<_i7.ProtectedValue>.value(_FakeProtectedValue_7(
-          this,
-          Invocation.method(
-            #generateRandomBytes,
-            [],
-            {#length: length},
-          ),
-        )),
-        returnValueForMissingStub:
-            _i11.Future<_i7.ProtectedValue>.value(_FakeProtectedValue_7(
-          this,
-          Invocation.method(
-            #generateRandomBytes,
-            [],
-            {#length: length},
-          ),
-        )),
-      ) as _i11.Future<_i7.ProtectedValue>);
+            Invocation.method(#generateRandomBytes, [], {#length: length}),
+            returnValue: _i11.Future<_i7.ProtectedValue>.value(
+              _FakeProtectedValue_7(
+                this,
+                Invocation.method(#generateRandomBytes, [], {#length: length}),
+              ),
+            ),
+            returnValueForMissingStub: _i11.Future<_i7.ProtectedValue>.value(
+              _FakeProtectedValue_7(
+                this,
+                Invocation.method(#generateRandomBytes, [], {#length: length}),
+              ),
+            ),
+          )
+          as _i11.Future<_i7.ProtectedValue>);
 
   @override
   _i11.Future<_i8.AppConfig> generateAppConfig(
@@ -646,23 +486,7 @@ class MockKdfService extends _i1.Mock implements _i10.KdfService {
     _i12.Uint8List? nonce,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #generateAppConfig,
-          [
-            masterPassword,
-            secretKey,
-            instanceId,
-            transformSeed,
-            masterSeed,
-            symmetricKey,
-            nonce,
-          ],
-        ),
-        returnValue: _i11.Future<_i8.AppConfig>.value(_FakeAppConfig_9(
-          this,
-          Invocation.method(
-            #generateAppConfig,
-            [
+            Invocation.method(#generateAppConfig, [
               masterPassword,
               secretKey,
               instanceId,
@@ -670,26 +494,37 @@ class MockKdfService extends _i1.Mock implements _i10.KdfService {
               masterSeed,
               symmetricKey,
               nonce,
-            ],
-          ),
-        )),
-        returnValueForMissingStub:
-            _i11.Future<_i8.AppConfig>.value(_FakeAppConfig_9(
-          this,
-          Invocation.method(
-            #generateAppConfig,
-            [
-              masterPassword,
-              secretKey,
-              instanceId,
-              transformSeed,
-              masterSeed,
-              symmetricKey,
-              nonce,
-            ],
-          ),
-        )),
-      ) as _i11.Future<_i8.AppConfig>);
+            ]),
+            returnValue: _i11.Future<_i8.AppConfig>.value(
+              _FakeAppConfig_9(
+                this,
+                Invocation.method(#generateAppConfig, [
+                  masterPassword,
+                  secretKey,
+                  instanceId,
+                  transformSeed,
+                  masterSeed,
+                  symmetricKey,
+                  nonce,
+                ]),
+              ),
+            ),
+            returnValueForMissingStub: _i11.Future<_i8.AppConfig>.value(
+              _FakeAppConfig_9(
+                this,
+                Invocation.method(#generateAppConfig, [
+                  masterPassword,
+                  secretKey,
+                  instanceId,
+                  transformSeed,
+                  masterSeed,
+                  symmetricKey,
+                  nonce,
+                ]),
+              ),
+            ),
+          )
+          as _i11.Future<_i8.AppConfig>);
 
   @override
   _i11.Future<_i7.ProtectedValue> decryptSymmetricKey(
@@ -698,37 +533,31 @@ class MockKdfService extends _i1.Mock implements _i10.KdfService {
     _i8.AppConfig? config,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #decryptSymmetricKey,
-          [
-            masterPassword,
-            secretKey,
-            config,
-          ],
-        ),
-        returnValue:
-            _i11.Future<_i7.ProtectedValue>.value(_FakeProtectedValue_7(
-          this,
-          Invocation.method(
-            #decryptSymmetricKey,
-            [
+            Invocation.method(#decryptSymmetricKey, [
               masterPassword,
               secretKey,
               config,
-            ],
-          ),
-        )),
-        returnValueForMissingStub:
-            _i11.Future<_i7.ProtectedValue>.value(_FakeProtectedValue_7(
-          this,
-          Invocation.method(
-            #decryptSymmetricKey,
-            [
-              masterPassword,
-              secretKey,
-              config,
-            ],
-          ),
-        )),
-      ) as _i11.Future<_i7.ProtectedValue>);
+            ]),
+            returnValue: _i11.Future<_i7.ProtectedValue>.value(
+              _FakeProtectedValue_7(
+                this,
+                Invocation.method(#decryptSymmetricKey, [
+                  masterPassword,
+                  secretKey,
+                  config,
+                ]),
+              ),
+            ),
+            returnValueForMissingStub: _i11.Future<_i7.ProtectedValue>.value(
+              _FakeProtectedValue_7(
+                this,
+                Invocation.method(#decryptSymmetricKey, [
+                  masterPassword,
+                  secretKey,
+                  config,
+                ]),
+              ),
+            ),
+          )
+          as _i11.Future<_i7.ProtectedValue>);
 }

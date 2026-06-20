@@ -49,7 +49,34 @@ class SqliteDb extends _$SqliteDb {
       },
       onCreate: (Migrator m) async {
         await m.createAll();
-        await transaction(() async {});
+        // FTS5 virtual table and triggers are not supported by Drift's code generator,
+        // so we create them manually.
+        await transaction(() async {
+          await customStatement('''
+            CREATE VIRTUAL TABLE IF NOT EXISTS t_note_idx USING FTS5 (
+              title,
+              content_plain,
+              content="t_note",
+              tokenize='jieba'
+            )
+          ''');
+          await customStatement('''
+            CREATE TRIGGER IF NOT EXISTS tri_on_note_inserted AFTER INSERT ON t_note WHEN new.deleted_at IS NULL BEGIN
+              INSERT INTO t_note_idx (rowid, title, content_plain) VALUES (new.rowid, new.title, new.content_plain);
+            END
+          ''');
+          await customStatement('''
+            CREATE TRIGGER IF NOT EXISTS tri_on_note_updated AFTER UPDATE ON t_note WHEN new.deleted_at IS NULL BEGIN
+              INSERT INTO t_note_idx(t_note_idx, rowid, title, content_plain) VALUES('delete', old.rowid, old.title, old.content_plain);
+              INSERT INTO t_note_idx (rowid, title, content_plain) VALUES (new.rowid, new.title, new.content_plain);
+            END
+          ''');
+          await customStatement('''
+            CREATE TRIGGER IF NOT EXISTS tri_on_note_deleted AFTER UPDATE ON t_note WHEN new.deleted_at IS NOT NULL BEGIN
+              INSERT INTO t_note_idx(t_note_idx, rowid, title, content_plain) VALUES('delete', old.rowid, old.title, old.content_plain);
+            END
+          ''');
+        });
       },
     );
   }
@@ -88,9 +115,6 @@ QueryExecutor _openDatabaseFile(File realFile, ProtectedValue key) {
             );
           }
         }
-        // set key without key derivation:
-        // see: https://github.com/sqlcipher/sqlcipher/blob/master/README.md
-        // PRAGMA key = "x'2DD29CA851E7B56E4697B0E1F08507293D761A05CE4D1B628663F411A8086D99'";
 
         // fixme: for debug only
         print("pragma key = \"x'${hex.encode(key.binaryValue)}'\";");
@@ -135,9 +159,6 @@ QueryExecutor _openDatabase(String file, ProtectedValue key) {
             );
           }
         }
-        // set key without key derivation:
-        // see: https://github.com/sqlcipher/sqlcipher/blob/master/README.md
-        // PRAGMA key = "x'2DD29CA851E7B56E4697B0E1F08507293D761A05CE4D1B628663F411A8086D99'";
 
         // fixme: for debug only
         print("pragma key = \"x'${hex.encode(key.binaryValue)}'\";");

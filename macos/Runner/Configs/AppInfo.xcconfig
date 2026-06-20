@@ -8,7 +8,7 @@
 PRODUCT_NAME = cryptowl
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.quillgen.cryptowl
+PRODUCT_BUNDLE_IDENTIFIER = com.typedefai.cryptowl
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2025 com.quillgen. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 typedefai.com. All rights reserved.

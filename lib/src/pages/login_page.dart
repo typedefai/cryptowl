@@ -32,6 +32,15 @@ class LoginPage extends HookConsumerWidget {
         return;
       }
       final dbs = await fileService.getSqlcipherInstances();
+      if (dbs.isEmpty) {
+        toastification.show(
+          type: ToastificationType.error,
+          context: context,
+          title: Text('No vault found. Please create one first.'),
+          autoCloseDuration: const Duration(seconds: 3),
+        );
+        return;
+      }
       if (dbs.length > 1) {
         throw Exception("Multiple instances found but not supported currently");
       }

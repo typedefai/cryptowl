@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_adaptive_scaffold/flutter_adaptive_scaffold.dart';
 
-/**
- * ref: https://stackoverflow.com/questions/76584957/using-adaptivescaffold-from-flutter-adaptive-scaffold-with-go-router-to-show-a-l
- */
 class AppScaffold extends StatelessWidget {
   final Widget body;
   final Widget? secondaryBody;

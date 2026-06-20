@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:convert/convert.dart';
@@ -6,18 +7,17 @@ import 'package:cryptowl/src/common/exceptions.dart';
 import 'package:cryptowl/src/crypto/aead_crypto.dart';
 import 'package:cryptowl/src/crypto/hmac.dart';
 import 'package:cryptowl/src/crypto/protected_value.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logging/logging.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import '../common/path_util.dart';
 import '../config/app_config.dart';
 import '../crypto/crockford_base32.dart';
 import 'version_service.dart';
 
 class ConfigService {
   final logger = Logger('ConfigService');
-  final secureStore = FlutterSecureStorage();
   final hmac = CryptoHmac();
 
   final VersionService versionService;
@@ -77,17 +77,43 @@ class ConfigService {
     return jsonString;
   }
 
+  Future<String> _secureStorePath(String key) async {
+    // Sanitize key for use as filename
+    final safeKey = key.replaceAll(RegExp(r'[^a-zA-Z0-9_\-]'), '_');
+    return PathUtil.getLocalPath('.secrets/$safeKey');
+  }
+
   Future<ProtectedValue?> readSecureStore(String key) async {
-    String? value = await secureStore.read(key: key);
-    if (value != null) {
-      return CrockfordBase32.decode(value);
+    logger.fine("readSecureStore: key='$key'");
+    try {
+      final path = await _secureStorePath(key);
+      final file = File(path);
+      if (!await file.exists()) {
+        logger.fine("readSecureStore: key='$key', not found");
+        return null;
+      }
+      final value = await file.readAsString();
+      logger.fine("readSecureStore: key='$key', found=true");
+      return CrockfordBase32.decode(value.trim());
+    } catch (e) {
+      logger.warning("readSecureStore: key='$key', error: $e");
+      return null;
     }
-    return null;
   }
 
   Future<void> saveSecureStore(String key, ProtectedValue data) async {
-    await secureStore.write(
-        key: key, value: CrockfordBase32.encodeProtected(data));
+    final encoded = CrockfordBase32.encodeProtected(data);
+    logger.fine("saveSecureStore: key='$key', encodedLength=${encoded.length}");
+    try {
+      final path = await _secureStorePath(key);
+      final file = File(path);
+      await file.parent.create(recursive: true);
+      await file.writeAsString(encoded, flush: true);
+      logger.fine("saveSecureStore: key='$key', SUCCESS");
+    } catch (e, st) {
+      logger.severe("saveSecureStore: key='$key', FAILED: $e", e, st);
+      rethrow;
+    }
   }
 
   Future<Uint8List> generateEmergencyKit(String secretKey) async {
@@ -116,7 +142,7 @@ class ConfigService {
                 secretKey,
                 style: pw.TextStyle(
                   fontSize: 18,
-                  font: pw.Font.courier(), // Monospace font
+                  font: pw.Font.courier(),
                 ),
               ),
               pw.SizedBox(height: 30),

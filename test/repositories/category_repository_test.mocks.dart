@@ -23,34 +23,19 @@ import 'package:riverpod/src/internals.dart' as _i2;
 
 class _FakeProviderContainer_0 extends _i1.SmartFake
     implements _i2.ProviderContainer {
-  _FakeProviderContainer_0(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeProviderContainer_0(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeKeepAliveLink_1 extends _i1.SmartFake implements _i2.KeepAliveLink {
-  _FakeKeepAliveLink_1(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeKeepAliveLink_1(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeProviderSubscription_2<State1> extends _i1.SmartFake
     implements _i2.ProviderSubscription<State1> {
-  _FakeProviderSubscription_2(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeProviderSubscription_2(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 /// A class which mocks [Ref].
@@ -63,213 +48,146 @@ class MockRef<State extends Object?> extends _i1.Mock
   }
 
   @override
-  _i2.ProviderContainer get container => (super.noSuchMethod(
-        Invocation.getter(#container),
-        returnValue: _FakeProviderContainer_0(
-          this,
-          Invocation.getter(#container),
-        ),
-      ) as _i2.ProviderContainer);
+  _i2.ProviderContainer get container =>
+      (super.noSuchMethod(
+            Invocation.getter(#container),
+            returnValue: _FakeProviderContainer_0(
+              this,
+              Invocation.getter(#container),
+            ),
+          )
+          as _i2.ProviderContainer);
 
   @override
-  T refresh<T>(_i2.Refreshable<T>? provider) => (super.noSuchMethod(
-        Invocation.method(
-          #refresh,
-          [provider],
-        ),
-        returnValue: _i3.dummyValue<T>(
-          this,
-          Invocation.method(
-            #refresh,
-            [provider],
-          ),
-        ),
-      ) as T);
+  T refresh<T>(_i2.Refreshable<T>? provider) =>
+      (super.noSuchMethod(
+            Invocation.method(#refresh, [provider]),
+            returnValue: _i3.dummyValue<T>(
+              this,
+              Invocation.method(#refresh, [provider]),
+            ),
+          )
+          as T);
 
   @override
   void invalidate(_i2.ProviderOrFamily? provider) => super.noSuchMethod(
-        Invocation.method(
-          #invalidate,
-          [provider],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#invalidate, [provider]),
+    returnValueForMissingStub: null,
+  );
 
   @override
   void notifyListeners() => super.noSuchMethod(
-        Invocation.method(
-          #notifyListeners,
-          [],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#notifyListeners, []),
+    returnValueForMissingStub: null,
+  );
 
   @override
   void listenSelf(
-    void Function(
-      State?,
-      State,
-    )? listener, {
-    void Function(
-      Object,
-      StackTrace,
-    )? onError,
-  }) =>
-      super.noSuchMethod(
-        Invocation.method(
-          #listenSelf,
-          [listener],
-          {#onError: onError},
-        ),
-        returnValueForMissingStub: null,
-      );
+    void Function(State?, State)? listener, {
+    void Function(Object, StackTrace)? onError,
+  }) => super.noSuchMethod(
+    Invocation.method(#listenSelf, [listener], {#onError: onError}),
+    returnValueForMissingStub: null,
+  );
 
   @override
   void invalidateSelf() => super.noSuchMethod(
-        Invocation.method(
-          #invalidateSelf,
-          [],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#invalidateSelf, []),
+    returnValueForMissingStub: null,
+  );
 
   @override
   void onAddListener(void Function()? cb) => super.noSuchMethod(
-        Invocation.method(
-          #onAddListener,
-          [cb],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#onAddListener, [cb]),
+    returnValueForMissingStub: null,
+  );
 
   @override
   void onRemoveListener(void Function()? cb) => super.noSuchMethod(
-        Invocation.method(
-          #onRemoveListener,
-          [cb],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#onRemoveListener, [cb]),
+    returnValueForMissingStub: null,
+  );
 
   @override
   void onResume(void Function()? cb) => super.noSuchMethod(
-        Invocation.method(
-          #onResume,
-          [cb],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#onResume, [cb]),
+    returnValueForMissingStub: null,
+  );
 
   @override
   void onCancel(void Function()? cb) => super.noSuchMethod(
-        Invocation.method(
-          #onCancel,
-          [cb],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#onCancel, [cb]),
+    returnValueForMissingStub: null,
+  );
 
   @override
   void onDispose(void Function()? cb) => super.noSuchMethod(
-        Invocation.method(
-          #onDispose,
-          [cb],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#onDispose, [cb]),
+    returnValueForMissingStub: null,
+  );
 
   @override
-  T read<T>(_i2.ProviderListenable<T>? provider) => (super.noSuchMethod(
-        Invocation.method(
-          #read,
-          [provider],
-        ),
-        returnValue: _i3.dummyValue<T>(
-          this,
-          Invocation.method(
-            #read,
-            [provider],
-          ),
-        ),
-      ) as T);
+  T read<T>(_i2.ProviderListenable<T>? provider) =>
+      (super.noSuchMethod(
+            Invocation.method(#read, [provider]),
+            returnValue: _i3.dummyValue<T>(
+              this,
+              Invocation.method(#read, [provider]),
+            ),
+          )
+          as T);
 
   @override
-  bool exists(_i2.ProviderBase<Object?>? provider) => (super.noSuchMethod(
-        Invocation.method(
-          #exists,
-          [provider],
-        ),
-        returnValue: false,
-      ) as bool);
+  bool exists(_i2.ProviderBase<Object?>? provider) =>
+      (super.noSuchMethod(
+            Invocation.method(#exists, [provider]),
+            returnValue: false,
+          )
+          as bool);
 
   @override
-  T watch<T>(_i2.ProviderListenable<T>? provider) => (super.noSuchMethod(
-        Invocation.method(
-          #watch,
-          [provider],
-        ),
-        returnValue: _i3.dummyValue<T>(
-          this,
-          Invocation.method(
-            #watch,
-            [provider],
-          ),
-        ),
-      ) as T);
+  T watch<T>(_i2.ProviderListenable<T>? provider) =>
+      (super.noSuchMethod(
+            Invocation.method(#watch, [provider]),
+            returnValue: _i3.dummyValue<T>(
+              this,
+              Invocation.method(#watch, [provider]),
+            ),
+          )
+          as T);
 
   @override
-  _i2.KeepAliveLink keepAlive() => (super.noSuchMethod(
-        Invocation.method(
-          #keepAlive,
-          [],
-        ),
-        returnValue: _FakeKeepAliveLink_1(
-          this,
-          Invocation.method(
-            #keepAlive,
-            [],
-          ),
-        ),
-      ) as _i2.KeepAliveLink);
+  _i2.KeepAliveLink keepAlive() =>
+      (super.noSuchMethod(
+            Invocation.method(#keepAlive, []),
+            returnValue: _FakeKeepAliveLink_1(
+              this,
+              Invocation.method(#keepAlive, []),
+            ),
+          )
+          as _i2.KeepAliveLink);
 
   @override
   _i2.ProviderSubscription<T> listen<T>(
     _i2.ProviderListenable<T>? provider,
-    void Function(
-      T?,
-      T,
-    )? listener, {
-    void Function(
-      Object,
-      StackTrace,
-    )? onError,
+    void Function(T?, T)? listener, {
+    void Function(Object, StackTrace)? onError,
     bool? fireImmediately,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listen,
-          [
-            provider,
-            listener,
-          ],
-          {
-            #onError: onError,
-            #fireImmediately: fireImmediately,
-          },
-        ),
-        returnValue: _FakeProviderSubscription_2<T>(
-          this,
-          Invocation.method(
-            #listen,
-            [
-              provider,
-              listener,
-            ],
-            {
-              #onError: onError,
-              #fireImmediately: fireImmediately,
-            },
-          ),
-        ),
-      ) as _i2.ProviderSubscription<T>);
+            Invocation.method(
+              #listen,
+              [provider, listener],
+              {#onError: onError, #fireImmediately: fireImmediately},
+            ),
+            returnValue: _FakeProviderSubscription_2<T>(
+              this,
+              Invocation.method(
+                #listen,
+                [provider, listener],
+                {#onError: onError, #fireImmediately: fireImmediately},
+              ),
+            ),
+          )
+          as _i2.ProviderSubscription<T>);
 }

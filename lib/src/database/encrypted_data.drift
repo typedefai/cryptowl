@@ -1,4 +1,4 @@
-import 'common.drift'; 
+import 'common.drift';
 
 CREATE TABLE t_data_encrypt_key (
     id CHAR(36) NOT NULL PRIMARY KEY,
@@ -21,4 +21,3 @@ CREATE TABLE t_encrypted_data (
     deleted_at DATETIME DEFAULT NULL,
     FOREIGN KEY (dek_id) REFERENCES t_data_encrypt_key (id)
 );
-

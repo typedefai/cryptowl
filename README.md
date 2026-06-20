@@ -1,20 +1,17 @@
 # cryptowl
 
-```bash
-git clone git@github.com:quillgen/cryptowl.git
-cd cryptowl
-flutter pub get
-dart run build_runner build
-```
+A new Flutter project.
 
-Generate locale:
-```bash
-flutter gen-l10n
-```
+## Getting Started
 
+This project is a starting point for a Flutter application.
 
-## Secret classification
+A few resources to get you started if this is your first Flutter project:
 
-* Confidential: Content is protected relying on a random secret and Sqlcipher encryption, it could not be decrypted unless you get secret + db file
-* Secret: Content is protected by master password + sqlcipher
-* Top secret: Content is protected by master password + device info
+- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
+- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
+- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+
+For help getting started with Flutter development, view the
+[online documentation](https://docs.flutter.dev/), which offers tutorials,
+samples, guidance on mobile development, and a full API reference.

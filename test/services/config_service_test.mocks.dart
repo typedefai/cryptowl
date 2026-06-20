@@ -28,25 +28,21 @@ import 'package:mockito/src/dummies.dart' as _i4;
 /// See the documentation for Mockito's code generation for more information.
 class MockVersionService extends _i1.Mock implements _i2.VersionService {
   @override
-  _i3.Future<String> getPackageVersion() => (super.noSuchMethod(
-        Invocation.method(
-          #getPackageVersion,
-          [],
-        ),
-        returnValue: _i3.Future<String>.value(_i4.dummyValue<String>(
-          this,
-          Invocation.method(
-            #getPackageVersion,
-            [],
-          ),
-        )),
-        returnValueForMissingStub:
-            _i3.Future<String>.value(_i4.dummyValue<String>(
-          this,
-          Invocation.method(
-            #getPackageVersion,
-            [],
-          ),
-        )),
-      ) as _i3.Future<String>);
+  _i3.Future<String> getPackageVersion() =>
+      (super.noSuchMethod(
+            Invocation.method(#getPackageVersion, []),
+            returnValue: _i3.Future<String>.value(
+              _i4.dummyValue<String>(
+                this,
+                Invocation.method(#getPackageVersion, []),
+              ),
+            ),
+            returnValueForMissingStub: _i3.Future<String>.value(
+              _i4.dummyValue<String>(
+                this,
+                Invocation.method(#getPackageVersion, []),
+              ),
+            ),
+          )
+          as _i3.Future<String>);
 }

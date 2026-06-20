@@ -1,9 +1,9 @@
-[submodule "deps/native_sqlcipher"]
-	path = deps/native_sqlcipher
-	url = git@github.com:quillgen/native_sqlcipher.git
 [submodule "deps/native_argon2"]
 	path = deps/native_argon2
-	url = git@github.com:quillgen/native_argon2.git
+	url = git@github.com:typedefai/native_argon2.git
+[submodule "deps/native_sqlcipher"]
+	path = deps/native_sqlcipher
+	url = git@github.com:typedefai/native_sqlcipher.git
 [submodule "deps/sqlcipher"]
 	path = deps/sqlcipher
-	url = git@github.com:quillgen/sqlcipher.git
+	url = git@github.com:typedefai/sqlcipher.git

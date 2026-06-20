@@ -19,8 +19,8 @@ void main() {
 
   Future<int> createCategories() async {
     const sql = """
-    insert into categories(id, name, access_level, create_time, last_update_time) 
-    values 
+    insert into categories(id, name, access_level, create_time, last_update_time)
+    values
     ('2', 'DuBuque-Waters', 1, '2025-02-22T00:00:27.765472', '2025-02-22T00:00:27.765472'),
     ('3', 'Hintz, Carter and McLaughlin', 1, '2025-02-22T00:00:27.765571', '2025-02-22T00:00:27.765571'),
     ('4', 'Langosh, Watsica and Hoppe', 1, '2025-02-22T00:00:27.765593', '2025-02-22T00:00:27.765593'),

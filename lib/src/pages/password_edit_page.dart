@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -44,10 +46,10 @@ class _PasswordEditPageState extends ConsumerState<PasswordEditPage> {
 
     detailFuture.whenData((value) {
       _titleController.text = value.title ?? "";
-      _usernameController.text = "";
-      _passwordController.text = value.value.getText();
+      _usernameController.text = value.getUser()?.plainValue() ?? "";
+      _passwordController.text = utf8.decode(value.value.binaryValue, allowMalformed: true);
       _uriController.text = "";
-      _remarkController.text = "";
+      _remarkController.text = value.getRemark()?.plainValue() ?? "";
     });
 
     return Scaffold(

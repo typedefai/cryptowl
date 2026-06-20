@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:cryptowl/src/common/classification.dart';
 import 'package:cryptowl/src/crypto/protected_value.dart';
 import 'package:cryptowl/src/database/database.dart';
 import 'package:drift/drift.dart';
@@ -86,5 +89,73 @@ class PasswordRepository extends SqlcipherRepository {
       required ProtectedValue value,
       required String username,
       required String url,
-      required String remark}) async {}
+      required String remark}) async {
+    final db = await requireDb();
+    final now = DateTime.now();
+
+    // Update password title
+    await (db.tPassword.update()..where((r) => r.id.equals(id))).write(
+      TPasswordCompanion(
+        title: Value(title),
+        updatedAt: Value(now),
+      ),
+    );
+
+    // Get existing attributes
+    final existing = await findPasswordAttributes(id);
+
+    // Update or create username attribute
+    final userAttr = existing.where((a) => a.name == ATTR_USER).firstOrNull;
+    if (userAttr != null) {
+      await (db.tPasswordAttribute.update()
+            ..where((r) => r.id.equals(userAttr.id)))
+          .write(TPasswordAttributeCompanion(
+        value: Value(username),
+        updatedAt: Value(now),
+      ));
+    } else if (username.isNotEmpty) {
+      await db.into(db.tPasswordAttribute).insert(TPasswordAttributeCompanion(
+        passwordId: Value(id),
+        classification: Value(Classification.confidential.value),
+        value: Value(username),
+        name: Value(ATTR_USER),
+        createdAt: Value(now),
+        updatedAt: Value(now),
+      ));
+    }
+
+    // Update or create remark attribute
+    final remarkAttr = existing.where((a) => a.name == ATTR_REMARK).firstOrNull;
+    if (remarkAttr != null) {
+      await (db.tPasswordAttribute.update()
+            ..where((r) => r.id.equals(remarkAttr.id)))
+          .write(TPasswordAttributeCompanion(
+        value: Value(remark),
+        updatedAt: Value(now),
+      ));
+    } else if (remark.isNotEmpty) {
+      await db.into(db.tPasswordAttribute).insert(TPasswordAttributeCompanion(
+        passwordId: Value(id),
+        classification: Value(Classification.confidential.value),
+        value: Value(remark),
+        name: Value(ATTR_REMARK),
+        createdAt: Value(now),
+        updatedAt: Value(now),
+      ));
+    }
+
+    // Update password value for Confidential passwords
+    final passwordAttr =
+        existing.where((a) => a.name == "password").firstOrNull;
+    if (passwordAttr != null) {
+      await (db.tPasswordAttribute.update()
+            ..where((r) => r.id.equals(passwordAttr.id)))
+          .write(TPasswordAttributeCompanion(
+        value: Value(utf8.decode(value.binaryValue)),
+        updatedAt: Value(now),
+      ));
+    }
+    // Note: Secret/Top Secret password value update requires re-encryption
+    // with the DEK, which is handled by PasswordService, not here.
+  }
 }

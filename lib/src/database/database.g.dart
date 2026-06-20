@@ -3856,18 +3856,6 @@ abstract class _$SqliteDb extends GeneratedDatabase {
   late final TPasswordHistory tPasswordHistory = TPasswordHistory(this);
   late final TNote tNote = TNote(this);
   late final TNoteHistory tNoteHistory = TNoteHistory(this);
-  late final Trigger triOnNoteInserted = Trigger(
-    'CREATE TRIGGER tri_on_note_inserted AFTER INSERT ON t_note WHEN new.deleted_at IS NULL BEGIN INSERT INTO t_note_idx ("rowid", title, content_plain) VALUES (new."rowid", new.title, new.content_plain);END',
-    'tri_on_note_inserted',
-  );
-  late final Trigger triOnNoteUpdated = Trigger(
-    'CREATE TRIGGER tri_on_note_updated AFTER UPDATE ON t_note WHEN new.deleted_at IS NULL BEGIN INSERT INTO t_note_idx (t_note_idx, "rowid", title, content_plain) VALUES (\'delete\', old."rowid", old.title, old.content_plain);INSERT INTO t_note_idx ("rowid", title, content_plain) VALUES (new."rowid", new.title, new.content_plain);END',
-    'tri_on_note_updated',
-  );
-  late final Trigger triOnNoteDeleted = Trigger(
-    'CREATE TRIGGER tri_on_note_deleted AFTER UPDATE ON t_note WHEN new.deleted_at IS NOT NULL BEGIN INSERT INTO t_note_idx (t_note_idx, "rowid", title, content_plain) VALUES (\'delete\', old."rowid", old.title, old.content_plain);END',
-    'tri_on_note_deleted',
-  );
   Selectable<SelectPasswordsResult> selectPasswords(
     SelectPasswords$order order,
   ) {
@@ -3948,34 +3936,7 @@ abstract class _$SqliteDb extends GeneratedDatabase {
     tPasswordHistory,
     tNote,
     tNoteHistory,
-    triOnNoteInserted,
-    triOnNoteUpdated,
-    triOnNoteDeleted,
   ];
-  @override
-  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
-    WritePropagation(
-      on: TableUpdateQuery.onTableName(
-        't_note',
-        limitUpdateKind: UpdateKind.insert,
-      ),
-      result: [],
-    ),
-    WritePropagation(
-      on: TableUpdateQuery.onTableName(
-        't_note',
-        limitUpdateKind: UpdateKind.update,
-      ),
-      result: [],
-    ),
-    WritePropagation(
-      on: TableUpdateQuery.onTableName(
-        't_note',
-        limitUpdateKind: UpdateKind.update,
-      ),
-      result: [],
-    ),
-  ]);
 }
 
 typedef $CategoriesCreateCompanionBuilder =

@@ -48,7 +48,7 @@ dependencies:
   remixicon: ^1.4.1
   base32: ^2.2.0
   flutter_secure_storage: ^10.3.1
-  file_saver: ^0.4.0
+  file_saver: ^0.3.1
   pdf: ^3.11.3
   cryptography: ^2.9.0
   cryptography_flutter: ^2.3.4

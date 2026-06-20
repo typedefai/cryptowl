@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:convert/convert.dart';
@@ -6,23 +7,119 @@ import 'package:cryptowl/src/common/exceptions.dart';
 import 'package:cryptowl/src/crypto/aead_crypto.dart';
 import 'package:cryptowl/src/crypto/hmac.dart';
 import 'package:cryptowl/src/crypto/protected_value.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logging/logging.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import '../common/path_util.dart';
 import '../config/app_config.dart';
 import '../crypto/crockford_base32.dart';
 import 'version_service.dart';
 
+/// Secure store that uses FlutterSecureStorage (Keychain) in release builds
+/// and file-based storage in debug builds.
+///
+/// macOS Keychain requires a trusted code signature (not ad-hoc), which is
+/// only available in properly signed release builds. Debug builds use ad-hoc
+/// signing and must fall back to file-based storage.
+abstract class SecureStore {
+  Future<ProtectedValue?> read(String key);
+  Future<void> write(String key, ProtectedValue data);
+}
+
+class KeychainSecureStore extends SecureStore {
+  final _storage = FlutterSecureStorage();
+  final Logger _logger;
+
+  KeychainSecureStore(this._logger);
+
+  @override
+  Future<ProtectedValue?> read(String key) async {
+    _logger.fine("readSecureStore: key='$key' (keychain)");
+    final value = await _storage.read(key: key);
+    _logger.fine("readSecureStore: key='$key', found=${value != null}");
+    if (value != null) {
+      return CrockfordBase32.decode(value);
+    }
+    return null;
+  }
+
+  @override
+  Future<void> write(String key, ProtectedValue data) async {
+    final encoded = CrockfordBase32.encodeProtected(data);
+    _logger.fine("saveSecureStore: key='$key' (keychain), encodedLength=${encoded.length}");
+    await _storage.write(key: key, value: encoded);
+    _logger.fine("saveSecureStore: key='$key', SUCCESS");
+  }
+}
+
+class FileSecureStore extends SecureStore {
+  final Logger _logger;
+
+  FileSecureStore(this._logger);
+
+  Future<String> _filePath(String key) async {
+    final safeKey = key.replaceAll(RegExp(r'[^a-zA-Z0-9_\-]'), '_');
+    return PathUtil.getLocalPath('.secrets/$safeKey');
+  }
+
+  @override
+  Future<ProtectedValue?> read(String key) async {
+    _logger.fine("readSecureStore: key='$key' (file)");
+    try {
+      final path = await _filePath(key);
+      final file = File(path);
+      if (!await file.exists()) {
+        _logger.fine("readSecureStore: key='$key', not found");
+        return null;
+      }
+      final value = await file.readAsString();
+      _logger.fine("readSecureStore: key='$key', found=true");
+      return CrockfordBase32.decode(value.trim());
+    } catch (e) {
+      _logger.warning("readSecureStore: key='$key', error: $e");
+      return null;
+    }
+  }
+
+  @override
+  Future<void> write(String key, ProtectedValue data) async {
+    final encoded = CrockfordBase32.encodeProtected(data);
+    _logger.fine("saveSecureStore: key='$key' (file), encodedLength=${encoded.length}");
+    try {
+      final path = await _filePath(key);
+      final file = File(path);
+      await file.parent.create(recursive: true);
+      await file.writeAsString(encoded, flush: true);
+      _logger.fine("saveSecureStore: key='$key', SUCCESS");
+    } catch (e, st) {
+      _logger.severe("saveSecureStore: key='$key', FAILED: $e", e, st);
+      rethrow;
+    }
+  }
+}
+
 class ConfigService {
   final logger = Logger('ConfigService');
-  final secureStore = FlutterSecureStorage();
+  late final SecureStore secureStore;
   final hmac = CryptoHmac();
 
   final VersionService versionService;
 
-  ConfigService(this.versionService);
+  ConfigService(this.versionService) {
+    // Keychain requires trusted code signing (not ad-hoc).
+    // Debug builds use ad-hoc signing, so we use file-based storage.
+    // Release builds use Keychain for hardware-backed security.
+    if (kReleaseMode) {
+      secureStore = KeychainSecureStore(logger);
+      logger.info("Secure store: Keychain (release mode)");
+    } else {
+      secureStore = FileSecureStore(logger);
+      logger.info("Secure store: file-based (debug mode)");
+    }
+  }
 
   Future<AppConfig> loadConfig(String content) async {
     try {
@@ -81,25 +178,11 @@ class ConfigService {
   }
 
   Future<ProtectedValue?> readSecureStore(String key) async {
-    logger.fine("readSecureStore: key='$key'");
-    String? value = await secureStore.read(key: key);
-    logger.fine("readSecureStore: key='$key', found=${value != null}");
-    if (value != null) {
-      return CrockfordBase32.decode(value);
-    }
-    return null;
+    return secureStore.read(key);
   }
 
   Future<void> saveSecureStore(String key, ProtectedValue data) async {
-    final encoded = CrockfordBase32.encodeProtected(data);
-    logger.fine("saveSecureStore: key='$key', encodedLength=${encoded.length}");
-    try {
-      await secureStore.write(key: key, value: encoded);
-      logger.fine("saveSecureStore: key='$key', SUCCESS");
-    } catch (e, st) {
-      logger.severe("saveSecureStore: key='$key', FAILED: $e", e, st);
-      rethrow;
-    }
+    return secureStore.write(key, data);
   }
 
   Future<Uint8List> generateEmergencyKit(String secretKey) async {

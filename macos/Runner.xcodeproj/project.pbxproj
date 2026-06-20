@@ -244,8 +244,8 @@
 				33CC10EB2044A3C60003C045 /* Resources */,
 				33CC110E2044A8840003C045 /* Bundle Framework */,
 				3399D490228B24CF009A79C7 /* ShellScript */,
-				AAAA000000000001AAAA0001 /* Re-sign after SPM */,
 				BF87271CDA672BC2B72EB18B /* [CP] Embed Pods Frameworks */,
+				AAAA000000000001AAAA0001 /* Re-sign after SPM */,
 			);
 			buildRules = (
 			);
@@ -390,7 +390,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "find \"${BUILT_PRODUCTS_DIR}/${FULL_PRODUCT_NAME}\" -name \"*.dylib\" -exec codesign --force --sign - {} \\;\ncodesign --force --sign - --entitlements \"${TARGET_TEMP_DIR}/${FULL_PRODUCT_NAME}.xcent\" \"${BUILT_PRODUCTS_DIR}/${FULL_PRODUCT_NAME}\"\n";
+			shellScript = "find \"${BUILT_PRODUCTS_DIR}/${FULL_PRODUCT_NAME}\" -name \"*.dylib\" -exec codesign --force --sign - {} \\;\ncodesign --force --sign - --entitlements \"${BUILT_PRODUCTS_DIR}/../../Intermediates.noindex/Runner.build/${CONFIGURATION}/Runner.build/${FULL_PRODUCT_NAME}.xcent\" \"${BUILT_PRODUCTS_DIR}/${FULL_PRODUCT_NAME}\"\n";
 		};
 		33CC111E2044C6BF0003C045 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;

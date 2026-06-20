@@ -24,9 +24,9 @@ class PasswordService {
   Future<void> createPassword(
       Password password, ProtectedValue kek, ProtectedValue? topSecretKek) async {
     final now = DateTime.now();
-    final passwordId = await kdfService.generateUUID();
 
     if (password.classification == Classification.confidential) {
+      final passwordId = await kdfService.generateUUID();
       // Confidential: no per-entry DEK, store password as a confidential attribute
       final passwordEntity = TPasswordData(
           id: passwordId,
@@ -98,6 +98,7 @@ class PasswordService {
 
     // Encrypt the password value with the DEK
     final encryptedDataId = await kdfService.generateUUID();
+    final passwordId = await kdfService.generateUUID();
     final dataNonce =
         await kdfService.generateRandomBytes(length: crypto.type.nonceSize);
     final encryptedData = await crypto.encrypt(password.value, dek,

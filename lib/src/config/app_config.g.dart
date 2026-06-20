@@ -31,19 +31,20 @@ ConfigData _$ConfigDataFromJson(Map<String, dynamic> json) => ConfigData(
   secondaryKeySalt: json['secondaryKeySalt'] as String?,
 );
 
-Map<String, dynamic> _$ConfigDataToJson(ConfigData instance) =>
-    <String, dynamic>{
-      'instanceId': instance.instanceId,
-      'createdAt': instance.createdAt.toIso8601String(),
-      'updatedAt': instance.updatedAt.toIso8601String(),
-      'kdf': instance.kdf,
-      'transformSeed': instance.transformSeed,
-      'masterSeed': instance.masterSeed,
-      'encryptedKey': instance.encryptedKey,
-      'authTag': instance.authTag,
-      'nonce': instance.nonce,
-      'secondaryKeySalt': instance.secondaryKeySalt,
-    };
+Map<String, dynamic> _$ConfigDataToJson(
+  ConfigData instance,
+) => <String, dynamic>{
+  'instanceId': instance.instanceId,
+  'createdAt': instance.createdAt.toIso8601String(),
+  'updatedAt': instance.updatedAt.toIso8601String(),
+  'kdf': instance.kdf,
+  'transformSeed': instance.transformSeed,
+  'masterSeed': instance.masterSeed,
+  'encryptedKey': instance.encryptedKey,
+  'authTag': instance.authTag,
+  'nonce': instance.nonce,
+  if (instance.secondaryKeySalt case final value?) 'secondaryKeySalt': value,
+};
 
 KdfParams _$KdfParamsFromJson(Map<String, dynamic> json) => KdfParams(
   algorithm: json['algorithm'] as String,

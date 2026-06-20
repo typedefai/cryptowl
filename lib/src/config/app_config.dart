@@ -20,7 +20,7 @@ class AppConfig {
   Map<String, dynamic> toJson() => _$AppConfigToJson(this);
 }
 
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false)
 class ConfigData {
   final String instanceId;
   final DateTime createdAt;

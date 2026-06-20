@@ -24,8 +24,25 @@ CREATE TABLE t_note_history (
     FOREIGN KEY (note_id) REFERENCES t_note (id)
 );
 
--- FTS5 virtual table and triggers are created manually in database.dart
--- because Drift's code generator does not support FTS5.
+CREATE VIRTUAL TABLE t_note_idx USING FTS5 (
+    title,
+    content_plain,
+    content="t_note",
+    tokenize='jieba'
+);
+
+CREATE TRIGGER tri_on_note_inserted AFTER INSERT ON t_note WHEN new.deleted_at IS NULL BEGIN
+INSERT INTO t_note_idx (rowid, title, content_plain) VALUES (new.rowid, new.title, new.content_plain);
+END;
+
+CREATE TRIGGER tri_on_note_updated AFTER UPDATE ON t_note WHEN new.deleted_at IS NULL BEGIN
+INSERT INTO t_note_idx(t_note_idx, rowid, title, content_plain) VALUES('delete', old.rowid, old.title, old.content_plain);
+INSERT INTO t_note_idx (rowid, title, content_plain) VALUES (new.rowid, new.title, new.content_plain);
+END;
+
+CREATE TRIGGER tri_on_note_deleted AFTER UPDATE ON t_note WHEN new.deleted_at IS NOT NULL BEGIN
+INSERT INTO t_note_idx(t_note_idx, rowid, title, content_plain) VALUES('delete', old.rowid, old.title, old.content_plain);
+END;
 
 selectNotes:
     SELECT id, classification, title, abstract, created_at, updated_at

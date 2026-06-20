@@ -3845,6 +3845,234 @@ class TNoteHistoryCompanion extends UpdateCompanion<TNoteHistoryData> {
   }
 }
 
+class TNoteIdx extends Table
+    with
+        TableInfo<TNoteIdx, TNoteIdxData>,
+        VirtualTableInfo<TNoteIdx, TNoteIdxData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  TNoteIdx(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _contentPlainMeta = const VerificationMeta(
+    'contentPlain',
+  );
+  late final GeneratedColumn<String> contentPlain = GeneratedColumn<String>(
+    'content_plain',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: '',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [title, contentPlain];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_note_idx';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TNoteIdxData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('content_plain')) {
+      context.handle(
+        _contentPlainMeta,
+        contentPlain.isAcceptableOrUnknown(
+          data['content_plain']!,
+          _contentPlainMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_contentPlainMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => const {};
+  @override
+  TNoteIdxData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TNoteIdxData(
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      contentPlain: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content_plain'],
+      )!,
+    );
+  }
+
+  @override
+  TNoteIdx createAlias(String alias) {
+    return TNoteIdx(attachedDatabase, alias);
+  }
+
+  @override
+  bool get dontWriteConstraints => true;
+  @override
+  String get moduleAndArgs =>
+      'FTS5(title, content_plain, content="t_note", tokenize=\'jieba\')';
+}
+
+class TNoteIdxData extends DataClass implements Insertable<TNoteIdxData> {
+  final String title;
+  final String contentPlain;
+  const TNoteIdxData({required this.title, required this.contentPlain});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['title'] = Variable<String>(title);
+    map['content_plain'] = Variable<String>(contentPlain);
+    return map;
+  }
+
+  TNoteIdxCompanion toCompanion(bool nullToAbsent) {
+    return TNoteIdxCompanion(
+      title: Value(title),
+      contentPlain: Value(contentPlain),
+    );
+  }
+
+  factory TNoteIdxData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TNoteIdxData(
+      title: serializer.fromJson<String>(json['title']),
+      contentPlain: serializer.fromJson<String>(json['content_plain']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'title': serializer.toJson<String>(title),
+      'content_plain': serializer.toJson<String>(contentPlain),
+    };
+  }
+
+  TNoteIdxData copyWith({String? title, String? contentPlain}) => TNoteIdxData(
+    title: title ?? this.title,
+    contentPlain: contentPlain ?? this.contentPlain,
+  );
+  TNoteIdxData copyWithCompanion(TNoteIdxCompanion data) {
+    return TNoteIdxData(
+      title: data.title.present ? data.title.value : this.title,
+      contentPlain: data.contentPlain.present
+          ? data.contentPlain.value
+          : this.contentPlain,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TNoteIdxData(')
+          ..write('title: $title, ')
+          ..write('contentPlain: $contentPlain')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(title, contentPlain);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TNoteIdxData &&
+          other.title == this.title &&
+          other.contentPlain == this.contentPlain);
+}
+
+class TNoteIdxCompanion extends UpdateCompanion<TNoteIdxData> {
+  final Value<String> title;
+  final Value<String> contentPlain;
+  final Value<int> rowid;
+  const TNoteIdxCompanion({
+    this.title = const Value.absent(),
+    this.contentPlain = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TNoteIdxCompanion.insert({
+    required String title,
+    required String contentPlain,
+    this.rowid = const Value.absent(),
+  }) : title = Value(title),
+       contentPlain = Value(contentPlain);
+  static Insertable<TNoteIdxData> custom({
+    Expression<String>? title,
+    Expression<String>? contentPlain,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (title != null) 'title': title,
+      if (contentPlain != null) 'content_plain': contentPlain,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TNoteIdxCompanion copyWith({
+    Value<String>? title,
+    Value<String>? contentPlain,
+    Value<int>? rowid,
+  }) {
+    return TNoteIdxCompanion(
+      title: title ?? this.title,
+      contentPlain: contentPlain ?? this.contentPlain,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (contentPlain.present) {
+      map['content_plain'] = Variable<String>(contentPlain.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TNoteIdxCompanion(')
+          ..write('title: $title, ')
+          ..write('contentPlain: $contentPlain, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$SqliteDb extends GeneratedDatabase {
   _$SqliteDb(QueryExecutor e) : super(e);
   $SqliteDbManager get managers => $SqliteDbManager(this);
@@ -3856,6 +4084,19 @@ abstract class _$SqliteDb extends GeneratedDatabase {
   late final TPasswordHistory tPasswordHistory = TPasswordHistory(this);
   late final TNote tNote = TNote(this);
   late final TNoteHistory tNoteHistory = TNoteHistory(this);
+  late final TNoteIdx tNoteIdx = TNoteIdx(this);
+  late final Trigger triOnNoteInserted = Trigger(
+    'CREATE TRIGGER tri_on_note_inserted AFTER INSERT ON t_note WHEN new.deleted_at IS NULL BEGIN INSERT INTO t_note_idx ("rowid", title, content_plain) VALUES (new."rowid", new.title, new.content_plain);END',
+    'tri_on_note_inserted',
+  );
+  late final Trigger triOnNoteUpdated = Trigger(
+    'CREATE TRIGGER tri_on_note_updated AFTER UPDATE ON t_note WHEN new.deleted_at IS NULL BEGIN INSERT INTO t_note_idx (t_note_idx, "rowid", title, content_plain) VALUES (\'delete\', old."rowid", old.title, old.content_plain);INSERT INTO t_note_idx ("rowid", title, content_plain) VALUES (new."rowid", new.title, new.content_plain);END',
+    'tri_on_note_updated',
+  );
+  late final Trigger triOnNoteDeleted = Trigger(
+    'CREATE TRIGGER tri_on_note_deleted AFTER UPDATE ON t_note WHEN new.deleted_at IS NOT NULL BEGIN INSERT INTO t_note_idx (t_note_idx, "rowid", title, content_plain) VALUES (\'delete\', old."rowid", old.title, old.content_plain);END',
+    'tri_on_note_deleted',
+  );
   Selectable<SelectPasswordsResult> selectPasswords(
     SelectPasswords$order order,
   ) {
@@ -3910,7 +4151,7 @@ abstract class _$SqliteDb extends GeneratedDatabase {
     return customSelect(
       'SELECT n.id, n.title, n.classification, n.abstract, n.created_at, n.updated_at FROM t_note_idx AS i JOIN t_note AS n ON i."rowid" = n."rowid" WHERE t_note_idx MATCH ?1 AND n.deleted_at IS NULL ORDER BY rank',
       variables: [Variable<String>(var1)],
-      readsFrom: {tNote},
+      readsFrom: {tNote, tNoteIdx},
     ).map(
       (QueryRow row) => SearchNotesResult(
         id: row.read<String>('id'),
@@ -3936,7 +4177,38 @@ abstract class _$SqliteDb extends GeneratedDatabase {
     tPasswordHistory,
     tNote,
     tNoteHistory,
+    tNoteIdx,
+    triOnNoteInserted,
+    triOnNoteUpdated,
+    triOnNoteDeleted,
   ];
+  @override
+  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        't_note',
+        limitUpdateKind: UpdateKind.insert,
+      ),
+      result: [TableUpdate('t_note_idx', kind: UpdateKind.insert)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        't_note',
+        limitUpdateKind: UpdateKind.update,
+      ),
+      result: [TableUpdate('t_note_idx', kind: UpdateKind.insert)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        't_note',
+        limitUpdateKind: UpdateKind.update,
+      ),
+      result: [TableUpdate('t_note_idx', kind: UpdateKind.insert)],
+    ),
+  ]);
+  @override
+  DriftDatabaseOptions get options =>
+      const DriftDatabaseOptions(storeDateTimeAsText: true);
 }
 
 typedef $CategoriesCreateCompanionBuilder =
@@ -5875,6 +6147,142 @@ typedef $TNoteHistoryProcessedTableManager =
       TNoteHistoryData,
       PrefetchHooks Function()
     >;
+typedef $TNoteIdxCreateCompanionBuilder =
+    TNoteIdxCompanion Function({
+      required String title,
+      required String contentPlain,
+      Value<int> rowid,
+    });
+typedef $TNoteIdxUpdateCompanionBuilder =
+    TNoteIdxCompanion Function({
+      Value<String> title,
+      Value<String> contentPlain,
+      Value<int> rowid,
+    });
+
+class $TNoteIdxFilterComposer extends Composer<_$SqliteDb, TNoteIdx> {
+  $TNoteIdxFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get contentPlain => $composableBuilder(
+    column: $table.contentPlain,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $TNoteIdxOrderingComposer extends Composer<_$SqliteDb, TNoteIdx> {
+  $TNoteIdxOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get contentPlain => $composableBuilder(
+    column: $table.contentPlain,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $TNoteIdxAnnotationComposer extends Composer<_$SqliteDb, TNoteIdx> {
+  $TNoteIdxAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get contentPlain => $composableBuilder(
+    column: $table.contentPlain,
+    builder: (column) => column,
+  );
+}
+
+class $TNoteIdxTableManager
+    extends
+        RootTableManager<
+          _$SqliteDb,
+          TNoteIdx,
+          TNoteIdxData,
+          $TNoteIdxFilterComposer,
+          $TNoteIdxOrderingComposer,
+          $TNoteIdxAnnotationComposer,
+          $TNoteIdxCreateCompanionBuilder,
+          $TNoteIdxUpdateCompanionBuilder,
+          (TNoteIdxData, BaseReferences<_$SqliteDb, TNoteIdx, TNoteIdxData>),
+          TNoteIdxData,
+          PrefetchHooks Function()
+        > {
+  $TNoteIdxTableManager(_$SqliteDb db, TNoteIdx table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $TNoteIdxFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $TNoteIdxOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $TNoteIdxAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> title = const Value.absent(),
+                Value<String> contentPlain = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TNoteIdxCompanion(
+                title: title,
+                contentPlain: contentPlain,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String title,
+                required String contentPlain,
+                Value<int> rowid = const Value.absent(),
+              }) => TNoteIdxCompanion.insert(
+                title: title,
+                contentPlain: contentPlain,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $TNoteIdxProcessedTableManager =
+    ProcessedTableManager<
+      _$SqliteDb,
+      TNoteIdx,
+      TNoteIdxData,
+      $TNoteIdxFilterComposer,
+      $TNoteIdxOrderingComposer,
+      $TNoteIdxAnnotationComposer,
+      $TNoteIdxCreateCompanionBuilder,
+      $TNoteIdxUpdateCompanionBuilder,
+      (TNoteIdxData, BaseReferences<_$SqliteDb, TNoteIdx, TNoteIdxData>),
+      TNoteIdxData,
+      PrefetchHooks Function()
+    >;
 
 class $SqliteDbManager {
   final _$SqliteDb _db;
@@ -5894,6 +6302,8 @@ class $SqliteDbManager {
   $TNoteTableManager get tNote => $TNoteTableManager(_db, _db.tNote);
   $TNoteHistoryTableManager get tNoteHistory =>
       $TNoteHistoryTableManager(_db, _db.tNoteHistory);
+  $TNoteIdxTableManager get tNoteIdx =>
+      $TNoteIdxTableManager(_db, _db.tNoteIdx);
 }
 
 class SelectPasswordsResult {

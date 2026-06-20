@@ -49,34 +49,7 @@ class SqliteDb extends _$SqliteDb {
       },
       onCreate: (Migrator m) async {
         await m.createAll();
-        // FTS5 virtual table and triggers are not supported by Drift's code generator,
-        // so we create them manually.
-        await transaction(() async {
-          await customStatement('''
-            CREATE VIRTUAL TABLE IF NOT EXISTS t_note_idx USING FTS5 (
-              title,
-              content_plain,
-              content="t_note",
-              tokenize='jieba'
-            )
-          ''');
-          await customStatement('''
-            CREATE TRIGGER IF NOT EXISTS tri_on_note_inserted AFTER INSERT ON t_note WHEN new.deleted_at IS NULL BEGIN
-              INSERT INTO t_note_idx (rowid, title, content_plain) VALUES (new.rowid, new.title, new.content_plain);
-            END
-          ''');
-          await customStatement('''
-            CREATE TRIGGER IF NOT EXISTS tri_on_note_updated AFTER UPDATE ON t_note WHEN new.deleted_at IS NULL BEGIN
-              INSERT INTO t_note_idx(t_note_idx, rowid, title, content_plain) VALUES('delete', old.rowid, old.title, old.content_plain);
-              INSERT INTO t_note_idx (rowid, title, content_plain) VALUES (new.rowid, new.title, new.content_plain);
-            END
-          ''');
-          await customStatement('''
-            CREATE TRIGGER IF NOT EXISTS tri_on_note_deleted AFTER UPDATE ON t_note WHEN new.deleted_at IS NOT NULL BEGIN
-              INSERT INTO t_note_idx(t_note_idx, rowid, title, content_plain) VALUES('delete', old.rowid, old.title, old.content_plain);
-            END
-          ''');
-        });
+        await transaction(() async {});
       },
     );
   }

@@ -1,9 +1,13 @@
 import 'dart:async';
+import 'dart:typed_data';
 
+import 'package:cryptowl/src/common/classification.dart';
+import 'package:cryptowl/src/crypto/protected_value.dart';
 import 'package:cryptowl/src/domain/password.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
 
+import 'credentials.dart';
 import 'repositories.dart';
 
 final _logger = Logger("PasswordNotifiers");
@@ -12,18 +16,7 @@ class AsyncPasswordsNotifier extends AsyncNotifier<List<PasswordBasic>> {
   @override
   FutureOr<List<PasswordBasic>> build() {
     final filters = ref.watch(passwordFilterProvider);
-    final includeDeleted = filters.contains(PasswordFilter.deleted);
-    final classifications = <int>[];
-    if (filters.contains(PasswordFilter.topSecret)) {
-      classifications.add(1);
-    }
-    if (filters.contains(PasswordFilter.secret)) {
-      classifications.add(1);
-    }
-    if (filters.contains(PasswordFilter.confidential)) {
-      classifications.add(1);
-    }
-    // FIXME:
+    // FIXME: apply actual filters
     return ref.read(passwordRepositoryProvider).list();
   }
 }
@@ -36,7 +29,14 @@ final passwordsProvider =
 final passwordDetailProvider =
     FutureProvider.autoDispose.family<Password, String>((ref, id) async {
   _logger.fine("Fetching password detail for $id");
-  return ref.read(passwordServiceProvider).getPasswordDetail(id);
+  final session = ref.watch(asyncLoginProvider).valueOrNull;
+  if (session == null) {
+    throw Exception("Not logged in");
+  }
+  final kek = ProtectedValue.fromBinary(
+      Uint8List.sublistView(session.symmetricKey.binaryValue, 0, 32));
+  return ref.read(passwordServiceProvider).getPasswordDetail(id, kek,
+      topSecretKek: session.secondaryKey);
 });
 
 enum PasswordFilter { topSecret, secret, confidential, deleted }

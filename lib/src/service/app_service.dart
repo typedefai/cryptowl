@@ -10,6 +10,7 @@ import 'package:cryptowl/src/service/kdf_service.dart';
 import 'package:logging/logging.dart';
 
 import '../common/exceptions.dart';
+import '../crypto/crockford_base32.dart';
 import '../crypto/protected_value.dart';
 import '../crypto/random_util.dart';
 import '../database/database.dart';
@@ -29,7 +30,8 @@ class AppService {
     return dbs.isNotEmpty;
   }
 
-  Future<void> initialize(ProtectedValue masterPassword, String? hint) async {
+  Future<void> initialize(ProtectedValue masterPassword, String? hint,
+      {ProtectedValue? secondaryPassword}) async {
     logger.info("=== INITIALIZE START ===");
 
     logger.fine("[1/10] Copying Jieba dictionaries...");
@@ -71,6 +73,15 @@ class AppService {
     final nonce = await kdfService.generateRandomBytes(length: 12);
     logger.fine("[6/10] Random values generated");
 
+    // Generate secondary key salt if secondary password provided
+    String? secondaryKeySalt;
+    if (secondaryPassword != null) {
+      logger.fine("[6b/10] Generating secondary key salt...");
+      final salt = await kdfService.generateRandomBytes(length: 16);
+      secondaryKeySalt = salt.getText();
+      logger.fine("[6b/10] Secondary key salt generated");
+    }
+
     logger.fine("[7/10] Generating app config (KDF + encryption)...");
     final config = await kdfService.generateAppConfig(
         masterPassword,
@@ -79,7 +90,8 @@ class AppService {
         transformSeed.binaryValue,
         masterSeed.binaryValue,
         symmetricKey,
-        nonce.binaryValue);
+        nonce.binaryValue,
+        secondaryKeySalt: secondaryKeySalt);
     logger.fine("[7/10] App config generated");
 
     logger.fine("[8/10] Writing config file...");
@@ -149,6 +161,36 @@ class AppService {
       logger.severe("[4-5/5] Failed to open sqlcipher: $e");
       throw InternalException("Failed to open sqlcihper: ${e}");
     }
+  }
+
+  /// Unlock Top Secret items by deriving the secondary key from the secondary password.
+  /// Returns a new Session with the secondary key set.
+  Future<Session> unlockSecondaryKey(
+      Session session, ProtectedValue secondaryPassword) async {
+    logger.info("=== UNLOCK TOP SECRET ===");
+
+    // Read the config to get the secondary key salt
+    final dbs = await fileService.getSqlcipherInstances();
+    if (dbs.isEmpty) {
+      throw InternalException("No vault found");
+    }
+    final instanceId = dbs.first.replaceAll(RegExp(r'.enc$'), '');
+    final configFile = await fileService.getConfigFile(instanceId);
+    final data = await configFile.readAsBytes();
+    final config = await configService.loadConfig(utf8.decode(data));
+
+    if (config.data.secondaryKeySalt == null) {
+      throw InternalException("No secondary password configured");
+    }
+
+    logger.fine("Deriving secondary key...");
+    final salt = CrockfordBase32.decode(config.data.secondaryKeySalt!);
+    final secondaryKey =
+        await kdfService.createSecondaryKey(secondaryPassword, salt.binaryValue);
+    final topSecretKek = await kdfService.createTopSecretKek(secondaryKey);
+    logger.info("=== TOP SECRET UNLOCKED ===");
+
+    return session.withSecondaryKey(topSecretKek);
   }
 
   String _secretKeyId(String instanceId) {

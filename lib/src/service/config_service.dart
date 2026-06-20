@@ -49,7 +49,9 @@ class ConfigService {
       Uint8List masterSeed,
       AuthEncryptedResult protectedSymmetricKey,
       ProtectedValue macKey,
-      Uint8List nonce) async {
+      Uint8List nonce, {
+      String? secondaryKeySalt,
+    }) async {
     final now = DateTime.now();
     final configData = ConfigData(
       instanceId: instanceId,
@@ -61,6 +63,7 @@ class ConfigService {
       encryptedKey: CrockfordBase32.encode(protectedSymmetricKey.cipherData),
       authTag: CrockfordBase32.encode(protectedSymmetricKey.authTag),
       nonce: CrockfordBase32.encode(nonce),
+      secondaryKeySalt: secondaryKeySalt,
     );
 
     final message = utf8.encode(json.encode(configData..toJson()));

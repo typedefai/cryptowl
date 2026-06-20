@@ -38,11 +38,17 @@ class PasswordRepository extends SqlcipherRepository {
         .getSingle();
   }
 
-  Future<TDataEncryptKeyData> findPasswordEncryptedData(
-      String encryptedId) async {
+  Future<TDataEncryptKeyData> findDataEncryptKey(String dekId) async {
     final db = await requireDb();
     return (db.tDataEncryptKey.select()
-          ..where((tbl) => tbl.id.equals(encryptedId)))
+          ..where((tbl) => tbl.id.equals(dekId)))
+        .getSingle();
+  }
+
+  Future<TEncryptedDataData> findEncryptedData(String encryptedDataId) async {
+    final db = await requireDb();
+    return (db.tEncryptedData.select()
+          ..where((tbl) => tbl.id.equals(encryptedDataId)))
         .getSingle();
   }
 

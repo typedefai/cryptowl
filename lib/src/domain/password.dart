@@ -29,8 +29,6 @@ class PasswordBasic {
   });
 }
 
-final fakeValue = ProtectedValue.fromString("PROTECTED");
-
 const ATTR_USER = "user";
 const ATTR_REMARK = "remark";
 
@@ -45,8 +43,11 @@ class PasswordAttribute {
   static PasswordAttribute fromEntity(TPasswordAttributeData entity) {
     final isProtected = Classification.parse(entity.classification) !=
         Classification.confidential;
-    ProtectedValue value = fakeValue;
-    if (!isProtected) {
+    ProtectedValue value;
+    if (isProtected || entity.value == null) {
+      // Value needs decryption or is null — caller must provide decrypted value
+      value = ProtectedValue.fromString("");
+    } else {
       value = ProtectedValue.fromString(entity.value!);
     }
     return PasswordAttribute(
@@ -61,7 +62,7 @@ class PasswordAttribute {
 class Password {
   String id;
   int type;
-  bool isTopSecret;
+  Classification classification;
   int categoryId;
   String? title;
   DateTime? expireTime;
@@ -73,7 +74,7 @@ class Password {
   Password(
       {required this.id,
       required this.type,
-      required this.isTopSecret,
+      required this.classification,
       required this.title,
       this.expireTime,
       required this.value,
@@ -81,6 +82,12 @@ class Password {
       required this.categoryId,
       required this.createdAt,
       required this.updatedAt});
+
+  bool get isEncrypted =>
+      classification == Classification.secret ||
+      classification == Classification.topSecret;
+
+  bool get isTopSecret => classification == Classification.topSecret;
 
   PasswordAttribute? getUser() {
     return attributes.where((a) => a.name == ATTR_USER).firstOrNull;
@@ -91,16 +98,17 @@ class Password {
   }
 
   factory Password.create(String title, ProtectedValue password,
-      bool isTopSecret, String? user, String? remark) {
+      Classification classification, String? user, String? remark) {
     final now = DateTime.now();
     return Password(
         id: RandomUtil.generateUUID(),
         type: 0,
-        isTopSecret: isTopSecret,
+        classification: classification,
         title: title,
         value: password,
         categoryId: 0,
         attributes: [
+          // Attributes are always Confidential for searchability
           if (user.isNotBlank)
             PasswordAttribute(
                 name: ATTR_USER,
@@ -115,14 +123,16 @@ class Password {
         createdAt: now,
         updatedAt: now);
   }
+
   static Password fromEntity(
-      TPasswordData e, List<TPasswordAttributeData> attributes) {
+      TPasswordData e, List<TPasswordAttributeData> attributes,
+      {ProtectedValue? decryptedValue}) {
     return Password(
         id: e.id,
         type: e.type,
         title: e.title,
-        isTopSecret: false,
-        value: fakeValue,
+        classification: Classification.parse(e.classification),
+        value: decryptedValue ?? ProtectedValue.fromString(""),
         categoryId: e.categoryId,
         createdAt: e.createdAt,
         attributes:

@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:cryptowl/src/common/classification.dart';
 import 'package:cryptowl/src/domain/password.dart';
 import 'package:cryptowl/src/providers/providers.dart';
 import 'package:flutter/material.dart' hide DropdownMenuFormField;
@@ -25,7 +26,7 @@ class PasswordCreatePage extends HookConsumerWidget {
     final passwordController = useTextEditingController();
     final userController = useTextEditingController();
     final remarkController = useTextEditingController();
-    final isTopSecret = useState<bool>(false);
+    final classification = useState<Classification>(Classification.secret);
 
     String? mandatoryValidator(String? value) {
       if (value == null || value.isEmpty) {
@@ -34,17 +35,45 @@ class PasswordCreatePage extends HookConsumerWidget {
       return null;
     }
 
+    String classificationLabel(Classification c) {
+      switch (c) {
+        case Classification.confidential:
+          return 'Confidential — readable after login';
+        case Classification.secret:
+          return 'Secret — requires biometric to view';
+        case Classification.topSecret:
+          return 'Top Secret — requires secondary password';
+      }
+    }
+
     void submitForm() async {
       if (formKey.currentState!.validate()) {
+        final sessionData = session.value!;
         final password = Password.create(
             titleController.text,
             ProtectedValue.fromString(passwordController.text),
-            isTopSecret.value,
+            classification.value,
             userController.text,
             remarkController.text);
         final kek = ProtectedValue.fromBinary(Uint8List.sublistView(
-            session.value!.symmetricKey.binaryValue, 0, 32));
-        await passwordService.createPassword(password, kek);
+            sessionData.symmetricKey.binaryValue, 0, 32));
+
+        if (classification.value == Classification.topSecret &&
+            !sessionData.hasSecondaryKey) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                    'Unlock Top Secret first from the password list page.'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+          return;
+        }
+
+        await passwordService.createPassword(
+            password, kek, sessionData.secondaryKey);
         ref.invalidate(passwordsProvider);
         if (context.mounted) {
           context.pop();
@@ -88,22 +117,27 @@ class PasswordCreatePage extends HookConsumerWidget {
                       )),
                 ),
                 const SizedBox(height: 20),
-                SwitchListTile(
-                  dense: true,
-                  visualDensity: VisualDensity.compact,
-                  contentPadding: EdgeInsets.all(0),
-                  title: Text(
-                    'Top secret',
-                  ),
-                  subtitle: Text(
-                    'Top secret will be encrypted with additional security',
-                  ),
-                  value: isTopSecret.value,
-                  onChanged: (bool value) {
-                    isTopSecret.value = value;
-                  },
-                ),
+
+                // Classification selector
+                const Text('Encryption Level',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                ...Classification.values.map((c) => RadioListTile<Classification>(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(c.name),
+                      subtitle: Text(classificationLabel(c),
+                          style: const TextStyle(fontSize: 12)),
+                      value: c,
+                      groupValue: classification.value,
+                      onChanged: (Classification? value) {
+                        if (value != null) {
+                          classification.value = value;
+                        }
+                      },
+                    )),
                 const SizedBox(height: 20),
+
                 TextFormField(
                   controller: userController,
                   decoration: const InputDecoration(

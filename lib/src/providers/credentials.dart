@@ -26,12 +26,14 @@ class OnboardingNotifier extends StateNotifier<AsyncValue<bool>> {
     }
   }
 
-  Future<void> completeOnboarding(ProtectedValue password, String? hint) async {
+  Future<void> completeOnboarding(ProtectedValue password, String? hint,
+      {ProtectedValue? secondaryPassword}) async {
     logger.info("completeOnboarding() called");
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       logger.fine("completeOnboarding: calling initialize...");
-      await ref.read(appServiceProvider).initialize(password, hint);
+      await ref.read(appServiceProvider).initialize(password, hint,
+          secondaryPassword: secondaryPassword);
       logger.fine("completeOnboarding: initialize done, checking isInitialized...");
       final result = await ref.read(appServiceProvider).isInitialized();
       logger.fine("completeOnboarding: isInitialized=$result");
@@ -69,6 +71,19 @@ class AsyncLoginNotifier extends AsyncNotifier<Session?> {
         session.sqliteDb.close();
       });
       return session;
+    });
+  }
+
+  Future<void> unlockTopSecret(ProtectedValue secondaryPassword) async {
+    final currentSession = state.valueOrNull;
+    if (currentSession == null) {
+      throw Exception("Not logged in");
+    }
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      return ref
+          .read(appServiceProvider)
+          .unlockSecondaryKey(currentSession, secondaryPassword);
     });
   }
 

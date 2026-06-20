@@ -1,4 +1,5 @@
 import 'package:convert/convert.dart';
+import 'package:cryptowl/src/common/classification.dart';
 import 'package:cryptowl/src/crypto/protected_value.dart';
 import 'package:cryptowl/src/database/database.dart';
 import 'package:cryptowl/src/domain/password.dart';
@@ -80,11 +81,11 @@ void main() {
     final p = Password.create(
         "google",
         ProtectedValue.fromString("123456@google.com"),
-        false,
+        Classification.secret,
         "Riguz",
         "Need VPN");
 
-    await service.createPassword(p, ProtectedValue.fromBinary(kek));
+    await service.createPassword(p, ProtectedValue.fromBinary(kek), null);
 
     final dek = await database.select(database.tDataEncryptKey).getSingle();
     final encryptedData =
@@ -151,9 +152,9 @@ void main() {
     });
 
     final p = Password.create("google",
-        ProtectedValue.fromString("123456@google.com"), false, null, null);
+        ProtectedValue.fromString("123456@google.com"), Classification.secret, null, null);
 
-    await service.createPassword(p, ProtectedValue.fromBinary(kek));
+    await service.createPassword(p, ProtectedValue.fromBinary(kek), null);
 
     final dek = await database.select(database.tDataEncryptKey).getSingle();
     final encryptedData =
@@ -214,11 +215,11 @@ void main() {
     final p = Password.create(
         "google",
         ProtectedValue.fromString("123456@google.com"),
-        true,
+        Classification.topSecret,
         "Riguz",
         "Need VPN");
 
-    await service.createPassword(p, ProtectedValue.fromBinary(kek));
+    await service.createPassword(p, ProtectedValue.fromBinary(kek), ProtectedValue.fromBinary(kek));
 
     final dek = await database.select(database.tDataEncryptKey).getSingle();
     final encryptedData =

@@ -31,6 +31,7 @@ class ConfigData {
   final String encryptedKey;
   final String authTag;
   final String nonce;
+  final String? secondaryKeySalt;
 
   ConfigData({
     required this.instanceId,
@@ -42,6 +43,7 @@ class ConfigData {
     required this.encryptedKey,
     required this.authTag,
     required this.nonce,
+    this.secondaryKeySalt,
   });
 
   factory ConfigData.fromJson(Map<String, dynamic> json) =>

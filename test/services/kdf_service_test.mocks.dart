@@ -126,41 +126,54 @@ class MockConfigService extends _i1.Mock implements _i6.ConfigService {
     _i9.Uint8List? masterSeed,
     _i10.AuthEncryptedResult? protectedSymmetricKey,
     _i8.ProtectedValue? macKey,
-    _i9.Uint8List? nonce,
-  ) =>
+    _i9.Uint8List? nonce, {
+    String? secondaryKeySalt,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#createConfig, [
-              instanceId,
-              transformSeed,
-              masterSeed,
-              protectedSymmetricKey,
-              macKey,
-              nonce,
-            ]),
+            Invocation.method(
+              #createConfig,
+              [
+                instanceId,
+                transformSeed,
+                masterSeed,
+                protectedSymmetricKey,
+                macKey,
+                nonce,
+              ],
+              {#secondaryKeySalt: secondaryKeySalt},
+            ),
             returnValue: _i7.Future<_i5.AppConfig>.value(
               _FakeAppConfig_3(
                 this,
-                Invocation.method(#createConfig, [
-                  instanceId,
-                  transformSeed,
-                  masterSeed,
-                  protectedSymmetricKey,
-                  macKey,
-                  nonce,
-                ]),
+                Invocation.method(
+                  #createConfig,
+                  [
+                    instanceId,
+                    transformSeed,
+                    masterSeed,
+                    protectedSymmetricKey,
+                    macKey,
+                    nonce,
+                  ],
+                  {#secondaryKeySalt: secondaryKeySalt},
+                ),
               ),
             ),
             returnValueForMissingStub: _i7.Future<_i5.AppConfig>.value(
               _FakeAppConfig_3(
                 this,
-                Invocation.method(#createConfig, [
-                  instanceId,
-                  transformSeed,
-                  masterSeed,
-                  protectedSymmetricKey,
-                  macKey,
-                  nonce,
-                ]),
+                Invocation.method(
+                  #createConfig,
+                  [
+                    instanceId,
+                    transformSeed,
+                    masterSeed,
+                    protectedSymmetricKey,
+                    macKey,
+                    nonce,
+                  ],
+                  {#secondaryKeySalt: secondaryKeySalt},
+                ),
               ),
             ),
           )

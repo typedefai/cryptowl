@@ -365,44 +365,57 @@ class MockKdfService extends _i1.Mock implements _i14.KdfService {
     _i15.Uint8List? transformSeed,
     _i15.Uint8List? masterSeed,
     _i7.ProtectedValue? symmetricKey,
-    _i15.Uint8List? nonce,
-  ) =>
+    _i15.Uint8List? nonce, {
+    String? secondaryKeySalt,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#generateAppConfig, [
-              masterPassword,
-              secretKey,
-              instanceId,
-              transformSeed,
-              masterSeed,
-              symmetricKey,
-              nonce,
-            ]),
+            Invocation.method(
+              #generateAppConfig,
+              [
+                masterPassword,
+                secretKey,
+                instanceId,
+                transformSeed,
+                masterSeed,
+                symmetricKey,
+                nonce,
+              ],
+              {#secondaryKeySalt: secondaryKeySalt},
+            ),
             returnValue: _i13.Future<_i8.AppConfig>.value(
               _FakeAppConfig_7(
                 this,
-                Invocation.method(#generateAppConfig, [
-                  masterPassword,
-                  secretKey,
-                  instanceId,
-                  transformSeed,
-                  masterSeed,
-                  symmetricKey,
-                  nonce,
-                ]),
+                Invocation.method(
+                  #generateAppConfig,
+                  [
+                    masterPassword,
+                    secretKey,
+                    instanceId,
+                    transformSeed,
+                    masterSeed,
+                    symmetricKey,
+                    nonce,
+                  ],
+                  {#secondaryKeySalt: secondaryKeySalt},
+                ),
               ),
             ),
             returnValueForMissingStub: _i13.Future<_i8.AppConfig>.value(
               _FakeAppConfig_7(
                 this,
-                Invocation.method(#generateAppConfig, [
-                  masterPassword,
-                  secretKey,
-                  instanceId,
-                  transformSeed,
-                  masterSeed,
-                  symmetricKey,
-                  nonce,
-                ]),
+                Invocation.method(
+                  #generateAppConfig,
+                  [
+                    masterPassword,
+                    secretKey,
+                    instanceId,
+                    transformSeed,
+                    masterSeed,
+                    symmetricKey,
+                    nonce,
+                  ],
+                  {#secondaryKeySalt: secondaryKeySalt},
+                ),
               ),
             ),
           )
@@ -438,6 +451,55 @@ class MockKdfService extends _i1.Mock implements _i14.KdfService {
                   secretKey,
                   config,
                 ]),
+              ),
+            ),
+          )
+          as _i13.Future<_i7.ProtectedValue>);
+
+  @override
+  _i13.Future<_i7.ProtectedValue> createSecondaryKey(
+    _i7.ProtectedValue? secondaryPassword,
+    _i15.Uint8List? salt,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#createSecondaryKey, [secondaryPassword, salt]),
+            returnValue: _i13.Future<_i7.ProtectedValue>.value(
+              _FakeProtectedValue_5(
+                this,
+                Invocation.method(#createSecondaryKey, [
+                  secondaryPassword,
+                  salt,
+                ]),
+              ),
+            ),
+            returnValueForMissingStub: _i13.Future<_i7.ProtectedValue>.value(
+              _FakeProtectedValue_5(
+                this,
+                Invocation.method(#createSecondaryKey, [
+                  secondaryPassword,
+                  salt,
+                ]),
+              ),
+            ),
+          )
+          as _i13.Future<_i7.ProtectedValue>);
+
+  @override
+  _i13.Future<_i7.ProtectedValue> createTopSecretKek(
+    _i7.ProtectedValue? secondaryKey,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#createTopSecretKek, [secondaryKey]),
+            returnValue: _i13.Future<_i7.ProtectedValue>.value(
+              _FakeProtectedValue_5(
+                this,
+                Invocation.method(#createTopSecretKek, [secondaryKey]),
+              ),
+            ),
+            returnValueForMissingStub: _i13.Future<_i7.ProtectedValue>.value(
+              _FakeProtectedValue_5(
+                this,
+                Invocation.method(#createTopSecretKek, [secondaryKey]),
               ),
             ),
           )
@@ -519,41 +581,54 @@ class MockConfigService extends _i1.Mock implements _i6.ConfigService {
     _i15.Uint8List? masterSeed,
     _i5.AuthEncryptedResult? protectedSymmetricKey,
     _i7.ProtectedValue? macKey,
-    _i15.Uint8List? nonce,
-  ) =>
+    _i15.Uint8List? nonce, {
+    String? secondaryKeySalt,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#createConfig, [
-              instanceId,
-              transformSeed,
-              masterSeed,
-              protectedSymmetricKey,
-              macKey,
-              nonce,
-            ]),
+            Invocation.method(
+              #createConfig,
+              [
+                instanceId,
+                transformSeed,
+                masterSeed,
+                protectedSymmetricKey,
+                macKey,
+                nonce,
+              ],
+              {#secondaryKeySalt: secondaryKeySalt},
+            ),
             returnValue: _i13.Future<_i8.AppConfig>.value(
               _FakeAppConfig_7(
                 this,
-                Invocation.method(#createConfig, [
-                  instanceId,
-                  transformSeed,
-                  masterSeed,
-                  protectedSymmetricKey,
-                  macKey,
-                  nonce,
-                ]),
+                Invocation.method(
+                  #createConfig,
+                  [
+                    instanceId,
+                    transformSeed,
+                    masterSeed,
+                    protectedSymmetricKey,
+                    macKey,
+                    nonce,
+                  ],
+                  {#secondaryKeySalt: secondaryKeySalt},
+                ),
               ),
             ),
             returnValueForMissingStub: _i13.Future<_i8.AppConfig>.value(
               _FakeAppConfig_7(
                 this,
-                Invocation.method(#createConfig, [
-                  instanceId,
-                  transformSeed,
-                  masterSeed,
-                  protectedSymmetricKey,
-                  macKey,
-                  nonce,
-                ]),
+                Invocation.method(
+                  #createConfig,
+                  [
+                    instanceId,
+                    transformSeed,
+                    masterSeed,
+                    protectedSymmetricKey,
+                    macKey,
+                    nonce,
+                  ],
+                  {#secondaryKeySalt: secondaryKeySalt},
+                ),
               ),
             ),
           )

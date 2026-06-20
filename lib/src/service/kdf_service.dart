@@ -85,8 +85,9 @@ class KdfService {
     Uint8List transformSeed,
     Uint8List masterSeed,
     ProtectedValue symmetricKey,
-    Uint8List nonce,
-  ) async {
+    Uint8List nonce, {
+    String? secondaryKeySalt,
+  }) async {
     final instanceIdBytes = utf8.encode(instanceId);
 
     final transformedMasterKey = await createTransformedMasterKey(
@@ -103,7 +104,8 @@ class KdfService {
         encryptedSymmetricKey,
         ProtectedValue.fromBinary(
             Uint8List.sublistView(stretchedMasterKey.binaryValue, 32)),
-        nonce);
+        nonce,
+        secondaryKeySalt: secondaryKeySalt);
   }
 
   Future<ProtectedValue> decryptSymmetricKey(ProtectedValue masterPassword,
@@ -141,6 +143,32 @@ class KdfService {
       throw CorruptedConfigException("Config file is corrupted");
     }
     return symmetricKey;
+  }
+
+  /// Derive a key from the secondary password using Argon2id.
+  /// Uses the same parameters as the master key derivation.
+  Future<ProtectedValue> createSecondaryKey(
+      ProtectedValue secondaryPassword, Uint8List salt) async {
+    final key = await argon2.deriveKey(
+      Argon2Arguments(secondaryPassword.binaryValue, salt, 19 * 1024, 2, 32,
+          1, Argon2Variant.argon2id, 19),
+    );
+    return ProtectedValue.fromBinary(key);
+  }
+
+  /// Derive the Top Secret KEK from the secondary key.
+  /// Uses HKDF to stretch the 32-byte Argon2 output to 64 bytes,
+  /// then returns the first 32 bytes as the KEK.
+  Future<ProtectedValue> createTopSecretKek(
+      ProtectedValue secondaryKey) async {
+    final stretched = await hkdf.deriveKey(
+      ikm: secondaryKey,
+      salt: Uint8List(0),
+      info: utf8.encode("top-secret-kek"),
+      outputLength: 64,
+    );
+    return ProtectedValue.fromBinary(
+        Uint8List.sublistView(stretched.binaryValue, 0, 32));
   }
 
   Future<AuthEncryptedResult> _encryptSymmetricKey(

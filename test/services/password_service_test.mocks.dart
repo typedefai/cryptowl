@@ -483,44 +483,57 @@ class MockKdfService extends _i1.Mock implements _i10.KdfService {
     _i12.Uint8List? transformSeed,
     _i12.Uint8List? masterSeed,
     _i7.ProtectedValue? symmetricKey,
-    _i12.Uint8List? nonce,
-  ) =>
+    _i12.Uint8List? nonce, {
+    String? secondaryKeySalt,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#generateAppConfig, [
-              masterPassword,
-              secretKey,
-              instanceId,
-              transformSeed,
-              masterSeed,
-              symmetricKey,
-              nonce,
-            ]),
+            Invocation.method(
+              #generateAppConfig,
+              [
+                masterPassword,
+                secretKey,
+                instanceId,
+                transformSeed,
+                masterSeed,
+                symmetricKey,
+                nonce,
+              ],
+              {#secondaryKeySalt: secondaryKeySalt},
+            ),
             returnValue: _i11.Future<_i8.AppConfig>.value(
               _FakeAppConfig_9(
                 this,
-                Invocation.method(#generateAppConfig, [
-                  masterPassword,
-                  secretKey,
-                  instanceId,
-                  transformSeed,
-                  masterSeed,
-                  symmetricKey,
-                  nonce,
-                ]),
+                Invocation.method(
+                  #generateAppConfig,
+                  [
+                    masterPassword,
+                    secretKey,
+                    instanceId,
+                    transformSeed,
+                    masterSeed,
+                    symmetricKey,
+                    nonce,
+                  ],
+                  {#secondaryKeySalt: secondaryKeySalt},
+                ),
               ),
             ),
             returnValueForMissingStub: _i11.Future<_i8.AppConfig>.value(
               _FakeAppConfig_9(
                 this,
-                Invocation.method(#generateAppConfig, [
-                  masterPassword,
-                  secretKey,
-                  instanceId,
-                  transformSeed,
-                  masterSeed,
-                  symmetricKey,
-                  nonce,
-                ]),
+                Invocation.method(
+                  #generateAppConfig,
+                  [
+                    masterPassword,
+                    secretKey,
+                    instanceId,
+                    transformSeed,
+                    masterSeed,
+                    symmetricKey,
+                    nonce,
+                  ],
+                  {#secondaryKeySalt: secondaryKeySalt},
+                ),
               ),
             ),
           )
@@ -556,6 +569,55 @@ class MockKdfService extends _i1.Mock implements _i10.KdfService {
                   secretKey,
                   config,
                 ]),
+              ),
+            ),
+          )
+          as _i11.Future<_i7.ProtectedValue>);
+
+  @override
+  _i11.Future<_i7.ProtectedValue> createSecondaryKey(
+    _i7.ProtectedValue? secondaryPassword,
+    _i12.Uint8List? salt,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#createSecondaryKey, [secondaryPassword, salt]),
+            returnValue: _i11.Future<_i7.ProtectedValue>.value(
+              _FakeProtectedValue_7(
+                this,
+                Invocation.method(#createSecondaryKey, [
+                  secondaryPassword,
+                  salt,
+                ]),
+              ),
+            ),
+            returnValueForMissingStub: _i11.Future<_i7.ProtectedValue>.value(
+              _FakeProtectedValue_7(
+                this,
+                Invocation.method(#createSecondaryKey, [
+                  secondaryPassword,
+                  salt,
+                ]),
+              ),
+            ),
+          )
+          as _i11.Future<_i7.ProtectedValue>);
+
+  @override
+  _i11.Future<_i7.ProtectedValue> createTopSecretKek(
+    _i7.ProtectedValue? secondaryKey,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#createTopSecretKek, [secondaryKey]),
+            returnValue: _i11.Future<_i7.ProtectedValue>.value(
+              _FakeProtectedValue_7(
+                this,
+                Invocation.method(#createTopSecretKek, [secondaryKey]),
+              ),
+            ),
+            returnValueForMissingStub: _i11.Future<_i7.ProtectedValue>.value(
+              _FakeProtectedValue_7(
+                this,
+                Invocation.method(#createTopSecretKek, [secondaryKey]),
               ),
             ),
           )

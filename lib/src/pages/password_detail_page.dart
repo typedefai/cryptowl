@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:cryptowl/src/common/classification.dart';
+import 'package:cryptowl/src/components/password_field.dart';
 import 'package:cryptowl/src/pages/password_edit_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,8 +13,6 @@ import '../components/form_input.dart';
 import '../providers/providers.dart';
 
 final DateFormat formatter = DateFormat('yyyy-MM-dd');
-
-enum Menu { copy, show, generate }
 
 class PasswordDetailPage extends ConsumerWidget {
   const PasswordDetailPage({super.key});
@@ -119,77 +118,87 @@ class PasswordDetailPage extends ConsumerWidget {
         ],
       ),
       body: detailFuture.when(
-        data: (password) => Padding(
-          padding: EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Classification badge
-              Chip(
-                avatar: Icon(
-                  _classificationIcon(password.classification),
-                  size: 18,
-                  color: _classificationColor(password.classification),
-                ),
-                label: Text(
-                  _classificationLabel(password.classification),
-                  style: TextStyle(
+        data: (password) {
+          // Determine password field mode
+          final isDecrypted = password.value.getText().isNotEmpty;
+          final passwordMode = password.isEncrypted && !isDecrypted
+              ? PasswordDisplayMode.locked
+              : PasswordDisplayMode.view;
+
+          final passwordText = isDecrypted
+              ? utf8.decode(password.value.binaryValue, allowMalformed: true)
+              : null;
+
+          return Padding(
+            padding: EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Classification badge
+                Chip(
+                  avatar: Icon(
+                    _classificationIcon(password.classification),
+                    size: 18,
                     color: _classificationColor(password.classification),
-                    fontWeight: FontWeight.bold,
                   ),
+                  label: Text(
+                    _classificationLabel(password.classification),
+                    style: TextStyle(
+                      color: _classificationColor(password.classification),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  side: BorderSide(
+                      color: _classificationColor(password.classification)),
                 ),
-                side: BorderSide(
-                    color: _classificationColor(password.classification)),
-              ),
-              SizedBox(height: 16),
-              FormInput(
-                name: "Name",
-                readonly: true,
-                value: password.title,
-              ),
-              SizedBox(height: 20),
-              FormInput(
-                name: "Username",
-                readonly: true,
-                value: password.getUser()?.plainValue(),
-              ),
-              FormInput(
-                name: "Password",
-                readonly: true,
-                protected: true,
-                value: password.isEncrypted && password.value.getText().isEmpty
-                    ? 'Locked — ${password.isTopSecret ? "enter secondary password" : "authenticate"} to view'
-                    : utf8.decode(password.value.binaryValue, allowMalformed: true),
-              ),
-              SizedBox(height: 20),
-              FormInput(
-                name: "URI",
-                readonly: true,
-              ),
-              SizedBox(height: 20),
-              FormInput(
-                name: "Remark",
-                readonly: true,
-                value: password.getRemark()?.plainValue(),
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              Text(
-                "ID: ${password.id}",
-                style: TextStyle(
-                  fontSize: 10,
+                SizedBox(height: 16),
+                FormInput(
+                  name: "Name",
+                  readonly: true,
+                  value: password.title,
                 ),
-              ),
-              Text(
-                "Updated at ${formatter.format(password.updatedAt)}",
-                style: TextStyle(
-                  fontSize: 10,
+                SizedBox(height: 16),
+                FormInput(
+                  name: "Username",
+                  readonly: true,
+                  value: password.getUser()?.plainValue(),
                 ),
-              ),
-            ],
-          ),
-        ),
+                SizedBox(height: 16),
+                PasswordField(
+                  mode: passwordMode,
+                  value: passwordText,
+                  onUnlock: password.isTopSecret
+                      ? () {
+                          // TODO: prompt for secondary password
+                        }
+                      : () {
+                          // TODO: prompt for biometric/PIN
+                        },
+                ),
+                SizedBox(height: 16),
+                FormInput(
+                  name: "URI",
+                  readonly: true,
+                ),
+                SizedBox(height: 16),
+                FormInput(
+                  name: "Remark",
+                  readonly: true,
+                  value: password.getRemark()?.plainValue(),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  "ID: ${password.id}",
+                  style: TextStyle(fontSize: 10, color: Colors.grey),
+                ),
+                Text(
+                  "Updated at ${formatter.format(password.updatedAt)}",
+                  style: TextStyle(fontSize: 10, color: Colors.grey),
+                ),
+              ],
+            ),
+          );
+        },
         loading: () => const Center(
           child: CircularProgressIndicator(),
         ),

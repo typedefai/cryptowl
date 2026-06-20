@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:cryptowl/src/common/classification.dart';
+import 'package:cryptowl/src/components/password_field.dart';
 import 'package:cryptowl/src/domain/password.dart';
 import 'package:cryptowl/src/providers/providers.dart';
 import 'package:flutter/material.dart' hide DropdownMenuFormField;
@@ -104,17 +105,11 @@ class PasswordCreatePage extends HookConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 10),
-                TextFormField(
+                PasswordField(
+                  mode: PasswordDisplayMode.create,
                   controller: passwordController,
-                  obscureText: true,
-                  validator: mandatoryValidator,
-                  decoration: const InputDecoration(
-                      helperText: 'Password will be encrypted and protected',
-                      labelText: 'Password *',
-                      suffixIcon: Icon(
-                        Icons.shield,
-                        color: Colors.green,
-                      )),
+                  label: 'Password *',
+                  required: true,
                 ),
                 const SizedBox(height: 20),
 

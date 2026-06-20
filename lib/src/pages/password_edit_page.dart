@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:cryptowl/src/components/password_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -25,7 +26,8 @@ class _PasswordEditPageState extends ConsumerState<PasswordEditPage> {
   final _uriController = TextEditingController();
   final _passwordController = TextEditingController();
   final _remarkController = TextEditingController();
-  final _classificationController = TextEditingController();
+
+  bool _initialized = false;
 
   @override
   void dispose() {
@@ -34,8 +36,17 @@ class _PasswordEditPageState extends ConsumerState<PasswordEditPage> {
     _passwordController.dispose();
     _uriController.dispose();
     _remarkController.dispose();
-    _classificationController.dispose();
     super.dispose();
+  }
+
+  void _initControllers(dynamic value) {
+    if (_initialized) return;
+    _initialized = true;
+    _titleController.text = value.title ?? "";
+    _usernameController.text = value.getUser()?.plainValue() ?? "";
+    _passwordController.text =
+        utf8.decode(value.value.binaryValue, allowMalformed: true);
+    _remarkController.text = value.getRemark()?.plainValue() ?? "";
   }
 
   @override
@@ -43,14 +54,6 @@ class _PasswordEditPageState extends ConsumerState<PasswordEditPage> {
     final id = GoRouterState.of(context).pathParameters["id"]!;
     final detailFuture = ref.watch(passwordDetailProvider(id));
     final passwordRepository = ref.read(passwordRepositoryProvider);
-
-    detailFuture.whenData((value) {
-      _titleController.text = value.title ?? "";
-      _usernameController.text = value.getUser()?.plainValue() ?? "";
-      _passwordController.text = utf8.decode(value.value.binaryValue, allowMalformed: true);
-      _uriController.text = "";
-      _remarkController.text = value.getRemark()?.plainValue() ?? "";
-    });
 
     return Scaffold(
       appBar: AppBar(
@@ -67,6 +70,7 @@ class _PasswordEditPageState extends ConsumerState<PasswordEditPage> {
                       url: _uriController.text,
                       remark: _remarkController.text);
                   ref.invalidate(passwordsProvider);
+                  ref.invalidate(passwordDetailProvider(id));
                   if (context.mounted) {
                     context.pop();
                   }
@@ -76,51 +80,54 @@ class _PasswordEditPageState extends ConsumerState<PasswordEditPage> {
         ],
       ),
       body: detailFuture.when(
-        data: (detail) => Padding(
-          padding: EdgeInsets.all(12),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: <Widget>[
-                SizedBox(height: 10),
-                FormInput(
-                  controller: _titleController,
-                  name: "Name",
-                  protected: false,
-                  required: true,
-                ),
-                SizedBox(height: 10),
-                FormInput(
-                  controller: _usernameController,
-                  name: "Username",
-                  protected: false,
-                  required: true,
-                ),
-                SizedBox(height: 10),
-                FormInput(
-                  controller: _passwordController,
-                  name: "Password",
-                  protected: true,
-                  required: true,
-                ),
-                SizedBox(height: 10),
-                FormInput(
-                  controller: _uriController,
-                  name: "URI",
-                  protected: false,
-                  required: false,
-                ),
-                SizedBox(height: 10),
-                FormInput(
-                  controller: _remarkController,
-                  name: "Remark",
-                  protected: false,
-                  required: false,
-                ),
-              ],
+        data: (detail) {
+          _initControllers(detail);
+          return Padding(
+            padding: EdgeInsets.all(12),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: <Widget>[
+                  SizedBox(height: 10),
+                  FormInput(
+                    controller: _titleController,
+                    name: "Name",
+                    protected: false,
+                    required: true,
+                  ),
+                  SizedBox(height: 10),
+                  FormInput(
+                    controller: _usernameController,
+                    name: "Username",
+                    protected: false,
+                    required: false,
+                  ),
+                  SizedBox(height: 10),
+                  PasswordField(
+                    mode: PasswordDisplayMode.edit,
+                    controller: _passwordController,
+                    label: 'Password',
+                    required: true,
+                  ),
+                  SizedBox(height: 10),
+                  FormInput(
+                    controller: _uriController,
+                    name: "URI",
+                    protected: false,
+                    required: false,
+                  ),
+                  SizedBox(height: 10),
+                  FormInput(
+                    controller: _remarkController,
+                    name: "Remark",
+                    protected: false,
+                    required: false,
+                  ),
+                ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
         loading: () => const Center(
           child: CircularProgressIndicator(),
         ),

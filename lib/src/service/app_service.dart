@@ -10,6 +10,7 @@ import 'package:cryptowl/src/service/kdf_service.dart';
 import 'package:logging/logging.dart';
 
 import '../common/exceptions.dart';
+import '../common/path_util.dart';
 import '../crypto/crockford_base32.dart';
 import '../crypto/protected_value.dart';
 import '../crypto/random_util.dart';
@@ -43,7 +44,12 @@ class AppService {
     logger.fine("[2/10] Secret key generated");
 
     final instanceId = RandomUtil.generateName();
-    logger.fine("[3/10] Instance ID: $instanceId");
+    logger.info("[3/10] Instance ID: $instanceId");
+    final dbPath = await PathUtil.getLocalPath("$instanceId.enc");
+    final cfgPath = await PathUtil.getLocalPath("$instanceId.cfg");
+    logger.info("[3/10] DB path: $dbPath");
+    logger.info("[3/10] Config path: $cfgPath");
+    logger.info("[3/10] Secrets dir: ${await PathUtil.getLocalPath('.secrets')}");
 
     final secretKeyLocation = _secretKeyId(instanceId);
     logger.fine("[4/10] Saving secret key to secure store at '$secretKeyLocation'...");
@@ -113,6 +119,11 @@ class AppService {
 
   Future<Session> login(String instanceId, ProtectedValue password) async {
     logger.info("=== LOGIN START === instanceId=$instanceId");
+
+    final dbPath = await PathUtil.getLocalPath("$instanceId.enc");
+    final cfgPath = await PathUtil.getLocalPath("$instanceId.cfg");
+    logger.info("[0/5] DB path: $dbPath");
+    logger.info("[0/5] Config path: $cfgPath");
 
     logger.fine("[1/5] Reading config file...");
     final File configFile = await fileService.getConfigFile(instanceId);

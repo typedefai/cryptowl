@@ -6,12 +6,12 @@
 import 'dart:async' as _i7;
 import 'dart:typed_data' as _i9;
 
-import 'package:cryptowl/src/config/app_config.dart' as _i5;
+import 'package:cryptowl/src/config/app_config.dart' as _i6;
 import 'package:cryptowl/src/crypto/aead_crypto.dart' as _i10;
-import 'package:cryptowl/src/crypto/hmac.dart' as _i3;
+import 'package:cryptowl/src/crypto/hmac.dart' as _i4;
 import 'package:cryptowl/src/crypto/protected_value.dart' as _i8;
-import 'package:cryptowl/src/service/config_service.dart' as _i6;
-import 'package:cryptowl/src/service/version_service.dart' as _i4;
+import 'package:cryptowl/src/service/config_service.dart' as _i3;
+import 'package:cryptowl/src/service/version_service.dart' as _i5;
 import 'package:logging/logging.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i11;
@@ -35,26 +35,31 @@ class _FakeLogger_0 extends _i1.SmartFake implements _i2.Logger {
     : super(parent, parentInvocation);
 }
 
-class _FakeCryptoHmac_1 extends _i1.SmartFake implements _i3.CryptoHmac {
-  _FakeCryptoHmac_1(Object parent, Invocation parentInvocation)
+class _FakeSecureStore_1 extends _i1.SmartFake implements _i3.SecureStore {
+  _FakeSecureStore_1(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeVersionService_2 extends _i1.SmartFake
-    implements _i4.VersionService {
-  _FakeVersionService_2(Object parent, Invocation parentInvocation)
+class _FakeCryptoHmac_2 extends _i1.SmartFake implements _i4.CryptoHmac {
+  _FakeCryptoHmac_2(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeAppConfig_3 extends _i1.SmartFake implements _i5.AppConfig {
-  _FakeAppConfig_3(Object parent, Invocation parentInvocation)
+class _FakeVersionService_3 extends _i1.SmartFake
+    implements _i5.VersionService {
+  _FakeVersionService_3(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeAppConfig_4 extends _i1.SmartFake implements _i6.AppConfig {
+  _FakeAppConfig_4(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
 /// A class which mocks [ConfigService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockConfigService extends _i1.Mock implements _i6.ConfigService {
+class MockConfigService extends _i1.Mock implements _i3.ConfigService {
   @override
   _i2.Logger get logger =>
       (super.noSuchMethod(
@@ -68,48 +73,69 @@ class MockConfigService extends _i1.Mock implements _i6.ConfigService {
           as _i2.Logger);
 
   @override
-  _i3.CryptoHmac get hmac =>
+  _i3.SecureStore get secureStore =>
+      (super.noSuchMethod(
+            Invocation.getter(#secureStore),
+            returnValue: _FakeSecureStore_1(
+              this,
+              Invocation.getter(#secureStore),
+            ),
+            returnValueForMissingStub: _FakeSecureStore_1(
+              this,
+              Invocation.getter(#secureStore),
+            ),
+          )
+          as _i3.SecureStore);
+
+  @override
+  _i4.CryptoHmac get hmac =>
       (super.noSuchMethod(
             Invocation.getter(#hmac),
-            returnValue: _FakeCryptoHmac_1(this, Invocation.getter(#hmac)),
-            returnValueForMissingStub: _FakeCryptoHmac_1(
+            returnValue: _FakeCryptoHmac_2(this, Invocation.getter(#hmac)),
+            returnValueForMissingStub: _FakeCryptoHmac_2(
               this,
               Invocation.getter(#hmac),
             ),
           )
-          as _i3.CryptoHmac);
+          as _i4.CryptoHmac);
 
   @override
-  _i4.VersionService get versionService =>
+  _i5.VersionService get versionService =>
       (super.noSuchMethod(
             Invocation.getter(#versionService),
-            returnValue: _FakeVersionService_2(
+            returnValue: _FakeVersionService_3(
               this,
               Invocation.getter(#versionService),
             ),
-            returnValueForMissingStub: _FakeVersionService_2(
+            returnValueForMissingStub: _FakeVersionService_3(
               this,
               Invocation.getter(#versionService),
             ),
           )
-          as _i4.VersionService);
+          as _i5.VersionService);
 
   @override
-  _i7.Future<_i5.AppConfig> loadConfig(String? content) =>
+  set secureStore(_i3.SecureStore? _secureStore) => super.noSuchMethod(
+    Invocation.setter(#secureStore, _secureStore),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  _i7.Future<_i6.AppConfig> loadConfig(String? content) =>
       (super.noSuchMethod(
             Invocation.method(#loadConfig, [content]),
-            returnValue: _i7.Future<_i5.AppConfig>.value(
-              _FakeAppConfig_3(this, Invocation.method(#loadConfig, [content])),
+            returnValue: _i7.Future<_i6.AppConfig>.value(
+              _FakeAppConfig_4(this, Invocation.method(#loadConfig, [content])),
             ),
-            returnValueForMissingStub: _i7.Future<_i5.AppConfig>.value(
-              _FakeAppConfig_3(this, Invocation.method(#loadConfig, [content])),
+            returnValueForMissingStub: _i7.Future<_i6.AppConfig>.value(
+              _FakeAppConfig_4(this, Invocation.method(#loadConfig, [content])),
             ),
           )
-          as _i7.Future<_i5.AppConfig>);
+          as _i7.Future<_i6.AppConfig>);
 
   @override
   _i7.Future<bool> verifyConfig(
-    _i5.AppConfig? config,
+    _i6.AppConfig? config,
     _i8.ProtectedValue? macKey,
   ) =>
       (super.noSuchMethod(
@@ -120,7 +146,7 @@ class MockConfigService extends _i1.Mock implements _i6.ConfigService {
           as _i7.Future<bool>);
 
   @override
-  _i7.Future<_i5.AppConfig> createConfig(
+  _i7.Future<_i6.AppConfig> createConfig(
     String? instanceId,
     _i9.Uint8List? transformSeed,
     _i9.Uint8List? masterSeed,
@@ -142,8 +168,8 @@ class MockConfigService extends _i1.Mock implements _i6.ConfigService {
               ],
               {#secondaryKeySalt: secondaryKeySalt},
             ),
-            returnValue: _i7.Future<_i5.AppConfig>.value(
-              _FakeAppConfig_3(
+            returnValue: _i7.Future<_i6.AppConfig>.value(
+              _FakeAppConfig_4(
                 this,
                 Invocation.method(
                   #createConfig,
@@ -159,8 +185,8 @@ class MockConfigService extends _i1.Mock implements _i6.ConfigService {
                 ),
               ),
             ),
-            returnValueForMissingStub: _i7.Future<_i5.AppConfig>.value(
-              _FakeAppConfig_3(
+            returnValueForMissingStub: _i7.Future<_i6.AppConfig>.value(
+              _FakeAppConfig_4(
                 this,
                 Invocation.method(
                   #createConfig,
@@ -177,10 +203,10 @@ class MockConfigService extends _i1.Mock implements _i6.ConfigService {
               ),
             ),
           )
-          as _i7.Future<_i5.AppConfig>);
+          as _i7.Future<_i6.AppConfig>);
 
   @override
-  _i7.Future<String> saveConfig(_i5.AppConfig? config) =>
+  _i7.Future<String> saveConfig(_i6.AppConfig? config) =>
       (super.noSuchMethod(
             Invocation.method(#saveConfig, [config]),
             returnValue: _i7.Future<String>.value(
@@ -231,7 +257,7 @@ class MockConfigService extends _i1.Mock implements _i6.ConfigService {
 /// A class which mocks [VersionService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockVersionService extends _i1.Mock implements _i4.VersionService {
+class MockVersionService extends _i1.Mock implements _i5.VersionService {
   @override
   _i7.Future<String> getPackageVersion() =>
       (super.noSuchMethod(

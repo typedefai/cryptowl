@@ -1,10 +1,12 @@
 import 'package:cryptowl/src/repositories/category_repository.dart';
 import 'package:cryptowl/src/repositories/note_repository.dart';
 import 'package:cryptowl/src/repositories/password_repository.dart';
+import 'package:cryptowl/src/repositories/photo_repository.dart';
 import 'package:cryptowl/src/service/app_service.dart';
 import 'package:cryptowl/src/service/config_service.dart';
 import 'package:cryptowl/src/service/file_service.dart';
 import 'package:cryptowl/src/service/kdf_service.dart';
+import 'package:cryptowl/src/service/photo_service.dart';
 import 'package:cryptowl/src/service/version_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -21,6 +23,10 @@ final passwordRepositoryProvider = Provider((ref) {
 
 final noteRepositoryProvider = Provider((ref) {
   return NoteRepository(ref);
+});
+
+final photoRepositoryProvider = Provider((ref) {
+  return PhotoRepository(ref);
 });
 
 final fileServiceProvider = Provider((ref) {
@@ -49,6 +55,13 @@ final passwordServiceProvider = Provider((ref) {
   return PasswordService(
     ref.read(kdfServiceProvider),
     ref.read(passwordRepositoryProvider),
+  );
+});
+
+final photoServiceProvider = Provider((ref) {
+  return PhotoService(
+    ref.read(kdfServiceProvider),
+    ref.read(photoRepositoryProvider),
   );
 });
 

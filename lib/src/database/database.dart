@@ -20,7 +20,8 @@ part 'database.g.dart';
   'common.drift',
   'encrypted_data.drift',
   'note.drift',
-  'password.drift'
+  'password.drift',
+  'photo.drift'
 })
 class SqliteDb extends _$SqliteDb {
   SqliteDb.from(QueryExecutor e) : super(e);

@@ -3,20 +3,19 @@
 part of 'database.dart';
 
 // ignore_for_file: type=lint
-class Categories extends Table with TableInfo<Categories, CategoryEntity> {
+class TAlbum extends Table with TableInfo<TAlbum, TAlbumData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  Categories(this.attachedDatabase, [this._alias]);
+  TAlbum(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
     'id',
     aliasedName,
     false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    $customConstraints: 'NOT NULL PRIMARY KEY AUTOINCREMENT',
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL PRIMARY KEY',
   );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
@@ -27,61 +26,91 @@ class Categories extends Table with TableInfo<Categories, CategoryEntity> {
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL',
   );
-  static const VerificationMeta _accessLevelMeta = const VerificationMeta(
-    'accessLevel',
+  static const VerificationMeta _classificationMeta = const VerificationMeta(
+    'classification',
   );
-  late final GeneratedColumn<int> accessLevel = GeneratedColumn<int>(
-    'access_level',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  static const VerificationMeta _createTimeMeta = const VerificationMeta(
-    'createTime',
-  );
-  late final GeneratedColumn<String> createTime = GeneratedColumn<String>(
-    'create_time',
+  late final GeneratedColumn<String> classification = GeneratedColumn<String>(
+    'classification',
     aliasedName,
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
+    $customConstraints:
+        'NOT NULL CHECK (classification IN (\'C\', \'S\', \'T\'))',
   );
-  static const VerificationMeta _lastUpdateTimeMeta = const VerificationMeta(
-    'lastUpdateTime',
+  static const VerificationMeta _coverPhotoIdMeta = const VerificationMeta(
+    'coverPhotoId',
   );
-  late final GeneratedColumn<String> lastUpdateTime = GeneratedColumn<String>(
-    'last_update_time',
+  late final GeneratedColumn<String> coverPhotoId = GeneratedColumn<String>(
+    'cover_photo_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
     aliasedName,
     false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    defaultValue: const CustomExpression('CURRENT_TIMESTAMP'),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    defaultValue: const CustomExpression('CURRENT_TIMESTAMP'),
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    $customConstraints: 'DEFAULT NULL',
+    defaultValue: const CustomExpression('NULL'),
   );
   @override
   List<GeneratedColumn> get $columns => [
     id,
     name,
-    accessLevel,
-    createTime,
-    lastUpdateTime,
+    classification,
+    coverPhotoId,
+    createdAt,
+    updatedAt,
+    deletedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'categories';
+  static const String $name = 't_album';
   @override
   VerificationContext validateIntegrity(
-    Insertable<CategoryEntity> instance, {
+    Insertable<TAlbumData> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
     }
     if (data.containsKey('name')) {
       context.handle(
@@ -91,35 +120,43 @@ class Categories extends Table with TableInfo<Categories, CategoryEntity> {
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
-    if (data.containsKey('access_level')) {
+    if (data.containsKey('classification')) {
       context.handle(
-        _accessLevelMeta,
-        accessLevel.isAcceptableOrUnknown(
-          data['access_level']!,
-          _accessLevelMeta,
+        _classificationMeta,
+        classification.isAcceptableOrUnknown(
+          data['classification']!,
+          _classificationMeta,
         ),
       );
     } else if (isInserting) {
-      context.missing(_accessLevelMeta);
+      context.missing(_classificationMeta);
     }
-    if (data.containsKey('create_time')) {
+    if (data.containsKey('cover_photo_id')) {
       context.handle(
-        _createTimeMeta,
-        createTime.isAcceptableOrUnknown(data['create_time']!, _createTimeMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_createTimeMeta);
-    }
-    if (data.containsKey('last_update_time')) {
-      context.handle(
-        _lastUpdateTimeMeta,
-        lastUpdateTime.isAcceptableOrUnknown(
-          data['last_update_time']!,
-          _lastUpdateTimeMeta,
+        _coverPhotoIdMeta,
+        coverPhotoId.isAcceptableOrUnknown(
+          data['cover_photo_id']!,
+          _coverPhotoIdMeta,
         ),
       );
-    } else if (isInserting) {
-      context.missing(_lastUpdateTimeMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
     }
     return context;
   }
@@ -127,207 +164,270 @@ class Categories extends Table with TableInfo<Categories, CategoryEntity> {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  CategoryEntity map(Map<String, dynamic> data, {String? tablePrefix}) {
+  TAlbumData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return CategoryEntity(
+    return TAlbumData(
       id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
       name: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}name'],
       )!,
-      accessLevel: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}access_level'],
-      )!,
-      createTime: attachedDatabase.typeMapping.read(
+      classification: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}create_time'],
+        data['${effectivePrefix}classification'],
       )!,
-      lastUpdateTime: attachedDatabase.typeMapping.read(
+      coverPhotoId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}last_update_time'],
+        data['${effectivePrefix}cover_photo_id'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
       )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
     );
   }
 
   @override
-  Categories createAlias(String alias) {
-    return Categories(attachedDatabase, alias);
+  TAlbum createAlias(String alias) {
+    return TAlbum(attachedDatabase, alias);
   }
 
   @override
   bool get dontWriteConstraints => true;
 }
 
-class CategoryEntity extends DataClass implements Insertable<CategoryEntity> {
-  final int id;
+class TAlbumData extends DataClass implements Insertable<TAlbumData> {
+  final String id;
   final String name;
-  final int accessLevel;
-  final String createTime;
-  final String lastUpdateTime;
-  const CategoryEntity({
+  final String classification;
+  final String? coverPhotoId;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const TAlbumData({
     required this.id,
     required this.name,
-    required this.accessLevel,
-    required this.createTime,
-    required this.lastUpdateTime,
+    required this.classification,
+    this.coverPhotoId,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
+    map['id'] = Variable<String>(id);
     map['name'] = Variable<String>(name);
-    map['access_level'] = Variable<int>(accessLevel);
-    map['create_time'] = Variable<String>(createTime);
-    map['last_update_time'] = Variable<String>(lastUpdateTime);
+    map['classification'] = Variable<String>(classification);
+    if (!nullToAbsent || coverPhotoId != null) {
+      map['cover_photo_id'] = Variable<String>(coverPhotoId);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
     return map;
   }
 
-  CategoriesCompanion toCompanion(bool nullToAbsent) {
-    return CategoriesCompanion(
+  TAlbumCompanion toCompanion(bool nullToAbsent) {
+    return TAlbumCompanion(
       id: Value(id),
       name: Value(name),
-      accessLevel: Value(accessLevel),
-      createTime: Value(createTime),
-      lastUpdateTime: Value(lastUpdateTime),
+      classification: Value(classification),
+      coverPhotoId: coverPhotoId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(coverPhotoId),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
     );
   }
 
-  factory CategoryEntity.fromJson(
+  factory TAlbumData.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return CategoryEntity(
-      id: serializer.fromJson<int>(json['id']),
+    return TAlbumData(
+      id: serializer.fromJson<String>(json['id']),
       name: serializer.fromJson<String>(json['name']),
-      accessLevel: serializer.fromJson<int>(json['access_level']),
-      createTime: serializer.fromJson<String>(json['create_time']),
-      lastUpdateTime: serializer.fromJson<String>(json['last_update_time']),
+      classification: serializer.fromJson<String>(json['classification']),
+      coverPhotoId: serializer.fromJson<String?>(json['cover_photo_id']),
+      createdAt: serializer.fromJson<DateTime>(json['created_at']),
+      updatedAt: serializer.fromJson<DateTime>(json['updated_at']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deleted_at']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
+      'id': serializer.toJson<String>(id),
       'name': serializer.toJson<String>(name),
-      'access_level': serializer.toJson<int>(accessLevel),
-      'create_time': serializer.toJson<String>(createTime),
-      'last_update_time': serializer.toJson<String>(lastUpdateTime),
+      'classification': serializer.toJson<String>(classification),
+      'cover_photo_id': serializer.toJson<String?>(coverPhotoId),
+      'created_at': serializer.toJson<DateTime>(createdAt),
+      'updated_at': serializer.toJson<DateTime>(updatedAt),
+      'deleted_at': serializer.toJson<DateTime?>(deletedAt),
     };
   }
 
-  CategoryEntity copyWith({
-    int? id,
+  TAlbumData copyWith({
+    String? id,
     String? name,
-    int? accessLevel,
-    String? createTime,
-    String? lastUpdateTime,
-  }) => CategoryEntity(
+    String? classification,
+    Value<String?> coverPhotoId = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => TAlbumData(
     id: id ?? this.id,
     name: name ?? this.name,
-    accessLevel: accessLevel ?? this.accessLevel,
-    createTime: createTime ?? this.createTime,
-    lastUpdateTime: lastUpdateTime ?? this.lastUpdateTime,
+    classification: classification ?? this.classification,
+    coverPhotoId: coverPhotoId.present ? coverPhotoId.value : this.coverPhotoId,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
   );
-  CategoryEntity copyWithCompanion(CategoriesCompanion data) {
-    return CategoryEntity(
+  TAlbumData copyWithCompanion(TAlbumCompanion data) {
+    return TAlbumData(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
-      accessLevel: data.accessLevel.present
-          ? data.accessLevel.value
-          : this.accessLevel,
-      createTime: data.createTime.present
-          ? data.createTime.value
-          : this.createTime,
-      lastUpdateTime: data.lastUpdateTime.present
-          ? data.lastUpdateTime.value
-          : this.lastUpdateTime,
+      classification: data.classification.present
+          ? data.classification.value
+          : this.classification,
+      coverPhotoId: data.coverPhotoId.present
+          ? data.coverPhotoId.value
+          : this.coverPhotoId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
     );
   }
 
   @override
   String toString() {
-    return (StringBuffer('CategoryEntity(')
+    return (StringBuffer('TAlbumData(')
           ..write('id: $id, ')
           ..write('name: $name, ')
-          ..write('accessLevel: $accessLevel, ')
-          ..write('createTime: $createTime, ')
-          ..write('lastUpdateTime: $lastUpdateTime')
+          ..write('classification: $classification, ')
+          ..write('coverPhotoId: $coverPhotoId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, name, accessLevel, createTime, lastUpdateTime);
+  int get hashCode => Object.hash(
+    id,
+    name,
+    classification,
+    coverPhotoId,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is CategoryEntity &&
+      (other is TAlbumData &&
           other.id == this.id &&
           other.name == this.name &&
-          other.accessLevel == this.accessLevel &&
-          other.createTime == this.createTime &&
-          other.lastUpdateTime == this.lastUpdateTime);
+          other.classification == this.classification &&
+          other.coverPhotoId == this.coverPhotoId &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
 }
 
-class CategoriesCompanion extends UpdateCompanion<CategoryEntity> {
-  final Value<int> id;
+class TAlbumCompanion extends UpdateCompanion<TAlbumData> {
+  final Value<String> id;
   final Value<String> name;
-  final Value<int> accessLevel;
-  final Value<String> createTime;
-  final Value<String> lastUpdateTime;
-  const CategoriesCompanion({
+  final Value<String> classification;
+  final Value<String?> coverPhotoId;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const TAlbumCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
-    this.accessLevel = const Value.absent(),
-    this.createTime = const Value.absent(),
-    this.lastUpdateTime = const Value.absent(),
+    this.classification = const Value.absent(),
+    this.coverPhotoId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
   });
-  CategoriesCompanion.insert({
-    this.id = const Value.absent(),
+  TAlbumCompanion.insert({
+    required String id,
     required String name,
-    required int accessLevel,
-    required String createTime,
-    required String lastUpdateTime,
-  }) : name = Value(name),
-       accessLevel = Value(accessLevel),
-       createTime = Value(createTime),
-       lastUpdateTime = Value(lastUpdateTime);
-  static Insertable<CategoryEntity> custom({
-    Expression<int>? id,
+    required String classification,
+    this.coverPhotoId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       name = Value(name),
+       classification = Value(classification);
+  static Insertable<TAlbumData> custom({
+    Expression<String>? id,
     Expression<String>? name,
-    Expression<int>? accessLevel,
-    Expression<String>? createTime,
-    Expression<String>? lastUpdateTime,
+    Expression<String>? classification,
+    Expression<String>? coverPhotoId,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
-      if (accessLevel != null) 'access_level': accessLevel,
-      if (createTime != null) 'create_time': createTime,
-      if (lastUpdateTime != null) 'last_update_time': lastUpdateTime,
+      if (classification != null) 'classification': classification,
+      if (coverPhotoId != null) 'cover_photo_id': coverPhotoId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
     });
   }
 
-  CategoriesCompanion copyWith({
-    Value<int>? id,
+  TAlbumCompanion copyWith({
+    Value<String>? id,
     Value<String>? name,
-    Value<int>? accessLevel,
-    Value<String>? createTime,
-    Value<String>? lastUpdateTime,
+    Value<String>? classification,
+    Value<String?>? coverPhotoId,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
   }) {
-    return CategoriesCompanion(
+    return TAlbumCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
-      accessLevel: accessLevel ?? this.accessLevel,
-      createTime: createTime ?? this.createTime,
-      lastUpdateTime: lastUpdateTime ?? this.lastUpdateTime,
+      classification: classification ?? this.classification,
+      coverPhotoId: coverPhotoId ?? this.coverPhotoId,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
     );
   }
 
@@ -335,31 +435,43 @@ class CategoriesCompanion extends UpdateCompanion<CategoryEntity> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     if (id.present) {
-      map['id'] = Variable<int>(id.value);
+      map['id'] = Variable<String>(id.value);
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
-    if (accessLevel.present) {
-      map['access_level'] = Variable<int>(accessLevel.value);
+    if (classification.present) {
+      map['classification'] = Variable<String>(classification.value);
     }
-    if (createTime.present) {
-      map['create_time'] = Variable<String>(createTime.value);
+    if (coverPhotoId.present) {
+      map['cover_photo_id'] = Variable<String>(coverPhotoId.value);
     }
-    if (lastUpdateTime.present) {
-      map['last_update_time'] = Variable<String>(lastUpdateTime.value);
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
     }
     return map;
   }
 
   @override
   String toString() {
-    return (StringBuffer('CategoriesCompanion(')
+    return (StringBuffer('TAlbumCompanion(')
           ..write('id: $id, ')
           ..write('name: $name, ')
-          ..write('accessLevel: $accessLevel, ')
-          ..write('createTime: $createTime, ')
-          ..write('lastUpdateTime: $lastUpdateTime')
+          ..write('classification: $classification, ')
+          ..write('coverPhotoId: $coverPhotoId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
@@ -766,6 +878,1205 @@ class TDataEncryptKeyCompanion extends UpdateCompanion<TDataEncryptKeyData> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class TPhoto extends Table with TableInfo<TPhoto, TPhotoData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  TPhoto(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL PRIMARY KEY',
+  );
+  static const VerificationMeta _albumIdMeta = const VerificationMeta(
+    'albumId',
+  );
+  late final GeneratedColumn<String> albumId = GeneratedColumn<String>(
+    'album_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _filenameMeta = const VerificationMeta(
+    'filename',
+  );
+  late final GeneratedColumn<String> filename = GeneratedColumn<String>(
+    'filename',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _originalNameMeta = const VerificationMeta(
+    'originalName',
+  );
+  late final GeneratedColumn<String> originalName = GeneratedColumn<String>(
+    'original_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _mimeTypeMeta = const VerificationMeta(
+    'mimeType',
+  );
+  late final GeneratedColumn<String> mimeType = GeneratedColumn<String>(
+    'mime_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _fileSizeMeta = const VerificationMeta(
+    'fileSize',
+  );
+  late final GeneratedColumn<int> fileSize = GeneratedColumn<int>(
+    'file_size',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _widthMeta = const VerificationMeta('width');
+  late final GeneratedColumn<int> width = GeneratedColumn<int>(
+    'width',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _heightMeta = const VerificationMeta('height');
+  late final GeneratedColumn<int> height = GeneratedColumn<int>(
+    'height',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _classificationMeta = const VerificationMeta(
+    'classification',
+  );
+  late final GeneratedColumn<String> classification = GeneratedColumn<String>(
+    'classification',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'NOT NULL CHECK (classification IN (\'C\', \'S\', \'T\'))',
+  );
+  static const VerificationMeta _thumbnailFilenameMeta = const VerificationMeta(
+    'thumbnailFilename',
+  );
+  late final GeneratedColumn<String> thumbnailFilename =
+      GeneratedColumn<String>(
+        'thumbnail_filename',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        $customConstraints: '',
+      );
+  static const VerificationMeta _encryptedDekIdMeta = const VerificationMeta(
+    'encryptedDekId',
+  );
+  late final GeneratedColumn<String> encryptedDekId = GeneratedColumn<String>(
+    'encrypted_dek_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    defaultValue: const CustomExpression('CURRENT_TIMESTAMP'),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    defaultValue: const CustomExpression('CURRENT_TIMESTAMP'),
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    $customConstraints: 'DEFAULT NULL',
+    defaultValue: const CustomExpression('NULL'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    albumId,
+    filename,
+    originalName,
+    mimeType,
+    fileSize,
+    width,
+    height,
+    classification,
+    thumbnailFilename,
+    encryptedDekId,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_photo';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TPhotoData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('album_id')) {
+      context.handle(
+        _albumIdMeta,
+        albumId.isAcceptableOrUnknown(data['album_id']!, _albumIdMeta),
+      );
+    }
+    if (data.containsKey('filename')) {
+      context.handle(
+        _filenameMeta,
+        filename.isAcceptableOrUnknown(data['filename']!, _filenameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_filenameMeta);
+    }
+    if (data.containsKey('original_name')) {
+      context.handle(
+        _originalNameMeta,
+        originalName.isAcceptableOrUnknown(
+          data['original_name']!,
+          _originalNameMeta,
+        ),
+      );
+    }
+    if (data.containsKey('mime_type')) {
+      context.handle(
+        _mimeTypeMeta,
+        mimeType.isAcceptableOrUnknown(data['mime_type']!, _mimeTypeMeta),
+      );
+    }
+    if (data.containsKey('file_size')) {
+      context.handle(
+        _fileSizeMeta,
+        fileSize.isAcceptableOrUnknown(data['file_size']!, _fileSizeMeta),
+      );
+    }
+    if (data.containsKey('width')) {
+      context.handle(
+        _widthMeta,
+        width.isAcceptableOrUnknown(data['width']!, _widthMeta),
+      );
+    }
+    if (data.containsKey('height')) {
+      context.handle(
+        _heightMeta,
+        height.isAcceptableOrUnknown(data['height']!, _heightMeta),
+      );
+    }
+    if (data.containsKey('classification')) {
+      context.handle(
+        _classificationMeta,
+        classification.isAcceptableOrUnknown(
+          data['classification']!,
+          _classificationMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_classificationMeta);
+    }
+    if (data.containsKey('thumbnail_filename')) {
+      context.handle(
+        _thumbnailFilenameMeta,
+        thumbnailFilename.isAcceptableOrUnknown(
+          data['thumbnail_filename']!,
+          _thumbnailFilenameMeta,
+        ),
+      );
+    }
+    if (data.containsKey('encrypted_dek_id')) {
+      context.handle(
+        _encryptedDekIdMeta,
+        encryptedDekId.isAcceptableOrUnknown(
+          data['encrypted_dek_id']!,
+          _encryptedDekIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  TPhotoData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TPhotoData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      albumId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}album_id'],
+      ),
+      filename: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}filename'],
+      )!,
+      originalName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}original_name'],
+      ),
+      mimeType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mime_type'],
+      ),
+      fileSize: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}file_size'],
+      ),
+      width: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}width'],
+      ),
+      height: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}height'],
+      ),
+      classification: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}classification'],
+      )!,
+      thumbnailFilename: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}thumbnail_filename'],
+      ),
+      encryptedDekId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}encrypted_dek_id'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  TPhoto createAlias(String alias) {
+    return TPhoto(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const [
+    'FOREIGN KEY(album_id)REFERENCES t_album(id)',
+    'FOREIGN KEY(encrypted_dek_id)REFERENCES t_data_encrypt_key(id)',
+  ];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class TPhotoData extends DataClass implements Insertable<TPhotoData> {
+  final String id;
+  final String? albumId;
+  final String filename;
+  final String? originalName;
+  final String? mimeType;
+  final int? fileSize;
+  final int? width;
+  final int? height;
+  final String classification;
+  final String? thumbnailFilename;
+  final String? encryptedDekId;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const TPhotoData({
+    required this.id,
+    this.albumId,
+    required this.filename,
+    this.originalName,
+    this.mimeType,
+    this.fileSize,
+    this.width,
+    this.height,
+    required this.classification,
+    this.thumbnailFilename,
+    this.encryptedDekId,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || albumId != null) {
+      map['album_id'] = Variable<String>(albumId);
+    }
+    map['filename'] = Variable<String>(filename);
+    if (!nullToAbsent || originalName != null) {
+      map['original_name'] = Variable<String>(originalName);
+    }
+    if (!nullToAbsent || mimeType != null) {
+      map['mime_type'] = Variable<String>(mimeType);
+    }
+    if (!nullToAbsent || fileSize != null) {
+      map['file_size'] = Variable<int>(fileSize);
+    }
+    if (!nullToAbsent || width != null) {
+      map['width'] = Variable<int>(width);
+    }
+    if (!nullToAbsent || height != null) {
+      map['height'] = Variable<int>(height);
+    }
+    map['classification'] = Variable<String>(classification);
+    if (!nullToAbsent || thumbnailFilename != null) {
+      map['thumbnail_filename'] = Variable<String>(thumbnailFilename);
+    }
+    if (!nullToAbsent || encryptedDekId != null) {
+      map['encrypted_dek_id'] = Variable<String>(encryptedDekId);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  TPhotoCompanion toCompanion(bool nullToAbsent) {
+    return TPhotoCompanion(
+      id: Value(id),
+      albumId: albumId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(albumId),
+      filename: Value(filename),
+      originalName: originalName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(originalName),
+      mimeType: mimeType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mimeType),
+      fileSize: fileSize == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fileSize),
+      width: width == null && nullToAbsent
+          ? const Value.absent()
+          : Value(width),
+      height: height == null && nullToAbsent
+          ? const Value.absent()
+          : Value(height),
+      classification: Value(classification),
+      thumbnailFilename: thumbnailFilename == null && nullToAbsent
+          ? const Value.absent()
+          : Value(thumbnailFilename),
+      encryptedDekId: encryptedDekId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(encryptedDekId),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory TPhotoData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TPhotoData(
+      id: serializer.fromJson<String>(json['id']),
+      albumId: serializer.fromJson<String?>(json['album_id']),
+      filename: serializer.fromJson<String>(json['filename']),
+      originalName: serializer.fromJson<String?>(json['original_name']),
+      mimeType: serializer.fromJson<String?>(json['mime_type']),
+      fileSize: serializer.fromJson<int?>(json['file_size']),
+      width: serializer.fromJson<int?>(json['width']),
+      height: serializer.fromJson<int?>(json['height']),
+      classification: serializer.fromJson<String>(json['classification']),
+      thumbnailFilename: serializer.fromJson<String?>(
+        json['thumbnail_filename'],
+      ),
+      encryptedDekId: serializer.fromJson<String?>(json['encrypted_dek_id']),
+      createdAt: serializer.fromJson<DateTime>(json['created_at']),
+      updatedAt: serializer.fromJson<DateTime>(json['updated_at']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deleted_at']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'album_id': serializer.toJson<String?>(albumId),
+      'filename': serializer.toJson<String>(filename),
+      'original_name': serializer.toJson<String?>(originalName),
+      'mime_type': serializer.toJson<String?>(mimeType),
+      'file_size': serializer.toJson<int?>(fileSize),
+      'width': serializer.toJson<int?>(width),
+      'height': serializer.toJson<int?>(height),
+      'classification': serializer.toJson<String>(classification),
+      'thumbnail_filename': serializer.toJson<String?>(thumbnailFilename),
+      'encrypted_dek_id': serializer.toJson<String?>(encryptedDekId),
+      'created_at': serializer.toJson<DateTime>(createdAt),
+      'updated_at': serializer.toJson<DateTime>(updatedAt),
+      'deleted_at': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  TPhotoData copyWith({
+    String? id,
+    Value<String?> albumId = const Value.absent(),
+    String? filename,
+    Value<String?> originalName = const Value.absent(),
+    Value<String?> mimeType = const Value.absent(),
+    Value<int?> fileSize = const Value.absent(),
+    Value<int?> width = const Value.absent(),
+    Value<int?> height = const Value.absent(),
+    String? classification,
+    Value<String?> thumbnailFilename = const Value.absent(),
+    Value<String?> encryptedDekId = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => TPhotoData(
+    id: id ?? this.id,
+    albumId: albumId.present ? albumId.value : this.albumId,
+    filename: filename ?? this.filename,
+    originalName: originalName.present ? originalName.value : this.originalName,
+    mimeType: mimeType.present ? mimeType.value : this.mimeType,
+    fileSize: fileSize.present ? fileSize.value : this.fileSize,
+    width: width.present ? width.value : this.width,
+    height: height.present ? height.value : this.height,
+    classification: classification ?? this.classification,
+    thumbnailFilename: thumbnailFilename.present
+        ? thumbnailFilename.value
+        : this.thumbnailFilename,
+    encryptedDekId: encryptedDekId.present
+        ? encryptedDekId.value
+        : this.encryptedDekId,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  TPhotoData copyWithCompanion(TPhotoCompanion data) {
+    return TPhotoData(
+      id: data.id.present ? data.id.value : this.id,
+      albumId: data.albumId.present ? data.albumId.value : this.albumId,
+      filename: data.filename.present ? data.filename.value : this.filename,
+      originalName: data.originalName.present
+          ? data.originalName.value
+          : this.originalName,
+      mimeType: data.mimeType.present ? data.mimeType.value : this.mimeType,
+      fileSize: data.fileSize.present ? data.fileSize.value : this.fileSize,
+      width: data.width.present ? data.width.value : this.width,
+      height: data.height.present ? data.height.value : this.height,
+      classification: data.classification.present
+          ? data.classification.value
+          : this.classification,
+      thumbnailFilename: data.thumbnailFilename.present
+          ? data.thumbnailFilename.value
+          : this.thumbnailFilename,
+      encryptedDekId: data.encryptedDekId.present
+          ? data.encryptedDekId.value
+          : this.encryptedDekId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TPhotoData(')
+          ..write('id: $id, ')
+          ..write('albumId: $albumId, ')
+          ..write('filename: $filename, ')
+          ..write('originalName: $originalName, ')
+          ..write('mimeType: $mimeType, ')
+          ..write('fileSize: $fileSize, ')
+          ..write('width: $width, ')
+          ..write('height: $height, ')
+          ..write('classification: $classification, ')
+          ..write('thumbnailFilename: $thumbnailFilename, ')
+          ..write('encryptedDekId: $encryptedDekId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    albumId,
+    filename,
+    originalName,
+    mimeType,
+    fileSize,
+    width,
+    height,
+    classification,
+    thumbnailFilename,
+    encryptedDekId,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TPhotoData &&
+          other.id == this.id &&
+          other.albumId == this.albumId &&
+          other.filename == this.filename &&
+          other.originalName == this.originalName &&
+          other.mimeType == this.mimeType &&
+          other.fileSize == this.fileSize &&
+          other.width == this.width &&
+          other.height == this.height &&
+          other.classification == this.classification &&
+          other.thumbnailFilename == this.thumbnailFilename &&
+          other.encryptedDekId == this.encryptedDekId &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class TPhotoCompanion extends UpdateCompanion<TPhotoData> {
+  final Value<String> id;
+  final Value<String?> albumId;
+  final Value<String> filename;
+  final Value<String?> originalName;
+  final Value<String?> mimeType;
+  final Value<int?> fileSize;
+  final Value<int?> width;
+  final Value<int?> height;
+  final Value<String> classification;
+  final Value<String?> thumbnailFilename;
+  final Value<String?> encryptedDekId;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const TPhotoCompanion({
+    this.id = const Value.absent(),
+    this.albumId = const Value.absent(),
+    this.filename = const Value.absent(),
+    this.originalName = const Value.absent(),
+    this.mimeType = const Value.absent(),
+    this.fileSize = const Value.absent(),
+    this.width = const Value.absent(),
+    this.height = const Value.absent(),
+    this.classification = const Value.absent(),
+    this.thumbnailFilename = const Value.absent(),
+    this.encryptedDekId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TPhotoCompanion.insert({
+    required String id,
+    this.albumId = const Value.absent(),
+    required String filename,
+    this.originalName = const Value.absent(),
+    this.mimeType = const Value.absent(),
+    this.fileSize = const Value.absent(),
+    this.width = const Value.absent(),
+    this.height = const Value.absent(),
+    required String classification,
+    this.thumbnailFilename = const Value.absent(),
+    this.encryptedDekId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       filename = Value(filename),
+       classification = Value(classification);
+  static Insertable<TPhotoData> custom({
+    Expression<String>? id,
+    Expression<String>? albumId,
+    Expression<String>? filename,
+    Expression<String>? originalName,
+    Expression<String>? mimeType,
+    Expression<int>? fileSize,
+    Expression<int>? width,
+    Expression<int>? height,
+    Expression<String>? classification,
+    Expression<String>? thumbnailFilename,
+    Expression<String>? encryptedDekId,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (albumId != null) 'album_id': albumId,
+      if (filename != null) 'filename': filename,
+      if (originalName != null) 'original_name': originalName,
+      if (mimeType != null) 'mime_type': mimeType,
+      if (fileSize != null) 'file_size': fileSize,
+      if (width != null) 'width': width,
+      if (height != null) 'height': height,
+      if (classification != null) 'classification': classification,
+      if (thumbnailFilename != null) 'thumbnail_filename': thumbnailFilename,
+      if (encryptedDekId != null) 'encrypted_dek_id': encryptedDekId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TPhotoCompanion copyWith({
+    Value<String>? id,
+    Value<String?>? albumId,
+    Value<String>? filename,
+    Value<String?>? originalName,
+    Value<String?>? mimeType,
+    Value<int?>? fileSize,
+    Value<int?>? width,
+    Value<int?>? height,
+    Value<String>? classification,
+    Value<String?>? thumbnailFilename,
+    Value<String?>? encryptedDekId,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return TPhotoCompanion(
+      id: id ?? this.id,
+      albumId: albumId ?? this.albumId,
+      filename: filename ?? this.filename,
+      originalName: originalName ?? this.originalName,
+      mimeType: mimeType ?? this.mimeType,
+      fileSize: fileSize ?? this.fileSize,
+      width: width ?? this.width,
+      height: height ?? this.height,
+      classification: classification ?? this.classification,
+      thumbnailFilename: thumbnailFilename ?? this.thumbnailFilename,
+      encryptedDekId: encryptedDekId ?? this.encryptedDekId,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (albumId.present) {
+      map['album_id'] = Variable<String>(albumId.value);
+    }
+    if (filename.present) {
+      map['filename'] = Variable<String>(filename.value);
+    }
+    if (originalName.present) {
+      map['original_name'] = Variable<String>(originalName.value);
+    }
+    if (mimeType.present) {
+      map['mime_type'] = Variable<String>(mimeType.value);
+    }
+    if (fileSize.present) {
+      map['file_size'] = Variable<int>(fileSize.value);
+    }
+    if (width.present) {
+      map['width'] = Variable<int>(width.value);
+    }
+    if (height.present) {
+      map['height'] = Variable<int>(height.value);
+    }
+    if (classification.present) {
+      map['classification'] = Variable<String>(classification.value);
+    }
+    if (thumbnailFilename.present) {
+      map['thumbnail_filename'] = Variable<String>(thumbnailFilename.value);
+    }
+    if (encryptedDekId.present) {
+      map['encrypted_dek_id'] = Variable<String>(encryptedDekId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TPhotoCompanion(')
+          ..write('id: $id, ')
+          ..write('albumId: $albumId, ')
+          ..write('filename: $filename, ')
+          ..write('originalName: $originalName, ')
+          ..write('mimeType: $mimeType, ')
+          ..write('fileSize: $fileSize, ')
+          ..write('width: $width, ')
+          ..write('height: $height, ')
+          ..write('classification: $classification, ')
+          ..write('thumbnailFilename: $thumbnailFilename, ')
+          ..write('encryptedDekId: $encryptedDekId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class Categories extends Table with TableInfo<Categories, CategoryEntity> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  Categories(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL PRIMARY KEY AUTOINCREMENT',
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _accessLevelMeta = const VerificationMeta(
+    'accessLevel',
+  );
+  late final GeneratedColumn<int> accessLevel = GeneratedColumn<int>(
+    'access_level',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _createTimeMeta = const VerificationMeta(
+    'createTime',
+  );
+  late final GeneratedColumn<String> createTime = GeneratedColumn<String>(
+    'create_time',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _lastUpdateTimeMeta = const VerificationMeta(
+    'lastUpdateTime',
+  );
+  late final GeneratedColumn<String> lastUpdateTime = GeneratedColumn<String>(
+    'last_update_time',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    accessLevel,
+    createTime,
+    lastUpdateTime,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'categories';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CategoryEntity> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('access_level')) {
+      context.handle(
+        _accessLevelMeta,
+        accessLevel.isAcceptableOrUnknown(
+          data['access_level']!,
+          _accessLevelMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_accessLevelMeta);
+    }
+    if (data.containsKey('create_time')) {
+      context.handle(
+        _createTimeMeta,
+        createTime.isAcceptableOrUnknown(data['create_time']!, _createTimeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createTimeMeta);
+    }
+    if (data.containsKey('last_update_time')) {
+      context.handle(
+        _lastUpdateTimeMeta,
+        lastUpdateTime.isAcceptableOrUnknown(
+          data['last_update_time']!,
+          _lastUpdateTimeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_lastUpdateTimeMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CategoryEntity map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CategoryEntity(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      accessLevel: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}access_level'],
+      )!,
+      createTime: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}create_time'],
+      )!,
+      lastUpdateTime: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_update_time'],
+      )!,
+    );
+  }
+
+  @override
+  Categories createAlias(String alias) {
+    return Categories(attachedDatabase, alias);
+  }
+
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class CategoryEntity extends DataClass implements Insertable<CategoryEntity> {
+  final int id;
+  final String name;
+  final int accessLevel;
+  final String createTime;
+  final String lastUpdateTime;
+  const CategoryEntity({
+    required this.id,
+    required this.name,
+    required this.accessLevel,
+    required this.createTime,
+    required this.lastUpdateTime,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    map['access_level'] = Variable<int>(accessLevel);
+    map['create_time'] = Variable<String>(createTime);
+    map['last_update_time'] = Variable<String>(lastUpdateTime);
+    return map;
+  }
+
+  CategoriesCompanion toCompanion(bool nullToAbsent) {
+    return CategoriesCompanion(
+      id: Value(id),
+      name: Value(name),
+      accessLevel: Value(accessLevel),
+      createTime: Value(createTime),
+      lastUpdateTime: Value(lastUpdateTime),
+    );
+  }
+
+  factory CategoryEntity.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CategoryEntity(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      accessLevel: serializer.fromJson<int>(json['access_level']),
+      createTime: serializer.fromJson<String>(json['create_time']),
+      lastUpdateTime: serializer.fromJson<String>(json['last_update_time']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'access_level': serializer.toJson<int>(accessLevel),
+      'create_time': serializer.toJson<String>(createTime),
+      'last_update_time': serializer.toJson<String>(lastUpdateTime),
+    };
+  }
+
+  CategoryEntity copyWith({
+    int? id,
+    String? name,
+    int? accessLevel,
+    String? createTime,
+    String? lastUpdateTime,
+  }) => CategoryEntity(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    accessLevel: accessLevel ?? this.accessLevel,
+    createTime: createTime ?? this.createTime,
+    lastUpdateTime: lastUpdateTime ?? this.lastUpdateTime,
+  );
+  CategoryEntity copyWithCompanion(CategoriesCompanion data) {
+    return CategoryEntity(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      accessLevel: data.accessLevel.present
+          ? data.accessLevel.value
+          : this.accessLevel,
+      createTime: data.createTime.present
+          ? data.createTime.value
+          : this.createTime,
+      lastUpdateTime: data.lastUpdateTime.present
+          ? data.lastUpdateTime.value
+          : this.lastUpdateTime,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CategoryEntity(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('accessLevel: $accessLevel, ')
+          ..write('createTime: $createTime, ')
+          ..write('lastUpdateTime: $lastUpdateTime')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, name, accessLevel, createTime, lastUpdateTime);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CategoryEntity &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.accessLevel == this.accessLevel &&
+          other.createTime == this.createTime &&
+          other.lastUpdateTime == this.lastUpdateTime);
+}
+
+class CategoriesCompanion extends UpdateCompanion<CategoryEntity> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<int> accessLevel;
+  final Value<String> createTime;
+  final Value<String> lastUpdateTime;
+  const CategoriesCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.accessLevel = const Value.absent(),
+    this.createTime = const Value.absent(),
+    this.lastUpdateTime = const Value.absent(),
+  });
+  CategoriesCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    required int accessLevel,
+    required String createTime,
+    required String lastUpdateTime,
+  }) : name = Value(name),
+       accessLevel = Value(accessLevel),
+       createTime = Value(createTime),
+       lastUpdateTime = Value(lastUpdateTime);
+  static Insertable<CategoryEntity> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<int>? accessLevel,
+    Expression<String>? createTime,
+    Expression<String>? lastUpdateTime,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (accessLevel != null) 'access_level': accessLevel,
+      if (createTime != null) 'create_time': createTime,
+      if (lastUpdateTime != null) 'last_update_time': lastUpdateTime,
+    });
+  }
+
+  CategoriesCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<int>? accessLevel,
+    Value<String>? createTime,
+    Value<String>? lastUpdateTime,
+  }) {
+    return CategoriesCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      accessLevel: accessLevel ?? this.accessLevel,
+      createTime: createTime ?? this.createTime,
+      lastUpdateTime: lastUpdateTime ?? this.lastUpdateTime,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (accessLevel.present) {
+      map['access_level'] = Variable<int>(accessLevel.value);
+    }
+    if (createTime.present) {
+      map['create_time'] = Variable<String>(createTime.value);
+    }
+    if (lastUpdateTime.present) {
+      map['last_update_time'] = Variable<String>(lastUpdateTime.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CategoriesCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('accessLevel: $accessLevel, ')
+          ..write('createTime: $createTime, ')
+          ..write('lastUpdateTime: $lastUpdateTime')
           ..write(')'))
         .toString();
   }
@@ -4076,8 +5387,10 @@ class TNoteIdxCompanion extends UpdateCompanion<TNoteIdxData> {
 abstract class _$SqliteDb extends GeneratedDatabase {
   _$SqliteDb(QueryExecutor e) : super(e);
   $SqliteDbManager get managers => $SqliteDbManager(this);
-  late final Categories categories = Categories(this);
+  late final TAlbum tAlbum = TAlbum(this);
   late final TDataEncryptKey tDataEncryptKey = TDataEncryptKey(this);
+  late final TPhoto tPhoto = TPhoto(this);
+  late final Categories categories = Categories(this);
   late final TEncryptedData tEncryptedData = TEncryptedData(this);
   late final TPassword tPassword = TPassword(this);
   late final TPasswordAttribute tPasswordAttribute = TPasswordAttribute(this);
@@ -4097,6 +5410,58 @@ abstract class _$SqliteDb extends GeneratedDatabase {
     'CREATE TRIGGER tri_on_note_deleted AFTER UPDATE ON t_note WHEN new.deleted_at IS NOT NULL BEGIN INSERT INTO t_note_idx (t_note_idx, "rowid", title, content_plain) VALUES (\'delete\', old."rowid", old.title, old.content_plain);END',
     'tri_on_note_deleted',
   );
+  Selectable<SelectPhotosResult> selectPhotos(SelectPhotos$order order) {
+    var $arrayStartIndex = 1;
+    final generatedorder = $write(
+      order?.call(this.tPhoto) ?? const OrderBy.nothing(),
+      startIndex: $arrayStartIndex,
+    );
+    $arrayStartIndex += generatedorder.amountOfVariables;
+    return customSelect(
+      'SELECT id, album_id, filename, original_name, mime_type, file_size, width, height, classification, thumbnail_filename, created_at, updated_at FROM t_photo WHERE deleted_at IS NULL ${generatedorder.sql}',
+      variables: [...generatedorder.introducedVariables],
+      readsFrom: {tPhoto, ...generatedorder.watchedTables},
+    ).map(
+      (QueryRow row) => SelectPhotosResult(
+        id: row.read<String>('id'),
+        albumId: row.readNullable<String>('album_id'),
+        filename: row.read<String>('filename'),
+        originalName: row.readNullable<String>('original_name'),
+        mimeType: row.readNullable<String>('mime_type'),
+        fileSize: row.readNullable<int>('file_size'),
+        width: row.readNullable<int>('width'),
+        height: row.readNullable<int>('height'),
+        classification: row.read<String>('classification'),
+        thumbnailFilename: row.readNullable<String>('thumbnail_filename'),
+        createdAt: row.read<DateTime>('created_at'),
+        updatedAt: row.read<DateTime>('updated_at'),
+      ),
+    );
+  }
+
+  Selectable<SelectAlbumsResult> selectAlbums(SelectAlbums$order order) {
+    var $arrayStartIndex = 1;
+    final generatedorder = $write(
+      order?.call(this.tAlbum) ?? const OrderBy.nothing(),
+      startIndex: $arrayStartIndex,
+    );
+    $arrayStartIndex += generatedorder.amountOfVariables;
+    return customSelect(
+      'SELECT id, name, classification, cover_photo_id, created_at, updated_at FROM t_album WHERE deleted_at IS NULL ${generatedorder.sql}',
+      variables: [...generatedorder.introducedVariables],
+      readsFrom: {tAlbum, ...generatedorder.watchedTables},
+    ).map(
+      (QueryRow row) => SelectAlbumsResult(
+        id: row.read<String>('id'),
+        name: row.read<String>('name'),
+        classification: row.read<String>('classification'),
+        coverPhotoId: row.readNullable<String>('cover_photo_id'),
+        createdAt: row.read<DateTime>('created_at'),
+        updatedAt: row.read<DateTime>('updated_at'),
+      ),
+    );
+  }
+
   Selectable<SelectPasswordsResult> selectPasswords(
     SelectPasswords$order order,
   ) {
@@ -4169,8 +5534,10 @@ abstract class _$SqliteDb extends GeneratedDatabase {
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
-    categories,
+    tAlbum,
     tDataEncryptKey,
+    tPhoto,
+    categories,
     tEncryptedData,
     tPassword,
     tPasswordAttribute,
@@ -4211,32 +5578,38 @@ abstract class _$SqliteDb extends GeneratedDatabase {
       const DriftDatabaseOptions(storeDateTimeAsText: true);
 }
 
-typedef $CategoriesCreateCompanionBuilder =
-    CategoriesCompanion Function({
-      Value<int> id,
+typedef $TAlbumCreateCompanionBuilder =
+    TAlbumCompanion Function({
+      required String id,
       required String name,
-      required int accessLevel,
-      required String createTime,
-      required String lastUpdateTime,
+      required String classification,
+      Value<String?> coverPhotoId,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
     });
-typedef $CategoriesUpdateCompanionBuilder =
-    CategoriesCompanion Function({
-      Value<int> id,
+typedef $TAlbumUpdateCompanionBuilder =
+    TAlbumCompanion Function({
+      Value<String> id,
       Value<String> name,
-      Value<int> accessLevel,
-      Value<String> createTime,
-      Value<String> lastUpdateTime,
+      Value<String> classification,
+      Value<String?> coverPhotoId,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
     });
 
-class $CategoriesFilterComposer extends Composer<_$SqliteDb, Categories> {
-  $CategoriesFilterComposer({
+class $TAlbumFilterComposer extends Composer<_$SqliteDb, TAlbum> {
+  $TAlbumFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get id => $composableBuilder(
+  ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnFilters(column),
   );
@@ -4246,31 +5619,41 @@ class $CategoriesFilterComposer extends Composer<_$SqliteDb, Categories> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get accessLevel => $composableBuilder(
-    column: $table.accessLevel,
+  ColumnFilters<String> get classification => $composableBuilder(
+    column: $table.classification,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get createTime => $composableBuilder(
-    column: $table.createTime,
+  ColumnFilters<String> get coverPhotoId => $composableBuilder(
+    column: $table.coverPhotoId,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get lastUpdateTime => $composableBuilder(
-    column: $table.lastUpdateTime,
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
     builder: (column) => ColumnFilters(column),
   );
 }
 
-class $CategoriesOrderingComposer extends Composer<_$SqliteDb, Categories> {
-  $CategoriesOrderingComposer({
+class $TAlbumOrderingComposer extends Composer<_$SqliteDb, TAlbum> {
+  $TAlbumOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get id => $composableBuilder(
+  ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
   );
@@ -4280,108 +5663,131 @@ class $CategoriesOrderingComposer extends Composer<_$SqliteDb, Categories> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get accessLevel => $composableBuilder(
-    column: $table.accessLevel,
+  ColumnOrderings<String> get classification => $composableBuilder(
+    column: $table.classification,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get createTime => $composableBuilder(
-    column: $table.createTime,
+  ColumnOrderings<String> get coverPhotoId => $composableBuilder(
+    column: $table.coverPhotoId,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get lastUpdateTime => $composableBuilder(
-    column: $table.lastUpdateTime,
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
     builder: (column) => ColumnOrderings(column),
   );
 }
 
-class $CategoriesAnnotationComposer extends Composer<_$SqliteDb, Categories> {
-  $CategoriesAnnotationComposer({
+class $TAlbumAnnotationComposer extends Composer<_$SqliteDb, TAlbum> {
+  $TAlbumAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<int> get id =>
+  GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
 
-  GeneratedColumn<int> get accessLevel => $composableBuilder(
-    column: $table.accessLevel,
+  GeneratedColumn<String> get classification => $composableBuilder(
+    column: $table.classification,
     builder: (column) => column,
   );
 
-  GeneratedColumn<String> get createTime => $composableBuilder(
-    column: $table.createTime,
+  GeneratedColumn<String> get coverPhotoId => $composableBuilder(
+    column: $table.coverPhotoId,
     builder: (column) => column,
   );
 
-  GeneratedColumn<String> get lastUpdateTime => $composableBuilder(
-    column: $table.lastUpdateTime,
-    builder: (column) => column,
-  );
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
 }
 
-class $CategoriesTableManager
+class $TAlbumTableManager
     extends
         RootTableManager<
           _$SqliteDb,
-          Categories,
-          CategoryEntity,
-          $CategoriesFilterComposer,
-          $CategoriesOrderingComposer,
-          $CategoriesAnnotationComposer,
-          $CategoriesCreateCompanionBuilder,
-          $CategoriesUpdateCompanionBuilder,
-          (
-            CategoryEntity,
-            BaseReferences<_$SqliteDb, Categories, CategoryEntity>,
-          ),
-          CategoryEntity,
+          TAlbum,
+          TAlbumData,
+          $TAlbumFilterComposer,
+          $TAlbumOrderingComposer,
+          $TAlbumAnnotationComposer,
+          $TAlbumCreateCompanionBuilder,
+          $TAlbumUpdateCompanionBuilder,
+          (TAlbumData, BaseReferences<_$SqliteDb, TAlbum, TAlbumData>),
+          TAlbumData,
           PrefetchHooks Function()
         > {
-  $CategoriesTableManager(_$SqliteDb db, Categories table)
+  $TAlbumTableManager(_$SqliteDb db, TAlbum table)
     : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $CategoriesFilterComposer($db: db, $table: table),
+              $TAlbumFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $CategoriesOrderingComposer($db: db, $table: table),
+              $TAlbumOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $CategoriesAnnotationComposer($db: db, $table: table),
+              $TAlbumAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
+                Value<String> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
-                Value<int> accessLevel = const Value.absent(),
-                Value<String> createTime = const Value.absent(),
-                Value<String> lastUpdateTime = const Value.absent(),
-              }) => CategoriesCompanion(
+                Value<String> classification = const Value.absent(),
+                Value<String?> coverPhotoId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TAlbumCompanion(
                 id: id,
                 name: name,
-                accessLevel: accessLevel,
-                createTime: createTime,
-                lastUpdateTime: lastUpdateTime,
+                classification: classification,
+                coverPhotoId: coverPhotoId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
               ),
           createCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
+                required String id,
                 required String name,
-                required int accessLevel,
-                required String createTime,
-                required String lastUpdateTime,
-              }) => CategoriesCompanion.insert(
+                required String classification,
+                Value<String?> coverPhotoId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TAlbumCompanion.insert(
                 id: id,
                 name: name,
-                accessLevel: accessLevel,
-                createTime: createTime,
-                lastUpdateTime: lastUpdateTime,
+                classification: classification,
+                coverPhotoId: coverPhotoId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -4391,18 +5797,18 @@ class $CategoriesTableManager
       );
 }
 
-typedef $CategoriesProcessedTableManager =
+typedef $TAlbumProcessedTableManager =
     ProcessedTableManager<
       _$SqliteDb,
-      Categories,
-      CategoryEntity,
-      $CategoriesFilterComposer,
-      $CategoriesOrderingComposer,
-      $CategoriesAnnotationComposer,
-      $CategoriesCreateCompanionBuilder,
-      $CategoriesUpdateCompanionBuilder,
-      (CategoryEntity, BaseReferences<_$SqliteDb, Categories, CategoryEntity>),
-      CategoryEntity,
+      TAlbum,
+      TAlbumData,
+      $TAlbumFilterComposer,
+      $TAlbumOrderingComposer,
+      $TAlbumAnnotationComposer,
+      $TAlbumCreateCompanionBuilder,
+      $TAlbumUpdateCompanionBuilder,
+      (TAlbumData, BaseReferences<_$SqliteDb, TAlbum, TAlbumData>),
+      TAlbumData,
       PrefetchHooks Function()
     >;
 typedef $TDataEncryptKeyCreateCompanionBuilder =
@@ -4622,6 +6028,570 @@ typedef $TDataEncryptKeyProcessedTableManager =
         BaseReferences<_$SqliteDb, TDataEncryptKey, TDataEncryptKeyData>,
       ),
       TDataEncryptKeyData,
+      PrefetchHooks Function()
+    >;
+typedef $TPhotoCreateCompanionBuilder =
+    TPhotoCompanion Function({
+      required String id,
+      Value<String?> albumId,
+      required String filename,
+      Value<String?> originalName,
+      Value<String?> mimeType,
+      Value<int?> fileSize,
+      Value<int?> width,
+      Value<int?> height,
+      required String classification,
+      Value<String?> thumbnailFilename,
+      Value<String?> encryptedDekId,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $TPhotoUpdateCompanionBuilder =
+    TPhotoCompanion Function({
+      Value<String> id,
+      Value<String?> albumId,
+      Value<String> filename,
+      Value<String?> originalName,
+      Value<String?> mimeType,
+      Value<int?> fileSize,
+      Value<int?> width,
+      Value<int?> height,
+      Value<String> classification,
+      Value<String?> thumbnailFilename,
+      Value<String?> encryptedDekId,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+class $TPhotoFilterComposer extends Composer<_$SqliteDb, TPhoto> {
+  $TPhotoFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get albumId => $composableBuilder(
+    column: $table.albumId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get filename => $composableBuilder(
+    column: $table.filename,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get originalName => $composableBuilder(
+    column: $table.originalName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mimeType => $composableBuilder(
+    column: $table.mimeType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get fileSize => $composableBuilder(
+    column: $table.fileSize,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get width => $composableBuilder(
+    column: $table.width,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get height => $composableBuilder(
+    column: $table.height,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get classification => $composableBuilder(
+    column: $table.classification,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get thumbnailFilename => $composableBuilder(
+    column: $table.thumbnailFilename,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get encryptedDekId => $composableBuilder(
+    column: $table.encryptedDekId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $TPhotoOrderingComposer extends Composer<_$SqliteDb, TPhoto> {
+  $TPhotoOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get albumId => $composableBuilder(
+    column: $table.albumId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get filename => $composableBuilder(
+    column: $table.filename,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get originalName => $composableBuilder(
+    column: $table.originalName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mimeType => $composableBuilder(
+    column: $table.mimeType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get fileSize => $composableBuilder(
+    column: $table.fileSize,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get width => $composableBuilder(
+    column: $table.width,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get height => $composableBuilder(
+    column: $table.height,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get classification => $composableBuilder(
+    column: $table.classification,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get thumbnailFilename => $composableBuilder(
+    column: $table.thumbnailFilename,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get encryptedDekId => $composableBuilder(
+    column: $table.encryptedDekId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $TPhotoAnnotationComposer extends Composer<_$SqliteDb, TPhoto> {
+  $TPhotoAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get albumId =>
+      $composableBuilder(column: $table.albumId, builder: (column) => column);
+
+  GeneratedColumn<String> get filename =>
+      $composableBuilder(column: $table.filename, builder: (column) => column);
+
+  GeneratedColumn<String> get originalName => $composableBuilder(
+    column: $table.originalName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get mimeType =>
+      $composableBuilder(column: $table.mimeType, builder: (column) => column);
+
+  GeneratedColumn<int> get fileSize =>
+      $composableBuilder(column: $table.fileSize, builder: (column) => column);
+
+  GeneratedColumn<int> get width =>
+      $composableBuilder(column: $table.width, builder: (column) => column);
+
+  GeneratedColumn<int> get height =>
+      $composableBuilder(column: $table.height, builder: (column) => column);
+
+  GeneratedColumn<String> get classification => $composableBuilder(
+    column: $table.classification,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get thumbnailFilename => $composableBuilder(
+    column: $table.thumbnailFilename,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get encryptedDekId => $composableBuilder(
+    column: $table.encryptedDekId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $TPhotoTableManager
+    extends
+        RootTableManager<
+          _$SqliteDb,
+          TPhoto,
+          TPhotoData,
+          $TPhotoFilterComposer,
+          $TPhotoOrderingComposer,
+          $TPhotoAnnotationComposer,
+          $TPhotoCreateCompanionBuilder,
+          $TPhotoUpdateCompanionBuilder,
+          (TPhotoData, BaseReferences<_$SqliteDb, TPhoto, TPhotoData>),
+          TPhotoData,
+          PrefetchHooks Function()
+        > {
+  $TPhotoTableManager(_$SqliteDb db, TPhoto table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $TPhotoFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $TPhotoOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $TPhotoAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String?> albumId = const Value.absent(),
+                Value<String> filename = const Value.absent(),
+                Value<String?> originalName = const Value.absent(),
+                Value<String?> mimeType = const Value.absent(),
+                Value<int?> fileSize = const Value.absent(),
+                Value<int?> width = const Value.absent(),
+                Value<int?> height = const Value.absent(),
+                Value<String> classification = const Value.absent(),
+                Value<String?> thumbnailFilename = const Value.absent(),
+                Value<String?> encryptedDekId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TPhotoCompanion(
+                id: id,
+                albumId: albumId,
+                filename: filename,
+                originalName: originalName,
+                mimeType: mimeType,
+                fileSize: fileSize,
+                width: width,
+                height: height,
+                classification: classification,
+                thumbnailFilename: thumbnailFilename,
+                encryptedDekId: encryptedDekId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String?> albumId = const Value.absent(),
+                required String filename,
+                Value<String?> originalName = const Value.absent(),
+                Value<String?> mimeType = const Value.absent(),
+                Value<int?> fileSize = const Value.absent(),
+                Value<int?> width = const Value.absent(),
+                Value<int?> height = const Value.absent(),
+                required String classification,
+                Value<String?> thumbnailFilename = const Value.absent(),
+                Value<String?> encryptedDekId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TPhotoCompanion.insert(
+                id: id,
+                albumId: albumId,
+                filename: filename,
+                originalName: originalName,
+                mimeType: mimeType,
+                fileSize: fileSize,
+                width: width,
+                height: height,
+                classification: classification,
+                thumbnailFilename: thumbnailFilename,
+                encryptedDekId: encryptedDekId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $TPhotoProcessedTableManager =
+    ProcessedTableManager<
+      _$SqliteDb,
+      TPhoto,
+      TPhotoData,
+      $TPhotoFilterComposer,
+      $TPhotoOrderingComposer,
+      $TPhotoAnnotationComposer,
+      $TPhotoCreateCompanionBuilder,
+      $TPhotoUpdateCompanionBuilder,
+      (TPhotoData, BaseReferences<_$SqliteDb, TPhoto, TPhotoData>),
+      TPhotoData,
+      PrefetchHooks Function()
+    >;
+typedef $CategoriesCreateCompanionBuilder =
+    CategoriesCompanion Function({
+      Value<int> id,
+      required String name,
+      required int accessLevel,
+      required String createTime,
+      required String lastUpdateTime,
+    });
+typedef $CategoriesUpdateCompanionBuilder =
+    CategoriesCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<int> accessLevel,
+      Value<String> createTime,
+      Value<String> lastUpdateTime,
+    });
+
+class $CategoriesFilterComposer extends Composer<_$SqliteDb, Categories> {
+  $CategoriesFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get accessLevel => $composableBuilder(
+    column: $table.accessLevel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get createTime => $composableBuilder(
+    column: $table.createTime,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastUpdateTime => $composableBuilder(
+    column: $table.lastUpdateTime,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $CategoriesOrderingComposer extends Composer<_$SqliteDb, Categories> {
+  $CategoriesOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get accessLevel => $composableBuilder(
+    column: $table.accessLevel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get createTime => $composableBuilder(
+    column: $table.createTime,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastUpdateTime => $composableBuilder(
+    column: $table.lastUpdateTime,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $CategoriesAnnotationComposer extends Composer<_$SqliteDb, Categories> {
+  $CategoriesAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<int> get accessLevel => $composableBuilder(
+    column: $table.accessLevel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get createTime => $composableBuilder(
+    column: $table.createTime,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get lastUpdateTime => $composableBuilder(
+    column: $table.lastUpdateTime,
+    builder: (column) => column,
+  );
+}
+
+class $CategoriesTableManager
+    extends
+        RootTableManager<
+          _$SqliteDb,
+          Categories,
+          CategoryEntity,
+          $CategoriesFilterComposer,
+          $CategoriesOrderingComposer,
+          $CategoriesAnnotationComposer,
+          $CategoriesCreateCompanionBuilder,
+          $CategoriesUpdateCompanionBuilder,
+          (
+            CategoryEntity,
+            BaseReferences<_$SqliteDb, Categories, CategoryEntity>,
+          ),
+          CategoryEntity,
+          PrefetchHooks Function()
+        > {
+  $CategoriesTableManager(_$SqliteDb db, Categories table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $CategoriesFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $CategoriesOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $CategoriesAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<int> accessLevel = const Value.absent(),
+                Value<String> createTime = const Value.absent(),
+                Value<String> lastUpdateTime = const Value.absent(),
+              }) => CategoriesCompanion(
+                id: id,
+                name: name,
+                accessLevel: accessLevel,
+                createTime: createTime,
+                lastUpdateTime: lastUpdateTime,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                required int accessLevel,
+                required String createTime,
+                required String lastUpdateTime,
+              }) => CategoriesCompanion.insert(
+                id: id,
+                name: name,
+                accessLevel: accessLevel,
+                createTime: createTime,
+                lastUpdateTime: lastUpdateTime,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $CategoriesProcessedTableManager =
+    ProcessedTableManager<
+      _$SqliteDb,
+      Categories,
+      CategoryEntity,
+      $CategoriesFilterComposer,
+      $CategoriesOrderingComposer,
+      $CategoriesAnnotationComposer,
+      $CategoriesCreateCompanionBuilder,
+      $CategoriesUpdateCompanionBuilder,
+      (CategoryEntity, BaseReferences<_$SqliteDb, Categories, CategoryEntity>),
+      CategoryEntity,
       PrefetchHooks Function()
     >;
 typedef $TEncryptedDataCreateCompanionBuilder =
@@ -6287,10 +8257,12 @@ typedef $TNoteIdxProcessedTableManager =
 class $SqliteDbManager {
   final _$SqliteDb _db;
   $SqliteDbManager(this._db);
-  $CategoriesTableManager get categories =>
-      $CategoriesTableManager(_db, _db.categories);
+  $TAlbumTableManager get tAlbum => $TAlbumTableManager(_db, _db.tAlbum);
   $TDataEncryptKeyTableManager get tDataEncryptKey =>
       $TDataEncryptKeyTableManager(_db, _db.tDataEncryptKey);
+  $TPhotoTableManager get tPhoto => $TPhotoTableManager(_db, _db.tPhoto);
+  $CategoriesTableManager get categories =>
+      $CategoriesTableManager(_db, _db.categories);
   $TEncryptedDataTableManager get tEncryptedData =>
       $TEncryptedDataTableManager(_db, _db.tEncryptedData);
   $TPasswordTableManager get tPassword =>
@@ -6305,6 +8277,56 @@ class $SqliteDbManager {
   $TNoteIdxTableManager get tNoteIdx =>
       $TNoteIdxTableManager(_db, _db.tNoteIdx);
 }
+
+class SelectPhotosResult {
+  final String id;
+  final String? albumId;
+  final String filename;
+  final String? originalName;
+  final String? mimeType;
+  final int? fileSize;
+  final int? width;
+  final int? height;
+  final String classification;
+  final String? thumbnailFilename;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  SelectPhotosResult({
+    required this.id,
+    this.albumId,
+    required this.filename,
+    this.originalName,
+    this.mimeType,
+    this.fileSize,
+    this.width,
+    this.height,
+    required this.classification,
+    this.thumbnailFilename,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+}
+
+typedef SelectPhotos$order = OrderBy Function(TPhoto t_photo);
+
+class SelectAlbumsResult {
+  final String id;
+  final String name;
+  final String classification;
+  final String? coverPhotoId;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  SelectAlbumsResult({
+    required this.id,
+    required this.name,
+    required this.classification,
+    this.coverPhotoId,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+}
+
+typedef SelectAlbums$order = OrderBy Function(TAlbum t_album);
 
 class SelectPasswordsResult {
   final String id;

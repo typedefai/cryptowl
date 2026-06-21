@@ -1,0 +1,44 @@
+import 'common.drift';
+import 'encrypted_data.drift';
+
+CREATE TABLE t_album (
+    id CHAR(36) NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    classification CHAR(1) NOT NULL CHECK (classification IN ('C', 'S', 'T')),
+    cover_photo_id CHAR(36),
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at DATETIME DEFAULT NULL
+);
+
+CREATE TABLE t_photo (
+    id CHAR(36) NOT NULL PRIMARY KEY,
+    album_id CHAR(36),
+    filename TEXT NOT NULL,
+    original_name TEXT,
+    mime_type TEXT,
+    file_size INTEGER,
+    width INTEGER,
+    height INTEGER,
+    classification CHAR(1) NOT NULL CHECK (classification IN ('C', 'S', 'T')),
+    thumbnail_filename TEXT,
+    encrypted_dek_id CHAR(36),
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at DATETIME DEFAULT NULL,
+    FOREIGN KEY (album_id) REFERENCES t_album(id),
+    FOREIGN KEY (encrypted_dek_id) REFERENCES t_data_encrypt_key(id)
+);
+
+selectPhotos:
+    SELECT id, album_id, filename, original_name, mime_type, file_size,
+           width, height, classification, thumbnail_filename, created_at, updated_at
+    FROM t_photo
+    WHERE deleted_at IS NULL
+    ORDER BY $order;
+
+selectAlbums:
+    SELECT id, name, classification, cover_photo_id, created_at, updated_at
+    FROM t_album
+    WHERE deleted_at IS NULL
+    ORDER BY $order;

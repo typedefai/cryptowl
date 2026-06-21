@@ -84,14 +84,19 @@ class _FakeLogger_8 extends _i1.SmartFake implements _i9.Logger {
     : super(parent, parentInvocation);
 }
 
-class _FakeCryptoHmac_9 extends _i1.SmartFake implements _i10.CryptoHmac {
-  _FakeCryptoHmac_9(Object parent, Invocation parentInvocation)
+class _FakeSecureStore_9 extends _i1.SmartFake implements _i6.SecureStore {
+  _FakeSecureStore_9(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeVersionService_10 extends _i1.SmartFake
+class _FakeCryptoHmac_10 extends _i1.SmartFake implements _i10.CryptoHmac {
+  _FakeCryptoHmac_10(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeVersionService_11 extends _i1.SmartFake
     implements _i11.VersionService {
-  _FakeVersionService_10(Object parent, Invocation parentInvocation)
+  _FakeVersionService_11(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
@@ -523,11 +528,26 @@ class MockConfigService extends _i1.Mock implements _i6.ConfigService {
           as _i9.Logger);
 
   @override
+  _i6.SecureStore get secureStore =>
+      (super.noSuchMethod(
+            Invocation.getter(#secureStore),
+            returnValue: _FakeSecureStore_9(
+              this,
+              Invocation.getter(#secureStore),
+            ),
+            returnValueForMissingStub: _FakeSecureStore_9(
+              this,
+              Invocation.getter(#secureStore),
+            ),
+          )
+          as _i6.SecureStore);
+
+  @override
   _i10.CryptoHmac get hmac =>
       (super.noSuchMethod(
             Invocation.getter(#hmac),
-            returnValue: _FakeCryptoHmac_9(this, Invocation.getter(#hmac)),
-            returnValueForMissingStub: _FakeCryptoHmac_9(
+            returnValue: _FakeCryptoHmac_10(this, Invocation.getter(#hmac)),
+            returnValueForMissingStub: _FakeCryptoHmac_10(
               this,
               Invocation.getter(#hmac),
             ),
@@ -538,16 +558,22 @@ class MockConfigService extends _i1.Mock implements _i6.ConfigService {
   _i11.VersionService get versionService =>
       (super.noSuchMethod(
             Invocation.getter(#versionService),
-            returnValue: _FakeVersionService_10(
+            returnValue: _FakeVersionService_11(
               this,
               Invocation.getter(#versionService),
             ),
-            returnValueForMissingStub: _FakeVersionService_10(
+            returnValueForMissingStub: _FakeVersionService_11(
               this,
               Invocation.getter(#versionService),
             ),
           )
           as _i11.VersionService);
+
+  @override
+  set secureStore(_i6.SecureStore? _secureStore) => super.noSuchMethod(
+    Invocation.setter(#secureStore, _secureStore),
+    returnValueForMissingStub: null,
+  );
 
   @override
   _i13.Future<_i8.AppConfig> loadConfig(String? content) =>

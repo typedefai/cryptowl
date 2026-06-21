@@ -1,5 +1,6 @@
 import 'package:cryptowl/src/pages/note_detail_page.dart';
 import 'package:cryptowl/src/pages/note_edit_page.dart';
+import 'package:cryptowl/src/pages/photo_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -104,6 +105,20 @@ final routerProvider = Provider<GoRouter>((ref) {
             pageBuilder: (BuildContext context, GoRouterState state) {
               return const NoTransitionPage<void>(child: PhotosPage());
             },
+            routes: <RouteBase>[
+              GoRoute(
+                name: PhotoDetailPage.name,
+                path: PhotoDetailPage.path,
+                parentNavigatorKey: photosNavigatorKey,
+                pageBuilder: (BuildContext context, GoRouterState state) =>
+                    NoTransitionPage(
+                  child: AppScaffold(
+                    body: PhotosPage(),
+                    secondaryBody: PhotoDetailPage(),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

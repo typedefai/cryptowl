@@ -85,4 +85,13 @@ class NoteRepository extends SqlcipherRepository {
 
     return Note.fromEntity(item);
   }
+
+  Future<void> delete(String id) async {
+    final db = await requireDb();
+    await (db.tNote.update()..where((r) => r.id.equals(id))).write(
+      TNoteCompanion(
+        deletedAt: Value(DateTime.now()),
+      ),
+    );
+  }
 }

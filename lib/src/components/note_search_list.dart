@@ -75,7 +75,7 @@ class NoteSearchList extends ConsumerWidget {
           : RefreshIndicator(
               child: _buildList(context, items),
               onRefresh: () async {
-                ref.invalidate(notesProvider);
+                ref.invalidate(noteSearchProvider(keyword));
               }),
     );
   }

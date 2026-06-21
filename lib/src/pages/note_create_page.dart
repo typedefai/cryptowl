@@ -1,7 +1,9 @@
 import 'dart:convert';
 
+import 'package:cryptowl/src/common/classification.dart';
 import 'package:cryptowl/src/components/fleather_rich_editor.dart';
 import 'package:cryptowl/src/providers/notes.dart';
+import 'package:cryptowl/src/providers/providers.dart';
 import 'package:cryptowl/src/providers/repositories.dart';
 import 'package:fleather/fleather.dart';
 import 'package:flutter/material.dart';
@@ -19,11 +21,23 @@ class NoteCreatePage extends HookConsumerWidget {
   static const String path = '/create';
   static const String name = 'Note create';
 
+  String _classificationLabel(Classification c) {
+    switch (c) {
+      case Classification.confidential:
+        return 'Confidential — searchable, readable after login';
+      case Classification.secret:
+        return 'Secret — encrypted, requires auth to view';
+      case Classification.topSecret:
+        return 'Top Secret — encrypted, requires secondary password';
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final doc = ParchmentDocument();
     final controller = FleatherController(document: doc);
     final focusNode = useFocusNode();
+    final classification = useState(Classification.confidential);
 
     return Scaffold(
         appBar: AppBar(
@@ -31,11 +45,60 @@ class NoteCreatePage extends HookConsumerWidget {
           title: Text(AppLocalizations.of(context)!.createNote),
           leading: CustomLeading(),
           actions: [
+            PopupMenuButton<Classification>(
+              icon: Icon(
+                classification.value == Classification.confidential
+                    ? Icons.lock_open
+                    : classification.value == Classification.secret
+                        ? Icons.lock
+                        : Icons.shield,
+                color: classification.value == Classification.confidential
+                    ? Colors.green
+                    : classification.value == Classification.secret
+                        ? Colors.orange
+                        : Colors.red,
+              ),
+              tooltip: 'Encryption level',
+              onSelected: (value) => classification.value = value,
+              itemBuilder: (context) => Classification.values
+                  .map((c) => PopupMenuItem(
+                        value: c,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(c.name),
+                            Text(
+                              _classificationLabel(c),
+                              style: const TextStyle(
+                                  fontSize: 11, color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      ))
+                  .toList(),
+            ),
             IconButton(
               onPressed: () async {
+                final session = ref.read(asyncLoginProvider).valueOrNull;
+                if (classification.value == Classification.topSecret &&
+                    session != null &&
+                    !session.hasSecondaryKey) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                            'Unlock Top Secret first from the passwords page.'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                  return;
+                }
+
                 await ref.read(noteServiceProvider).createNote(
                     jsonEncode(controller.document.toDelta().toJson()),
-                    controller.document.toPlainText());
+                    controller.document.toPlainText(),
+                    classification: classification.value);
                 ref.invalidate(notesProvider);
                 if (context.mounted) {
                   context.pop();

@@ -9,11 +9,12 @@ class NoteService {
 
   NoteService(this.repository);
 
-  Future<Note> createNote(String delta, String plainText) async {
+  Future<Note> createNote(String delta, String plainText,
+      {Classification classification = Classification.confidential}) async {
     final now = DateTime.now();
     final item = Note(
       id: RandomUtil.generateUUID(),
-      classification: Classification.confidential,
+      classification: classification,
       contentPlain: plainText,
       contentJson: delta,
       createdAt: now,
@@ -24,5 +25,24 @@ class NoteService {
 
   Future<Note> updateNote(String id, String delta, String plainText) async {
     return repository.update(id, contentJson: delta, plainText: plainText);
+  }
+
+  Future<void> deleteNote(String id) async {
+    return repository.delete(id);
+  }
+
+  Future<Note> duplicateNote(String id) async {
+    final original = await repository.findById(id);
+    final now = DateTime.now();
+    final item = Note(
+      id: RandomUtil.generateUUID(),
+      title: original.title != null ? '${original.title} (copy)' : null,
+      classification: original.classification,
+      contentPlain: original.contentPlain,
+      contentJson: original.contentJson,
+      createdAt: now,
+      updatedAt: now,
+    );
+    return repository.insert(item);
   }
 }

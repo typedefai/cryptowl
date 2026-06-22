@@ -94,6 +94,13 @@ class _PasswordDetailPageState extends ConsumerState<PasswordDetailPage> {
     final id = GoRouterState.of(context).pathParameters["id"]!;
     final detailFuture = ref.watch(passwordDetailProvider(id));
 
+    // Listen for provider updates and rebuild when fresh data arrives
+    ref.listen(passwordDetailProvider(id), (prev, next) {
+      if (prev != next && mounted) {
+        setState(() {});
+      }
+    });
+
     final passwordRepository = ref.read(passwordRepositoryProvider);
     return Scaffold(
       appBar: AppBar(
@@ -108,9 +115,6 @@ class _PasswordDetailPageState extends ConsumerState<PasswordDetailPage> {
                 if (result == true && context.mounted) {
                   ref.invalidate(passwordDetailProvider(id));
                   ref.invalidate(passwordsProvider);
-                  // Force a second rebuild after the async re-fetch completes
-                  await Future.microtask(() {});
-                  if (mounted) setState(() {});
                 }
               },
               icon: Icon(Icons.edit_note)),

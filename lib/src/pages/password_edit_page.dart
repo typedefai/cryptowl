@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:cryptowl/src/components/password_field.dart';
 import 'package:flutter/material.dart';
@@ -53,7 +54,7 @@ class _PasswordEditPageState extends ConsumerState<PasswordEditPage> {
   Widget build(BuildContext context) {
     final id = GoRouterState.of(context).pathParameters["id"]!;
     final detailFuture = ref.watch(passwordDetailProvider(id));
-    final passwordRepository = ref.read(passwordRepositoryProvider);
+    final passwordService = ref.read(passwordServiceProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -62,13 +63,22 @@ class _PasswordEditPageState extends ConsumerState<PasswordEditPage> {
           TextButton(
               onPressed: () async {
                 if (_formKey.currentState!.validate()) {
-                  await passwordRepository.update(id,
-                      title: _titleController.text,
-                      value:
-                          ProtectedValue.fromString(_passwordController.text),
-                      username: _usernameController.text,
-                      url: _uriController.text,
-                      remark: _remarkController.text);
+                  final session = ref.read(asyncLoginProvider).valueOrNull;
+                  if (session == null) return;
+
+                  final kek = ProtectedValue.fromBinary(
+                      Uint8List.sublistView(
+                          session.symmetricKey.binaryValue, 0, 32));
+
+                  await passwordService.updatePassword(
+                    id,
+                    _titleController.text,
+                    ProtectedValue.fromString(_passwordController.text),
+                    _usernameController.text,
+                    _remarkController.text,
+                    kek,
+                    topSecretKek: session.secondaryKey,
+                  );
                   ref.invalidate(passwordsProvider);
                   ref.invalidate(passwordDetailProvider(id));
                   if (context.mounted) {

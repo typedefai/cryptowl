@@ -193,4 +193,68 @@ class PasswordService {
     return Password.fromEntity(passwordEntity, attributes,
         decryptedValue: decryptedValue);
   }
+
+  Future<void> updatePassword(String id, String title, ProtectedValue newValue,
+      String username, String remark, ProtectedValue kek,
+      {ProtectedValue? topSecretKek}) async {
+    final passwordEntity = await passwordRepository.findPasswordById(id);
+    final classification = Classification.parse(passwordEntity.classification);
+    final now = DateTime.now();
+
+    // Update title and attributes (always Confidential)
+    await passwordRepository.update(id,
+        title: title,
+        value: newValue,
+        username: username,
+        url: '',
+        remark: remark);
+
+    if (classification == Classification.confidential) {
+      // Password value already updated as plaintext attribute in repository
+      return;
+    }
+
+    // Secret/Top Secret: re-encrypt the password value with the existing DEK
+    final isTopSecret = classification == Classification.topSecret;
+    final activeKek = isTopSecret ? topSecretKek : kek;
+    if (activeKek == null) {
+      throw Exception('KEK not available for encryption');
+    }
+
+    final crypto = isTopSecret ? xchacha20 : aesGcm;
+
+    // Get the existing encrypted data and DEK
+    final encryptedData = await passwordRepository
+        .findEncryptedData(passwordEntity.encryptedDataId);
+    final dekEntity =
+        await passwordRepository.findDataEncryptKey(encryptedData.dekId);
+
+    // Decrypt the DEK
+    final dekCipherData = CrockfordBase32.decode(dekEntity.data);
+    final dekNonceData = CrockfordBase32.decode(dekEntity.nonce);
+    final dekAuthTag = CrockfordBase32.decode(dekEntity.authTag);
+    final decryptedDek = await aesGcm.decrypt(
+        AuthEncryptedResult(
+            dekCipherData.binaryValue, dekAuthTag.binaryValue),
+        activeKek,
+        dekNonceData.binaryValue,
+        utf8.encode(dekEntity.id));
+
+    // Re-encrypt the new password value with the DEK
+    final dataNonce =
+        await kdfService.generateRandomBytes(length: crypto.type.nonceSize);
+    final encryptedValue = await crypto.encrypt(newValue, decryptedDek,
+        dataNonce.binaryValue, utf8.encode(encryptedData.id));
+
+    // Update the encrypted data in the database
+    final db = await passwordRepository.requireDb();
+    await (db.tEncryptedData.update()
+          ..where((r) => r.id.equals(encryptedData.id)))
+        .write(TEncryptedDataCompanion(
+      content: Value(encryptedValue.cipherData),
+      authTag: Value(CrockfordBase32.encode(encryptedValue.authTag)),
+      nonce: Value(CrockfordBase32.encode(dataNonce.binaryValue)),
+      updatedAt: Value(now),
+    ));
+  }
 }

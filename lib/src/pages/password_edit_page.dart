@@ -79,10 +79,9 @@ class _PasswordEditPageState extends ConsumerState<PasswordEditPage> {
                     kek,
                     topSecretKek: session.secondaryKey,
                   );
-                  ref.invalidate(passwordsProvider);
-                  ref.invalidate(passwordDetailProvider(id));
+                  // Return true to signal the detail page to refresh
                   if (context.mounted) {
-                    context.pop();
+                    context.pop(true);
                   }
                 }
               },

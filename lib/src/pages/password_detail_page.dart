@@ -94,11 +94,16 @@ class PasswordDetailPage extends ConsumerWidget {
         title: Text('Password detail'),
         actions: [
           IconButton(
-              onPressed: () {
-                context.pushNamed(
+              onPressed: () async {
+                final result = await context.pushNamed<bool>(
                   PasswordEditPage.name,
                   pathParameters: <String, String>{'id': id},
                 );
+                if (result == true && context.mounted) {
+                  // Edit page returned true — force refresh
+                  ref.invalidate(passwordDetailProvider(id));
+                  ref.invalidate(passwordsProvider);
+                }
               },
               icon: Icon(Icons.edit_note)),
           IconButton(

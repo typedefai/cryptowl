@@ -27,7 +27,7 @@ final passwordsProvider =
 });
 
 final passwordDetailProvider =
-    FutureProvider.autoDispose.family<Password, String>((ref, id) async {
+    FutureProvider.family<Password, String>((ref, id) async {
   _logger.fine("Fetching password detail for $id");
   final session = ref.watch(asyncLoginProvider).valueOrNull;
   if (session == null) {

@@ -70,6 +70,7 @@ class _PasswordEditPageState extends ConsumerState<PasswordEditPage> {
                       Uint8List.sublistView(
                           session.symmetricKey.binaryValue, 0, 32));
 
+                  print("[Edit] Saving password $id...");
                   await passwordService.updatePassword(
                     id,
                     _titleController.text,
@@ -79,6 +80,7 @@ class _PasswordEditPageState extends ConsumerState<PasswordEditPage> {
                     kek,
                     topSecretKek: session.secondaryKey,
                   );
+                  print("[Edit] Password saved, popping with true");
                   // Return true to signal the detail page to refresh
                   if (context.mounted) {
                     context.pop(true);

@@ -87,6 +87,7 @@ class PasswordDetailPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final id = GoRouterState.of(context).pathParameters["id"]!;
     final detailFuture = ref.watch(passwordDetailProvider(id));
+    print("[Detail] build() called for $id, state: ${detailFuture.runtimeType}");
 
     final passwordRepository = ref.read(passwordRepositoryProvider);
     return Scaffold(
@@ -95,14 +96,19 @@ class PasswordDetailPage extends ConsumerWidget {
         actions: [
           IconButton(
               onPressed: () async {
+                print("[Detail] Navigating to edit page for $id");
                 final result = await context.pushNamed<bool>(
                   PasswordEditPage.name,
                   pathParameters: <String, String>{'id': id},
                 );
+                print("[Detail] Edit page returned: $result");
                 if (result == true && context.mounted) {
-                  // Edit page returned true — force refresh
+                  print("[Detail] Invalidating providers for $id");
                   ref.invalidate(passwordDetailProvider(id));
                   ref.invalidate(passwordsProvider);
+                  // Force immediate re-read
+                  final _ = ref.read(passwordDetailProvider(id));
+                  print("[Detail] Provider invalidated and re-read triggered");
                 }
               },
               icon: Icon(Icons.edit_note)),

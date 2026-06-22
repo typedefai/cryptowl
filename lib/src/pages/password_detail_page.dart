@@ -14,11 +14,17 @@ import '../providers/providers.dart';
 
 final DateFormat formatter = DateFormat('yyyy-MM-dd');
 
-class PasswordDetailPage extends ConsumerWidget {
+class PasswordDetailPage extends ConsumerStatefulWidget {
   const PasswordDetailPage({super.key});
 
   static const String path = '/detail/:id';
   static const String name = 'Password Detail';
+
+  @override
+  ConsumerState<PasswordDetailPage> createState() => _PasswordDetailPageState();
+}
+
+class _PasswordDetailPageState extends ConsumerState<PasswordDetailPage> {
 
   Future<bool?> _confirmDeletion(BuildContext context) async {
     return showDialog<bool>(
@@ -84,10 +90,9 @@ class PasswordDetailPage extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final id = GoRouterState.of(context).pathParameters["id"]!;
     final detailFuture = ref.watch(passwordDetailProvider(id));
-    print("[Detail] build() called for $id, state: ${detailFuture.runtimeType}");
 
     final passwordRepository = ref.read(passwordRepositoryProvider);
     return Scaffold(
@@ -96,19 +101,16 @@ class PasswordDetailPage extends ConsumerWidget {
         actions: [
           IconButton(
               onPressed: () async {
-                print("[Detail] Navigating to edit page for $id");
                 final result = await context.pushNamed<bool>(
                   PasswordEditPage.name,
                   pathParameters: <String, String>{'id': id},
                 );
-                print("[Detail] Edit page returned: $result");
                 if (result == true && context.mounted) {
-                  print("[Detail] Invalidating providers for $id");
                   ref.invalidate(passwordDetailProvider(id));
                   ref.invalidate(passwordsProvider);
-                  // Force immediate re-read
-                  final _ = ref.read(passwordDetailProvider(id));
-                  print("[Detail] Provider invalidated and re-read triggered");
+                  // Force a second rebuild after the async re-fetch completes
+                  await Future.microtask(() {});
+                  if (mounted) setState(() {});
                 }
               },
               icon: Icon(Icons.edit_note)),

@@ -28,18 +28,15 @@ final passwordsProvider =
 
 final passwordDetailProvider =
     FutureProvider.family<Password, String>((ref, id) async {
-  _logger.info("[Provider] passwordDetailProvider called for $id");
+  _logger.fine("Fetching password detail for $id");
   final session = ref.watch(asyncLoginProvider).valueOrNull;
   if (session == null) {
     throw Exception("Not logged in");
   }
   final kek = ProtectedValue.fromBinary(
       Uint8List.sublistView(session.symmetricKey.binaryValue, 0, 32));
-  _logger.info("[Provider] Fetching password detail from service for $id");
-  final result = await ref.read(passwordServiceProvider).getPasswordDetail(id, kek,
+  return ref.read(passwordServiceProvider).getPasswordDetail(id, kek,
       topSecretKek: session.secondaryKey);
-  _logger.info("[Provider] Got password detail for $id: title=${result.title}, value length=${result.value.binaryValue.length}");
-  return result;
 });
 
 enum PasswordFilter { topSecret, secret, confidential, deleted }

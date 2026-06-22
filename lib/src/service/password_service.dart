@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:cryptowl/src/common/classification.dart';
 import 'package:cryptowl/src/crypto/aead_crypto.dart';
+import 'package:logging/logging.dart';
 import 'package:cryptowl/src/crypto/crockford_base32.dart';
 import 'package:cryptowl/src/crypto/protected_value.dart';
 import 'package:cryptowl/src/database/database.dart';
@@ -14,6 +15,7 @@ import 'package:drift/drift.dart';
 const DEFAULT = 0;
 
 class PasswordService {
+  final logger = Logger('PasswordService');
   final KdfService kdfService;
   final PasswordRepository passwordRepository;
   final aesGcm = CryptographyAesGcm();
@@ -167,6 +169,11 @@ class PasswordService {
       final dekEntity =
           await passwordRepository.findDataEncryptKey(encryptedData.dekId);
 
+      logger.info("Decrypting password $id: "
+          "encryptedDataId=${passwordEntity.encryptedDataId}, "
+          "dekId=${encryptedData.dekId}, "
+          "content length=${encryptedData.content.length}");
+
       // Decrypt the DEK
       final dekCipherData = CrockfordBase32.decode(dekEntity.data);
       final dekNonce = CrockfordBase32.decode(dekEntity.nonce);
@@ -178,7 +185,6 @@ class PasswordService {
           utf8.encode(dekEntity.id));
 
       // Decrypt the password value
-      final algorithmType = AlgorithmType.parse(encryptedData.algorithmId);
       final contentNonce = CrockfordBase32.decode(encryptedData.nonce);
       final contentAuthTag = CrockfordBase32.decode(encryptedData.authTag);
       final crypto = isTopSecret ? xchacha20 : aesGcm;
@@ -188,6 +194,10 @@ class PasswordService {
           decryptedDek,
           contentNonce.binaryValue,
           utf8.encode(encryptedData.id));
+
+      logger.info("Decrypted password value: "
+          "length=${decryptedValue.binaryValue.length}, "
+          "text=${utf8.decode(decryptedValue.binaryValue, allowMalformed: true)}");
     }
 
     return Password.fromEntity(passwordEntity, attributes,
@@ -246,6 +256,10 @@ class PasswordService {
     final encryptedValue = await crypto.encrypt(newValue, decryptedDek,
         dataNonce.binaryValue, utf8.encode(encryptedData.id));
 
+    logger.info("Updating encrypted data ${encryptedData.id}: "
+        "old content length=${encryptedData.content.length}, "
+        "new content length=${encryptedValue.cipherData.length}");
+
     // Update the encrypted data in the database
     final db = await passwordRepository.requireDb();
     await (db.tEncryptedData.update()
@@ -256,5 +270,12 @@ class PasswordService {
       nonce: Value(CrockfordBase32.encode(dataNonce.binaryValue)),
       updatedAt: Value(now),
     ));
+
+    // Verify the update
+    final verifyData = await passwordRepository
+        .findEncryptedData(encryptedData.id);
+    logger.info("Verified encrypted data ${verifyData.id}: "
+        "content length=${verifyData.content.length}, "
+        "content matches=${verifyData.content.length == encryptedValue.cipherData.length}");
   }
 }

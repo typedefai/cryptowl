@@ -227,6 +227,17 @@ Android vault ──copy──▶ local `vaultlib/` (opens with the master passw
                           copy back ──▶ Android
 ```
 
+The "copy back" step is the in-app **Restore from backup** flow
+(`vault/VaultBackup.kt`, `RestoreScreen.kt`): the user copies the vault
+folder (vault.meta, vault.db, config.json, config.sig, device_secret,
+`attachments/`, `thumbnails/`) to the device (adb push / file manager),
+picks it with a SAF folder picker, the app copies it into
+`<filesDir>/vaults/<id>` (staging dir → validate → atomic swap), and the
+Unlock screen then opens it — the first unlock re-binds a desktop
+`device_secret` to the Android Keystore. "Back up vault" on the Home
+screen is the inverse direction (a timestamped subdirectory of a picked
+tree).
+
 `migrate_moments.py` (`wechat_sns_export/`) is the reference implementation
 of this feature — it is byte-exact with the design and doubles as the
 cross-verification oracle for the Android implementation (`vaultlib/` holds
@@ -274,12 +285,22 @@ Result on this machine: 2418 moments, 1040 cards, 2780 media, 7497 comments,
 
 ## 8. Next Steps
 
-1. Room entities + DAOs (`Moment`, `MomentMedia`, `MomentComment`, ...) and a
-   schema version bump in `VaultDatabase` (schema export → `1.json`), with a
-   migration matching the schema created by the desktop tool.
-2. Android first-open import flow: accept a desktop-created vault, re-bind
-   `vault_key:smk` to the Android Keystore Device Secret, delete
-   `device_secret` (see `wechat_sns_export/vaultlib`).
+Done (implementation status):
+
+2. Android first-open import flow — **done**: "Restore from backup" (SAF,
+   `vault/VaultBackup.kt`) + `UnlockService` re-bind (`vault_key:smk`
+   re-wrapped with the Android Keystore Device Secret, `device_secret`
+   deleted, `config.sig` + `vault.meta` mac re-signed).
 3. Moments timeline UI (Compose, WeChat-album layout like the reference
-   frontend in `wechat_sns_export/frontend`).
-5. AI friend: `t_friend` CRUD + share sheet; later, local-model viewing.
+   frontend in `wechat_sns_export/frontend`) — **done**: paged timeline
+   (50 posts per page, children fetched in batched `IN` queries — an
+   imported archive is thousands of posts), decrypted-thumbnail LruCache,
+   full-screen image viewer on tap.
+
+Remaining:
+
+1. AI friend: `t_friend` CRUD + share sheet; later, local-model viewing.
+2. Video playback (CWO1 chunked random access via `decryptChunkAt` → local
+   temp file → player), audio items.
+3. Moment writes (create post with photos, comment, like), friend shares
+   (§5 redacted projection).

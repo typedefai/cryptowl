@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.ksp)
     alias(libs.plugins.kotlin.compose)
 }
 
@@ -48,8 +47,10 @@ android {
         compose = true
         buildConfig = true
     }
-    ksp {
-        arg("room.schemaLocation", "$projectDir/schemas")
+    testOptions {
+        // JVM tests touch android.util.Log / SystemClock in the KDF service;
+        // return defaults instead of the "not mocked" RuntimeException.
+        unitTests.isReturnDefaultValues = true
     }
 }
 
@@ -58,14 +59,13 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.core.splashscreen)
     implementation(libs.material)
-    implementation(libs.androidx.room.runtime)
-    ksp(libs.androidx.room.compiler)
     implementation(libs.sqlcipher.android)
     implementation(libs.androidx.sqlite)
     implementation(libs.androidx.biometric)
     implementation(libs.androidx.exifinterface)
     implementation(libs.litertlm.android)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))

@@ -43,7 +43,7 @@
     <string name="moments_lock">Lock vault</string>
     <string name="moments_chat">AI chat</string>
     <string name="moments_empty">No moments yet</string>
-    <string name="moments_empty_hint">Import your WeChat Moments archive on the desktop (wechat_sns_export/migrate_moments.py), then copy the vault back to this device.</string>
+    <string name="moments_empty_hint">Import your WeChat Moments archive with the desktop tool (wechat_sns_export/migrate_moments.py), copy the vault folder to this device, then use "Restore from backup" to load it.</string>
     <string name="moments_unknown_author">Unknown</string>
 
     <!-- Chat -->
@@ -80,6 +80,23 @@
     <string name="chat_pick_image">Pick an image from album</string>
     <string name="chat_stop">Stop</string>
     <string name="chat_send">Send</string>
+
+    <!-- Restore / backup (SAF) -->
+    <string name="restore_intro">Restore from backup</string>
+    <string name="restore_title">Restore a vault</string>
+    <string name="restore_desc">Pick the vault folder you copied to this device (containing vault.meta, vault.db and the attachments/ and thumbnails/ folders). The current vault, if any, will be replaced.</string>
+    <string name="restore_pick_folder">Choose vault folder</string>
+    <string name="restore_listing">Reading folder…</string>
+    <string name="restore_progress">%1$s / %2$s copied</string>
+    <string name="restore_back">Back</string>
+    <string name="home_backup">Back up vault</string>
+    <string name="home_restore">Restore from backup</string>
+    <string name="error_restore_failed">Restore failed</string>
+    <string name="error_backup_failed">Backup failed</string>
+
+    <!-- Moments media viewer -->
+    <string name="viewer_close">Close</string>
+    <string name="viewer_video_unsupported">Video playback is not supported yet</string>
 
     <!-- Errors -->
     <string name="error_create_vault_failed">Failed to create the vault</string>

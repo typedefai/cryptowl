@@ -82,11 +82,15 @@ class MainActivity : AppCompatActivity() {
                 when {
                     showSplash -> SplashScreenLogo()
                     screen == AppScreen.Loading -> Unit
-                    screen == AppScreen.Intro -> IntroScreen(onStart = viewModel::startOnboarding)
+                    screen == AppScreen.Intro -> IntroScreen(
+                        onStart = viewModel::startOnboarding,
+                        onRestore = viewModel::openRestore,
+                    )
                     screen == AppScreen.PasswordSetup -> MasterPasswordScreen(viewModel)
                     screen == AppScreen.BiometricSetup -> BiometricSetupScreen(viewModel)
                     screen == AppScreen.Home -> VaultHomeScreen(viewModel)
                     screen == AppScreen.Unlock -> UnlockScreen(viewModel)
+                    screen == AppScreen.Restore -> RestoreScreen(viewModel)
                     screen == AppScreen.Moments -> MomentsScreen(viewModel)
                     screen == AppScreen.Chat ->
                         ChatScreen(

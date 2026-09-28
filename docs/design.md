@@ -216,6 +216,12 @@ implementation).
   on Android, the app derives the desktop SMK from the file + master
   password, re-wraps `vault_key:smk` with the Android SMK (Keystore Device
   Secret), and deletes the file — after that the vault is device-bound again.
+  Because SMK depends on the Device Secret (`P = HMAC(DeviceSecret, password)`),
+  re-binding also changes the MAC Key (`SMK[32:64]`): **both `config.sig` and
+  `vault.meta` mac must be re-signed with the new MAC Key as part of the
+  re-bind** (`UnlockService.rebindVaultKey`). A re-bind that skips the
+  re-sign leaves a vault that unlocks exactly once, then fails
+  `config.sig mismatch` on every subsequent open.
 
 ## Backup / Export Format (.vbp)
 

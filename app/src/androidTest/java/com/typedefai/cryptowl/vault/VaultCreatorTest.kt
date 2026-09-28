@@ -58,8 +58,10 @@ class VaultCreatorTest {
             aad = "vault_key:smk".toByteArray(),
         )
         System.loadLibrary("sqlcipher")
-        vaultKey.use { key ->
-            val db = SQLiteDatabase.openOrCreateDatabase(VaultStore.dbFile(context, vaultId), key, null, null)
+        vaultKey.use { _ ->
+            val db = SQLiteDatabase.openOrCreateDatabase(
+                VaultStore.dbFile(context, vaultId), vaultKey.asSqlCipherRawKey(), null, null,
+            )
             try {
                 val tables = mutableListOf<String>()
                 db.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null).use { cursor ->
@@ -74,12 +76,12 @@ class VaultCreatorTest {
             }
         }
 
-        // onboarding markers
-        assertTrue(VaultStore.isOnboarded(context))
+        // onboarding markers (the created vault, not the default one)
+        assertTrue(VaultStore.isOnboarded(context, vaultId))
         assertEquals(vaultId, VaultStore.primaryVaultId(context))
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test(expected = IllegalStateException::class)
     fun creatingTheSameVaultTwiceThrows() {
         VaultCreator(context).create(password, vaultId)
         VaultCreator(context).create(password, vaultId)

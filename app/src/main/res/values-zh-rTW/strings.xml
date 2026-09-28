@@ -43,7 +43,7 @@
     <string name="moments_lock">鎖定保險庫</string>
     <string name="moments_chat">AI 聊天</string>
     <string name="moments_empty">還沒有朋友圈內容</string>
-    <string name="moments_empty_hint">在桌面端匯入你的微信朋友圈封存檔（wechat_sns_export/migrate_moments.py），然後將保險庫複製回此裝置。</string>
+    <string name="moments_empty_hint">使用桌面端工具匯入你的微信朋友圈封存檔（wechat_sns_export/migrate_moments.py），把保險庫資料夾複製到本裝置，然後透過「從備份還原」載入。</string>
     <string name="moments_unknown_author">未知用戶</string>
 
     <!-- Chat -->
@@ -80,6 +80,23 @@
     <string name="chat_pick_image">從相簿選擇圖片</string>
     <string name="chat_stop">停止</string>
     <string name="chat_send">傳送</string>
+
+    <!-- 還原 / 備份（SAF） -->
+    <string name="restore_intro">從備份還原</string>
+    <string name="restore_title">還原保險庫</string>
+    <string name="restore_desc">選擇你複製到本裝置的保險庫資料夾（包含 vault.meta、vault.db 以及 attachments/ 和 thumbnails/ 目錄）。如果已有保險庫，將被取代。</string>
+    <string name="restore_pick_folder">選擇保險庫資料夾</string>
+    <string name="restore_listing">正在讀取資料夾…</string>
+    <string name="restore_progress">已複製 %1$s / %2$s</string>
+    <string name="restore_back">返回</string>
+    <string name="home_backup">備份保險庫</string>
+    <string name="home_restore">從備份還原</string>
+    <string name="error_restore_failed">還原失敗</string>
+    <string name="error_backup_failed">備份失敗</string>
+
+    <!-- 朋友圈媒體檢視器 -->
+    <string name="viewer_close">關閉</string>
+    <string name="viewer_video_unsupported">暫不支援影片播放</string>
 
     <!-- Errors -->
     <string name="error_create_vault_failed">建立保險庫失敗</string>

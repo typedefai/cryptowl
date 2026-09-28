@@ -3,6 +3,7 @@ package com.typedefai.cryptowl.vault
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import com.typedefai.cryptowl.crypto.ProtectedValue
 import java.io.File
 import java.util.zip.GZIPInputStream
@@ -35,17 +36,16 @@ class DesktopVaultIntegrationTest {
         context = ApplicationProvider.getApplicationContext()
         val vaultDir = VaultStore.vaultDir(context, vaultId)
         if (vaultDir.exists()) vaultDir.deleteRecursively()
-        vaultDir.parentFile?.mkdirs()
 
-        // extract the desktop-created fixture vault
-        val tar = context.assets.open("fixture_vault.tar")
+        // the fixture is laid out as <vaultId>/… — extract into the vaults root
+        val tar = InstrumentationRegistry.getInstrumentation().context.assets.open("fixture_vault.tar")
         val bytes = tar.readBytes()
         val tarBytes = if (bytes[0] == 0x1f.toByte()) {
             GZIPInputStream(bytes.inputStream()).use { it.readBytes() }
         } else {
             bytes
         }
-        extractTar(tarBytes, vaultDir)
+        extractTar(tarBytes, VaultStore.vaultsDir(context))
         assertTrue(VaultStore.metaFile(context, vaultId).exists())
         assertTrue(VaultStore.deviceSecretFile(context, vaultId).exists())
     }
@@ -92,8 +92,38 @@ class DesktopVaultIntegrationTest {
     }
 
     @Test
-    fun unlockRebindsDesktopVaultToAndroidKeystore() {
-        val session = UnlockService(context).unlock(password, vaultId)
+    fun timelinePagesCarryChildrenAndSingleMomentMatches() {
+        UnlockService(context).unlock(password, vaultId).use { session ->
+            val repo = MomentsRepository(session.db)
+
+            val first = repo.timelinePage(1)
+            assertEquals(1, first.posts.size)
+            assertTrue(first.hasMore)
+            val paged = mutableListOf(first.posts.single())
+            var offset = 1
+            while (true) {
+                val page = repo.timelinePage(1, offset)
+                paged += page.posts
+                if (!page.hasMore) break
+                offset += page.posts.size
+            }
+            assertEquals(2, paged.size)
+            val byTime = paged.sortedBy { it.sourceCreatedAt }
+            assertEquals("hello fixture", byTime[0].content)
+            assertEquals(1, byTime[0].likes.size)
+            assertEquals("nice", byTime[0].comments.single().content)
+            assertEquals("image", byTime[1].media.single().mediaType)
+
+            // single-moment read must match the paged read-model
+            val single = repo.moment(paged[0].id)
+            assertNotNull(single)
+            assertEquals(paged[0].copy(), single)
+            assertEquals(null, repo.moment("nonexistent"))
+        }
+    }
+
+    @Test
+    fun unlockRebindsDesktopVaultToAndroidKeystore() {        val session = UnlockService(context).unlock(password, vaultId)
         session.close()
 
         // the desktop secret file is gone — the vault is now device-bound

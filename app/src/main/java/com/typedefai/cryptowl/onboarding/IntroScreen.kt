@@ -64,7 +64,7 @@ private fun featureSlides(): List<FeatureSlide> = listOf(
  * feature slides with dots, Skip and Get Started.
  */
 @Composable
-fun IntroScreen(onStart: () -> Unit) {
+fun IntroScreen(onStart: () -> Unit, onRestore: () -> Unit) {
     val slides = featureSlides()
     val pagerState = rememberPagerState(pageCount = { slides.size })
     val scope = rememberCoroutineScope()
@@ -129,24 +129,25 @@ fun IntroScreen(onStart: () -> Unit) {
             }
         }
 
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
                 .padding(top = 24.dp)
                 .navigationBarsPadding()
                 .padding(bottom = 32.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            TextButton(onClick = onStart) { Text(stringResource(R.string.intro_skip)) }
-            Button(onClick = {
-                if (pagerState.currentPage < slides.lastIndex) {
-                    scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
-                } else {
-                    onStart()
-                }
-            }) {
+            Button(
+                onClick = {
+                    if (pagerState.currentPage < slides.lastIndex) {
+                        scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
+                    } else {
+                        onStart()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
                 Text(
                     if (pagerState.currentPage == slides.lastIndex) {
                         stringResource(R.string.intro_get_started)
@@ -155,6 +156,8 @@ fun IntroScreen(onStart: () -> Unit) {
                     },
                 )
             }
+            TextButton(onClick = onStart) { Text(stringResource(R.string.intro_skip)) }
+            TextButton(onClick = onRestore) { Text(stringResource(R.string.restore_intro)) }
         }
     }
 }

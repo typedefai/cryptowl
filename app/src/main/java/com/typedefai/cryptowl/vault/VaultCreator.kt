@@ -82,7 +82,12 @@ class VaultCreator(
                 t = KdfParams.OWASP.tCost,
                 p = KdfParams.OWASP.parallelism,
             ),
-            salts = VaultMeta.Salts(argon2 = argon2Salt, hkdf = hkdfSalt, secondary = secondarySalt),
+            // copies: the caller may re-derive from meta after the locals are wiped
+            salts = VaultMeta.Salts(
+                argon2 = argon2Salt.copyOf(),
+                hkdf = hkdfSalt.copyOf(),
+                secondary = secondarySalt.copyOf(),
+            ),
             wrappedKeys = listOf(VaultMeta.WrappedKeyEntry.fromWrappedKey(WRAPPED_VAULT_KEY_SMK, wrappedVaultKey)),
         )
         val macKey = kdf.macKey(smk)
@@ -157,8 +162,10 @@ class VaultCreator(
 
     private fun createDatabase(vaultKey: ProtectedValue, vaultId: String) {
         System.loadLibrary("sqlcipher")
-        vaultKey.use { key ->
-            val db = SQLiteDatabase.openOrCreateDatabase(VaultStore.dbFile(context, vaultId), key, null, null)
+        vaultKey.use { _ ->
+            val db = SQLiteDatabase.openOrCreateDatabase(
+                VaultStore.dbFile(context, vaultId), vaultKey.asSqlCipherRawKey(), null, null,
+            )
             try {
                 SchemaApplier.migrate(db, context)
             } finally {

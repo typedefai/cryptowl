@@ -157,9 +157,9 @@ class UnlockService(
 
     private fun openDatabase(vaultId: String, vaultKey: ProtectedValue): net.zetetic.database.sqlcipher.SQLiteDatabase {
         System.loadLibrary("sqlcipher")
-        return vaultKey.use { key ->
+        return vaultKey.use { _ ->
             val db = net.zetetic.database.sqlcipher.SQLiteDatabase.openOrCreateDatabase(
-                VaultStore.dbFile(context, vaultId), key, null, null,
+                VaultStore.dbFile(context, vaultId), vaultKey.asSqlCipherRawKey(), null, null,
             )
             try {
                 // Probe: a wrong key makes every statement fail with
@@ -196,13 +196,25 @@ class UnlockService(
             )
             val macBytes = kdf.macKey(smk).binaryValue()
             try {
+                // config.sig is keyed by SMK[32:64], which changes with the
+                // Device Secret — re-sign it for the Android binding or the
+                // next unlock could never verify it.
+                val configBytes = VaultStore.configFile(context, vaultId).readBytes()
+                val newSig = CrockfordBase32.encode(HmacSha256.mac(macBytes, configBytes))
+                configBytes.fill(0)
+                val sigFile = VaultStore.configSigFile(context, vaultId)
+                val tmpSig = File(sigFile.parentFile, "config.sig.tmp")
+                tmpSig.writeText(newSig)
+                if (!tmpSig.renameTo(sigFile)) {
+                    tmpSig.delete()
+                    throw VaultOpenException("failed to re-write config.sig")
+                }
                 val updatedWithMac = updated.copy(
                     mac = VaultMeta.Mac(
                         algorithm = "HMAC-SHA256",
                         value = VaultMetaJson.computeMac(updated, macBytes),
                     ),
                 )
-                macBytes.fill(0)
                 val metaFile = VaultStore.metaFile(context, vaultId)
                 val tmp = File(metaFile.parentFile, "vault.meta.tmp")
                 tmp.writeText(VaultMetaJson.encode(updatedWithMac))

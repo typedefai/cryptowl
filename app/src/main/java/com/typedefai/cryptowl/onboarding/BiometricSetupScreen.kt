@@ -38,14 +38,20 @@ import com.typedefai.cryptowl.MainViewModel
  * to vault.meta.
  */
 @Composable
-fun BiometricSetupScreen(viewModel: MainViewModel) {
+fun BiometricSetupScreen(viewModel: MainViewModel, onDone: () -> Unit) {
     val context = LocalContext.current
     val activity = LocalActivity.current as? FragmentActivity
     val ready by viewModel.biometricReady.collectAsState()
     val cipher by viewModel.biometricCipher.collectAsState()
     val error by viewModel.biometricError.collectAsState()
+    val created by viewModel.onboardingDone.collectAsState()
     val promptTitle = stringResource(R.string.biometric_prompt_title)
     val promptSubtitle = stringResource(R.string.biometric_prompt_subtitle)
+
+    // Enrollment finished (or was skipped): leave the onboarding graph.
+    LaunchedEffect(created) {
+        if (created) onDone()
+    }
 
     LaunchedEffect(ready, cipher) {
         if (ready && cipher != null && activity != null) {
@@ -101,7 +107,10 @@ fun BiometricSetupScreen(viewModel: MainViewModel) {
         }
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedButton(
-            onClick = { viewModel.skipBiometric() },
+            onClick = {
+                viewModel.skipBiometric()
+                onDone()
+            },
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(stringResource(R.string.biometric_skip))

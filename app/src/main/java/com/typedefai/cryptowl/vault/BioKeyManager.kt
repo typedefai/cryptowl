@@ -7,6 +7,7 @@ import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
+import javax.crypto.spec.GCMParameterSpec
 
 /**
  * BioKey: an Android Keystore AES-GCM key bound to biometric authentication
@@ -60,8 +61,21 @@ object BioKeyManager {
         return cipher
     }
 
+    /**
+     * Returns a DECRYPT-mode cipher initialized with the wrapped key's nonce
+     * (GCM IV). Must be authorized via BiometricPrompt before [Cipher.doFinal].
+     */
+    fun createDecryptCipher(nonce: ByteArray): Cipher {
+        val key = loadKey()
+        val cipher = Cipher.getInstance(GCM_TRANSFORMATION)
+        cipher.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(TAG_SIZE * 8, nonce))
+        return cipher
+    }
+
     private fun loadKey(): SecretKey {
         val keyStore = KeyStore.getInstance(KEYSTORE).apply { load(null) }
         return keyStore.getKey(KEY_ALIAS, null) as SecretKey
     }
+
+    private const val TAG_SIZE = 16
 }

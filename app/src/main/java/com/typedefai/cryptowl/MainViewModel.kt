@@ -25,17 +25,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-sealed interface AppScreen {
-    data object Loading : AppScreen
-    data object Intro : AppScreen
-    data object PasswordSetup : AppScreen
-    data object BiometricSetup : AppScreen
-    data object Home : AppScreen
-    data object Unlock : AppScreen
-    data object Restore : AppScreen
-    data object Moments : AppScreen
-    data object Chat : AppScreen
-}
+/**
+ * Top-level app state. Navigation shells key off this instead of individual
+ * screens: either onboarding is in progress, the vault is locked (full-screen
+ * lock, biometric auto-prompt), or a vault is unlocked and the main shell
+ * (bottom navigation) is shown.
+ */
+enum class AppState { ONBOARDING, LOCKED, UNLOCKED }
 
 class MainViewModel(app: Application) : AndroidViewModel(app) {
 
@@ -45,11 +41,19 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         const val MODEL_DIR = "model"
     }
 
-    private val _screen = MutableStateFlow<AppScreen>(AppScreen.Loading)
-    val screen: StateFlow<AppScreen> = _screen.asStateFlow()
+    private val _appState = MutableStateFlow(AppState.LOCKED)
+    val appState: StateFlow<AppState> = _appState.asStateFlow()
 
     private val _creatingVault = MutableStateFlow(false)
     val creatingVault: StateFlow<Boolean> = _creatingVault.asStateFlow()
+
+    /** Emits once each time vault creation succeeds (drives the setup wizard). */
+    private val _vaultCreated = MutableStateFlow(false)
+    val vaultCreated: StateFlow<Boolean> = _vaultCreated.asStateFlow()
+
+    /** Emits when the optional biometric step is finished or skipped. */
+    private val _onboardingDone = MutableStateFlow(false)
+    val onboardingDone: StateFlow<Boolean> = _onboardingDone.asStateFlow()
 
     private val _vaultError = MutableStateFlow<String?>(null)
     val vaultError: StateFlow<String?> = _vaultError.asStateFlow()
@@ -71,6 +75,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     private val _unlockError = MutableStateFlow<String?>(null)
     val unlockError: StateFlow<String?> = _unlockError.asStateFlow()
+
+    /** True when the vault carries a `vault_key:biokey` copy + Keystore BioKey. */
+    private val _biometricUnlockAvailable = MutableStateFlow(false)
+    val biometricUnlockAvailable: StateFlow<Boolean> = _biometricUnlockAvailable.asStateFlow()
+
+    /** A biometric unlock cipher waiting to be authorized by a prompt. */
+    private val _bioUnlockCipher = MutableStateFlow<Cipher?>(null)
+    val bioUnlockCipher: StateFlow<Cipher?> = _bioUnlockCipher.asStateFlow()
 
     private val masterPassword = AtomicReference<ProtectedValue?>(null)
     private val preparedBiometric = AtomicReference<BioKeySetup.Prepared?>(null)
@@ -98,8 +110,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         logStoragePaths()
-        val onboarded = VaultStore.isOnboarded(getApplication())
-        _screen.value = if (onboarded) AppScreen.Home else AppScreen.Intro
+        _appState.value = if (VaultStore.isOnboarded(getApplication())) AppState.LOCKED else AppState.ONBOARDING
+        refreshBiometricAvailability()
     }
 
     /** One-shot dump of every storage location the app touches (tag: cwl:Paths). */
@@ -128,8 +140,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         )
     }
 
+    // ------------------------------------------------------------ onboarding
+
     fun startOnboarding() {
-        _screen.value = AppScreen.PasswordSetup
+        _appState.value = AppState.ONBOARDING
     }
 
     fun createVault(password: ProtectedValue) {
@@ -143,7 +157,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 }
                 Log.d(TAG, "createVault: success")
                 masterPassword.set(password)
-                _screen.value = AppScreen.BiometricSetup
+                _vaultCreated.value = true
             } catch (e: Throwable) {
                 Log.e(TAG, "createVault failed", e)
                 _vaultError.value = e.message ?: getApplication<Application>().getString(R.string.error_create_vault_failed)
@@ -151,6 +165,16 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 _creatingVault.value = false
             }
         }
+    }
+
+    /** Called by the biometric-setup screen once the optional step is done. */
+    fun markVaultCreated() {
+        masterPassword.getAndSet(null)?.clear()
+        preparedBiometric.getAndSet(null)?.let { BioKeySetup(getApplication()).cancel(it) }
+        _biometricCipher.value = null
+        _biometricReady.value = false
+        _appState.value = AppState.LOCKED
+        refreshBiometricAvailability()
     }
 
     /** Prepares the biometric wrap (derives VaultKey, creates BioKey encrypt cipher). */
@@ -173,7 +197,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 preparedBiometric.getAndSet(prepared)?.let { BioKeySetup(getApplication()).cancel(it) }
                 _biometricCipher.value = prepared.cipher
                 _biometricReady.value = true
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 Log.e(TAG, "prepareBiometric failed", e)
                 _biometricError.value = e.message ?: getApplication<Application>().getString(R.string.error_biometric_setup_failed)
             }
@@ -188,8 +212,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 withContext(Dispatchers.IO) {
                     BioKeySetup(getApplication()).complete(prepared, cipher)
                 }
-                finishOnboarding()
-            } catch (e: Exception) {
+                _onboardingDone.value = true
+            } catch (e: Throwable) {
                 Log.e(TAG, "completeBiometric failed", e)
                 _biometricError.value = e.message ?: getApplication<Application>().getString(R.string.error_biometric_setup_failed)
             } finally {
@@ -207,22 +231,64 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         _biometricReady.value = false
     }
 
-    /** User chose to skip fingerprint setup entirely. */
+    /** User chose to skip the optional fingerprint setup. */
     fun skipBiometric() {
         cancelBiometricPrompt()
-        finishOnboarding()
-    }
-
-    private fun finishOnboarding() {
-        masterPassword.getAndSet(null)?.clear()
-        _screen.value = AppScreen.Home
+        _onboardingDone.value = true
     }
 
     // ------------------------------------------------------------ vault unlock
 
-    fun openVault() {
+    private fun refreshBiometricAvailability() {
+        viewModelScope.launch {
+            _biometricUnlockAvailable.value = withContext(Dispatchers.IO) {
+                runCatching { UnlockService(getApplication()).hasBiometricUnlock(vaultId) }.getOrDefault(false)
+            }
+        }
+    }
+
+    fun clearUnlockError() {
         _unlockError.value = null
-        _screen.value = AppScreen.Unlock
+    }
+
+    /** Prepares a biometric unlock cipher; the lock screen then shows a prompt. */
+    fun requestBiometricUnlock() {
+        _unlockError.value = null
+        viewModelScope.launch {
+            try {
+                val cipher = withContext(Dispatchers.IO) {
+                    UnlockService(getApplication()).prepareBiometricUnlock(vaultId)
+                }
+                _bioUnlockCipher.value = cipher
+            } catch (e: Throwable) {
+                Log.e(TAG, "requestBiometricUnlock failed", e)
+                _unlockError.value = e.message ?: getApplication<Application>().getString(R.string.error_unlock_failed)
+            }
+        }
+    }
+
+    fun cancelBiometricUnlock() {
+        _bioUnlockCipher.value = null
+    }
+
+    /** Opens the vault with a biometric-authorized cipher. */
+    fun unlockWithBiometric(cipher: Cipher) {
+        _unlocking.value = true
+        _unlockError.value = null
+        viewModelScope.launch {
+            try {
+                val session = withContext(Dispatchers.IO) {
+                    UnlockService(getApplication()).unlockWithBiometric(cipher, vaultId)
+                }
+                _bioUnlockCipher.value = null
+                openSession(session)
+            } catch (e: Throwable) {
+                Log.e(TAG, "unlockWithBiometric failed", e)
+                _unlockError.value = e.message ?: getApplication<Application>().getString(R.string.error_unlock_failed)
+            } finally {
+                _unlocking.value = false
+            }
+        }
     }
 
     fun unlockVault(password: ProtectedValue) {
@@ -233,10 +299,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 val session = withContext(Dispatchers.IO) {
                     UnlockService(getApplication()).unlock(password)
                 }
-                _session.value?.close()
-                _session.value = session
-                _screen.value = AppScreen.Moments
-            } catch (e: Exception) {
+                openSession(session)
+            } catch (e: Throwable) {
                 Log.e(TAG, "unlockVault failed", e)
                 _unlockError.value = e.message ?: getApplication<Application>().getString(R.string.error_unlock_failed)
             } finally {
@@ -245,10 +309,17 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    private fun openSession(session: VaultSession) {
+        _session.value?.close()
+        _session.value = session
+        _appState.value = AppState.UNLOCKED
+    }
+
     fun lockVault() {
         _session.value?.close()
         _session.value = null
-        _screen.value = AppScreen.Home
+        _unlockError.value = null
+        _appState.value = AppState.LOCKED
     }
 
     // --------------------------------------------------- restore / backup
@@ -256,26 +327,24 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun openRestore() {
         _restoreError.value = null
         _restoreProgress.value = null
-        _screen.value = AppScreen.Restore
-    }
-
-    fun cancelRestore() {
-        _screen.value = if (VaultStore.isOnboarded(getApplication(), vaultId)) AppScreen.Home else AppScreen.Intro
     }
 
     /** Restores the vault picked via SAF (a desktop-produced vault folder). */
-    fun restoreVault(treeUri: Uri) {
+    fun restoreVault(treeUri: Uri, onDone: (Boolean) -> Unit = {}) {
         _restoreError.value = null
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
                     VaultBackup(getApplication()).restore(treeUri, vaultId) { _restoreProgress.value = it }
                 }
-                _screen.value = AppScreen.Unlock
-            } catch (e: Exception) {
+                _appState.value = AppState.LOCKED
+                refreshBiometricAvailability()
+                onDone(true)
+            } catch (e: Throwable) {
                 Log.e(TAG, "restoreVault failed", e)
                 _restoreError.value = e.message
                     ?: getApplication<Application>().getString(R.string.error_restore_failed)
+                onDone(false)
             } finally {
                 _restoreProgress.value = null
             }
@@ -290,7 +359,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 withContext(Dispatchers.IO) {
                     VaultBackup(getApplication()).backup(treeUri, vaultId) { _backupProgress.value = it }
                 }
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 Log.e(TAG, "backupVault failed", e)
                 _backupError.value = e.message
                     ?: getApplication<Application>().getString(R.string.error_backup_failed)
@@ -298,17 +367,6 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 _backupProgress.value = null
             }
         }
-    }
-
-    // ------------------------------------------------------------ ai chat
-
-    /** Chat is only reachable from an unlocked vault (Moments). */
-    fun openChat() {
-        _screen.value = AppScreen.Chat
-    }
-
-    fun closeChat() {
-        _screen.value = AppScreen.Moments
     }
 
     override fun onCleared() {

@@ -21,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,7 +46,7 @@ private const val MIN_PASSWORD_LENGTH = 8
  * (KDF → vault.meta → SQLCipher DB) on submit.
  */
 @Composable
-fun MasterPasswordScreen(viewModel: MainViewModel) {
+fun MasterPasswordScreen(viewModel: MainViewModel, onCreated: () -> Unit = {}) {
     var password by rememberSaveable { mutableStateOf("") }
     var confirm by rememberSaveable { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
@@ -53,6 +54,12 @@ fun MasterPasswordScreen(viewModel: MainViewModel) {
 
     val creating by viewModel.creatingVault.collectAsState()
     val error by viewModel.vaultError.collectAsState()
+    val created by viewModel.vaultCreated.collectAsState()
+
+    // Advance as soon as vault creation succeeds (vault.meta + db exist).
+    LaunchedEffect(created) {
+        if (created) onCreated()
+    }
 
     val passwordError = !BuildConfig.DEBUG && password.length < MIN_PASSWORD_LENGTH
     val confirmError = password != confirm

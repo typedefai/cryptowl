@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Restore
@@ -34,7 +35,7 @@ import com.typedefai.cryptowl.vault.VaultBackup
  * the output of `wechat_sns_export/migrate_moments.py` copied to the device).
  */
 @Composable
-fun RestoreScreen(viewModel: MainViewModel) {
+fun RestoreScreen(viewModel: MainViewModel, onBack: () -> Unit) {
     val progress by viewModel.restoreProgress.collectAsState()
     val error by viewModel.restoreError.collectAsState()
 
@@ -45,12 +46,13 @@ fun RestoreScreen(viewModel: MainViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .statusBarsPadding()
             .padding(horizontal = 32.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         IconButton(
-            onClick = viewModel::cancelRestore,
+            onClick = onBack,
             modifier = Modifier.align(Alignment.Start),
         ) {
             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.restore_back))

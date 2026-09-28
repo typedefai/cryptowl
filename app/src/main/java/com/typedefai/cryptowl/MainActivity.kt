@@ -19,7 +19,6 @@ import androidx.compose.material3.Text
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,18 +27,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import coil3.svg.SvgDecoder
-import com.typedefai.cryptowl.onboarding.BiometricSetupScreen
-import com.typedefai.cryptowl.onboarding.IntroScreen
-import com.typedefai.cryptowl.onboarding.MasterPasswordScreen
+import com.typedefai.cryptowl.ui.theme.BrandOxblood
+import com.typedefai.cryptowl.ui.theme.CryptowlTheme
 import kotlinx.coroutines.delay
 
 class MainActivity : AppCompatActivity() {
@@ -53,15 +49,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         // System splash; hold the minimum time, then hand over to the Compose
         // splash (logo + wordmark) until MIN_TOTAL_SPLASH_MS.
-        val splashScreen = installSplashScreen()
+        installSplashScreen()
         splashShownAt = System.currentTimeMillis()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
-        splashScreen.setKeepOnScreenCondition {
-            System.currentTimeMillis() - splashShownAt < MIN_SYSTEM_SPLASH_MS ||
-                viewModel.screen.value == AppScreen.Loading
-        }
 
         setContent {
             setSingletonImageLoaderFactory { context ->
@@ -69,8 +60,7 @@ class MainActivity : AppCompatActivity() {
                     .components { add(SvgDecoder.Factory()) }
                     .build()
             }
-            MaterialTheme {
-                val screen by viewModel.screen.collectAsState()
+            CryptowlTheme {
                 var showSplash by remember { mutableStateOf(true) }
                 if (showSplash) {
                     LaunchedEffect(Unit) {
@@ -79,32 +69,16 @@ class MainActivity : AppCompatActivity() {
                         showSplash = false
                     }
                 }
-                when {
-                    showSplash -> SplashScreenLogo()
-                    screen == AppScreen.Loading -> Unit
-                    screen == AppScreen.Intro -> IntroScreen(
-                        onStart = viewModel::startOnboarding,
-                        onRestore = viewModel::openRestore,
-                    )
-                    screen == AppScreen.PasswordSetup -> MasterPasswordScreen(viewModel)
-                    screen == AppScreen.BiometricSetup -> BiometricSetupScreen(viewModel)
-                    screen == AppScreen.Home -> VaultHomeScreen(viewModel)
-                    screen == AppScreen.Unlock -> UnlockScreen(viewModel)
-                    screen == AppScreen.Restore -> RestoreScreen(viewModel)
-                    screen == AppScreen.Moments -> MomentsScreen(viewModel)
-                    screen == AppScreen.Chat ->
-                        ChatScreen(
-                            viewModel = viewModel.chat,
-                            agentName = stringResource(R.string.chat_agent_name),
-                            onBack = viewModel::closeChat,
-                        )
+                if (showSplash) {
+                    SplashScreenLogo()
+                } else {
+                    CryptowlApp(viewModel)
                 }
             }
         }
     }
 
     private companion object {
-        const val MIN_SYSTEM_SPLASH_MS = 1000L
         const val MIN_TOTAL_SPLASH_MS = 2500L
     }
 }
@@ -143,7 +117,7 @@ private fun SplashScreenLogo() {
                 text = "CryptOwl",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF8C2B1B),
+                color = BrandOxblood,
                 modifier = Modifier.graphicsLayer { alpha = splashAlpha },
             )
         }

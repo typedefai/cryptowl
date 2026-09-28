@@ -111,4 +111,50 @@
     <string name="language_en" translatable="false">English</string>
     <string name="language_zh_cn" translatable="false">简体中文</string>
     <string name="language_zh_tw" translatable="false">繁體中文</string>
+
+    <!-- Main navigation -->
+    <string name="nav_moments">Moments</string>
+    <string name="nav_vault">Vault</string>
+    <string name="nav_assistant">Assistant</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Lock screen -->
+    <string name="unlock_subtitle">Everything is encrypted on this device.</string>
+    <string name="unlock_biometric_title">Unlock your vault</string>
+    <string name="unlock_biometric_subtitle">Confirm your fingerprint to open the vault</string>
+    <string name="unlock_biometric_action">Unlock with fingerprint</string>
+
+    <!-- Vault hub -->
+    <string name="vault_title">Vault</string>
+    <string name="vault_subtitle">Your protected items, grouped by security tier.</string>
+    <string name="vault_notes">Notes</string>
+    <string name="vault_notes_subtitle">Private notes and diary entries</string>
+    <string name="vault_passwords">Passwords</string>
+    <string name="vault_passwords_subtitle">Logins and credit cards — fingerprint per access</string>
+    <string name="vault_top_secret">Top secret</string>
+    <string name="vault_top_secret_subtitle">Sensitive documents — fingerprint + second password</string>
+    <string name="vault_media">Photos &amp; videos</string>
+    <string name="vault_media_subtitle">Encrypted attachments kept inside the vault</string>
+
+    <!-- Coming soon -->
+    <string name="coming_soon">Coming soon</string>
+    <string name="coming_soon_hint">The encrypted storage and tier model are in place; this screen will be built next.</string>
+
+    <!-- Settings -->
+    <string name="settings_section_security">Security</string>
+    <string name="settings_lock_now">Lock vault</string>
+    <string name="settings_lock_now_subtitle">Close the vault and wipe session keys</string>
+    <string name="settings_biometric">Fingerprint unlock</string>
+    <string name="settings_biometric_on">Enabled for this vault</string>
+    <string name="settings_biometric_off">Not set up</string>
+    <string name="settings_status_on">On</string>
+    <string name="settings_status_off">Off</string>
+    <string name="settings_section_data">Backup &amp; restore</string>
+    <string name="settings_backup_running">Backing up…</string>
+    <string name="settings_backup_subtitle">Copy the encrypted vault to a folder</string>
+    <string name="settings_restore_subtitle">Replace this vault from a backup folder</string>
+    <string name="settings_section_general">General</string>
+    <string name="settings_language_subtitle">App display language</string>
+    <string name="settings_about">About Cryptowl</string>
+    <string name="settings_about_subtitle">Local-first encrypted vault</string>
 </resources>

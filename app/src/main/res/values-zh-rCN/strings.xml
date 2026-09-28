@@ -108,4 +108,50 @@
     <!-- Language -->
     <string name="language_option">语言</string>
     <string name="language_system">跟随系统</string>
+
+    <!-- Main navigation -->
+    <string name="nav_moments">朋友圈</string>
+    <string name="nav_vault">保险库</string>
+    <string name="nav_assistant">助手</string>
+    <string name="nav_settings">设置</string>
+
+    <!-- Lock screen -->
+    <string name="unlock_subtitle">本设备上的所有数据均已加密。</string>
+    <string name="unlock_biometric_title">解锁保险库</string>
+    <string name="unlock_biometric_subtitle">验证指纹以打开保险库</string>
+    <string name="unlock_biometric_action">使用指纹解锁</string>
+
+    <!-- Vault hub -->
+    <string name="vault_title">保险库</string>
+    <string name="vault_subtitle">按安全等级分类的受保护条目。</string>
+    <string name="vault_notes">笔记</string>
+    <string name="vault_notes_subtitle">私密笔记与日记</string>
+    <string name="vault_passwords">密码</string>
+    <string name="vault_passwords_subtitle">登录与信用卡——每次访问需指纹</string>
+    <string name="vault_top_secret">绝密</string>
+    <string name="vault_top_secret_subtitle">敏感文档——指纹 + 第二重密码</string>
+    <string name="vault_media">照片与视频</string>
+    <string name="vault_media_subtitle">保存在保险库内的加密附件</string>
+
+    <!-- Coming soon -->
+    <string name="coming_soon">即将推出</string>
+    <string name="coming_soon_hint">加密存储与分级模型已就绪，此界面将在后续实现。</string>
+
+    <!-- Settings -->
+    <string name="settings_section_security">安全</string>
+    <string name="settings_lock_now">锁定保险库</string>
+    <string name="settings_lock_now_subtitle">关闭保险库并清除会话密钥</string>
+    <string name="settings_biometric">指纹解锁</string>
+    <string name="settings_biometric_on">已为此保险库启用</string>
+    <string name="settings_biometric_off">未设置</string>
+    <string name="settings_status_on">已开启</string>
+    <string name="settings_status_off">已关闭</string>
+    <string name="settings_section_data">备份与恢复</string>
+    <string name="settings_backup_running">正在备份…</string>
+    <string name="settings_backup_subtitle">将加密保险库复制到文件夹</string>
+    <string name="settings_restore_subtitle">从备份文件夹替换此保险库</string>
+    <string name="settings_section_general">通用</string>
+    <string name="settings_language_subtitle">应用显示语言</string>
+    <string name="settings_about">关于密鸮</string>
+    <string name="settings_about_subtitle">本地优先的加密保险库</string>
 </resources>

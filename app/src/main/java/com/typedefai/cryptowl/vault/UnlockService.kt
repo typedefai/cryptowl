@@ -10,6 +10,7 @@ import com.typedefai.cryptowl.crypto.toHexString
 import com.typedefai.cryptowl.crypto.ProtectedValue
 import java.io.File
 import java.security.MessageDigest
+import javax.crypto.Cipher
 
 /** Thrown when the vault cannot be opened (wrong password, tampering...). */
 class VaultOpenException(message: String) : Exception(message)
@@ -113,6 +114,88 @@ class UnlockService(
     }
 
     // ------------------------------------------------------------------ steps
+
+    /**
+     * True when this vault can be opened with a fingerprint: the Keystore
+     * BioKey exists *and* `vault.meta` carries the `vault_key:biokey` copy.
+     */
+    fun hasBiometricUnlock(vaultId: String = VaultStore.DEFAULT_VAULT_ID): Boolean {
+        val metaFile = VaultStore.metaFile(context, vaultId)
+        if (!metaFile.exists()) return false
+        return BioKeyManager.hasBioKey() && runCatching {
+            VaultMetaJson.decode(metaFile.readText()).wrappedKeys.any { it.id == WRAPPED_VAULT_KEY_BIOKEY }
+        }.getOrDefault(false)
+    }
+
+    /**
+     * Returns a biometric-bound DECRYPT cipher for `vault_key:biokey`; the
+     * caller authenticates it via BiometricPrompt, then calls
+     * [unlockWithBiometric] with the authorized cipher.
+     */
+    fun prepareBiometricUnlock(vaultId: String = VaultStore.DEFAULT_VAULT_ID): Cipher {
+        val metaFile = VaultStore.metaFile(context, vaultId)
+        if (!metaFile.exists()) throw VaultOpenException("not a vault: $vaultId")
+        val meta = try {
+            VaultMetaJson.decode(metaFile.readText())
+        } catch (e: Exception) {
+            throw VaultOpenException("corrupt vault.meta: ${e.message}")
+        }
+        val entry = meta.wrappedKeys.firstOrNull { it.id == WRAPPED_VAULT_KEY_BIOKEY }
+            ?: throw VaultOpenException("no vault_key:biokey wrapped key in vault.meta")
+        return try {
+            BioKeyManager.createDecryptCipher(entry.nonce)
+        } catch (e: Exception) {
+            throw VaultOpenException("fingerprint key unavailable: ${e.message}")
+        }
+    }
+
+    /**
+     * Opens a vault with a biometric-authorized cipher (fingerprint "remember
+     * me"). The wrapped `vault_key:biokey` is GCM-authenticated by its own tag,
+     * so this path does not need the password-derived MAC key; a wrong or
+     * invalidated key fails the GCM tag or the SQLCipher probe.
+     */
+    fun unlockWithBiometric(
+        cipher: Cipher,
+        vaultId: String = VaultStore.DEFAULT_VAULT_ID,
+    ): VaultSession {
+        val metaFile = VaultStore.metaFile(context, vaultId)
+        if (!metaFile.exists()) throw VaultOpenException("not a vault: $vaultId")
+        val meta = try {
+            VaultMetaJson.decode(metaFile.readText())
+        } catch (e: Exception) {
+            throw VaultOpenException("corrupt vault.meta: ${e.message}")
+        }
+        if (meta.version > META_VERSION) {
+            throw VaultOpenException("unsupported vault.meta version: ${meta.version}")
+        }
+        val entry = meta.wrappedKeys.firstOrNull { it.id == WRAPPED_VAULT_KEY_BIOKEY }
+            ?: throw VaultOpenException("no vault_key:biokey wrapped key in vault.meta")
+        // BioKeySetup wraps the VaultKey with the Keystore cipher without AAD
+        // (the Keystore key is already a dedicated wrapping key), so mirror it
+        // here exactly: no updateAAD, tag appended to the ciphertext.
+        val plain = try {
+            cipher.doFinal(entry.cipherText + entry.authTag)
+        } catch (e: Exception) {
+            Log.e(TAG, "unlockWithBiometric: vault_key unwrap failed", e)
+            throw VaultOpenException("fingerprint unlock failed")
+        }
+        val vaultKey = try {
+            ProtectedValue.fromBinary(plain)
+        } finally {
+            plain.fill(0)
+        }
+        return try {
+            val db = openDatabase(vaultId, vaultKey)
+            val fek = kdf.fileKey(vaultKey)
+            Log.d(TAG, "unlockWithBiometric: db opened (user_version=${db.version})")
+            VaultSession(vaultId, db, vaultKey, fek)
+        } catch (e: Exception) {
+            vaultKey.clear()
+            Log.e(TAG, "unlockWithBiometric failed", e)
+            throw if (e is VaultOpenException) e else VaultOpenException("fingerprint unlock failed: ${e.message}")
+        }
+    }
 
     private fun readDesktopSecret(vaultId: String): ByteArray? {
         val file = VaultStore.deviceSecretFile(context, vaultId)
@@ -244,5 +327,6 @@ class UnlockService(
         private const val TAG = "cwl:UnlockService"
         const val META_VERSION = 2
         const val WRAPPED_VAULT_KEY_SMK = "vault_key:smk"
+        const val WRAPPED_VAULT_KEY_BIOKEY = "vault_key:biokey"
     }
 }

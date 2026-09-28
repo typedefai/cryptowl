@@ -73,6 +73,7 @@ dependencies {
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.androidx.navigation.compose)
     implementation(libs.richtext.commonmark)
     implementation(libs.richtext.ui.material3)
     implementation(libs.coil.compose)

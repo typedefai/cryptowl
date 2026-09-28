@@ -26,7 +26,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.PlayArrow
@@ -77,7 +76,7 @@ private const val PAGE_SIZE = 50
 
 /** The moments timeline — WeChat-album layout, driven by the unlocked vault. */
 @Composable
-fun MomentsScreen(viewModel: MainViewModel) {
+fun MomentsScreen(viewModel: MainViewModel, onLock: () -> Unit = viewModel::lockVault) {
     val context = LocalContext.current
     val session by viewModel.session.collectAsState()
     var posts by remember { mutableStateOf<List<MomentPost>>(emptyList()) }
@@ -139,10 +138,7 @@ fun MomentsScreen(viewModel: MainViewModel) {
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f),
             )
-            IconButton(onClick = viewModel::openChat) {
-                Icon(Icons.AutoMirrored.Outlined.Chat, contentDescription = stringResource(R.string.moments_chat))
-            }
-            IconButton(onClick = viewModel::lockVault) {
+            IconButton(onClick = onLock) {
                 Icon(Icons.Filled.Lock, contentDescription = stringResource(R.string.moments_lock))
             }
             LanguageButton()

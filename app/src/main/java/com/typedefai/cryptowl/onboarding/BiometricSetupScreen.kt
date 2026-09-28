@@ -1,9 +1,6 @@
 package com.typedefai.cryptowl.onboarding
 
-import android.content.Context
 import androidx.activity.compose.LocalActivity
-import androidx.biometric.BiometricManager
-import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -27,10 +24,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.typedefai.cryptowl.R
 import com.typedefai.cryptowl.MainViewModel
+import com.typedefai.cryptowl.authenticateWithBiometric
 
 /**
  * Optional fingerprint setup (separate flow, skippable): wraps the VaultKey
@@ -47,6 +44,7 @@ fun BiometricSetupScreen(viewModel: MainViewModel, onDone: () -> Unit) {
     val created by viewModel.onboardingDone.collectAsState()
     val promptTitle = stringResource(R.string.biometric_prompt_title)
     val promptSubtitle = stringResource(R.string.biometric_prompt_subtitle)
+    val cancelButton = stringResource(R.string.action_cancel)
 
     // Enrollment finished (or was skipped): leave the onboarding graph.
     LaunchedEffect(created) {
@@ -55,13 +53,15 @@ fun BiometricSetupScreen(viewModel: MainViewModel, onDone: () -> Unit) {
 
     LaunchedEffect(ready, cipher) {
         if (ready && cipher != null && activity != null) {
-            runBiometricPrompt(
-                context,
-                activity,
-                cipher!!,
-                viewModel,
-                promptTitle,
-                promptSubtitle,
+            authenticateWithBiometric(
+                context = context,
+                activity = activity,
+                cipher = cipher!!,
+                title = promptTitle,
+                subtitle = promptSubtitle,
+                negativeButtonText = cancelButton,
+                onAuthenticated = viewModel::completeBiometric,
+                onCancelled = viewModel::cancelBiometricPrompt,
             )
         }
     }
@@ -116,40 +116,4 @@ fun BiometricSetupScreen(viewModel: MainViewModel, onDone: () -> Unit) {
             Text(stringResource(R.string.biometric_skip))
         }
     }
-}
-
-private fun runBiometricPrompt(
-    context: Context,
-    activity: FragmentActivity,
-    cipher: javax.crypto.Cipher,
-    viewModel: MainViewModel,
-    title: String,
-    subtitle: String,
-) {
-    if (BiometricManager.from(context).canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
-        != BiometricManager.BIOMETRIC_SUCCESS
-    ) {
-        viewModel.cancelBiometricPrompt()
-        return
-    }
-    val promptInfo = BiometricPrompt.PromptInfo.Builder()
-        .setTitle(title)
-        .setSubtitle(subtitle)
-        .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
-        .build()
-    val prompt = BiometricPrompt(
-        activity,
-        ContextCompat.getMainExecutor(activity),
-        object : BiometricPrompt.AuthenticationCallback() {
-            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                result.cryptoObject?.cipher?.let { viewModel.completeBiometric(it) }
-            }
-
-            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                // Cancellations are user intent; the screen stays for a retry.
-                viewModel.cancelBiometricPrompt()
-            }
-        },
-    )
-    prompt.authenticate(promptInfo, BiometricPrompt.CryptoObject(cipher))
 }

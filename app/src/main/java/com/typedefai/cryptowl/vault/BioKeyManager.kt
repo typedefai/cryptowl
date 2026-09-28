@@ -25,6 +25,17 @@ object BioKeyManager {
         KeyStore.getInstance(KEYSTORE).apply { load(null) }.containsAlias(KEY_ALIAS)
 
     /**
+     * Destroys the BioKey. Used to disable fingerprint unlock from Settings:
+     * the `vault_key:biokey` copy in vault.meta stays (and remains covered by
+     * the meta mac) but can never be decrypted again — the Keystore key was
+     * non-exportable and is now gone. Re-enabling wraps a fresh copy.
+     */
+    fun deleteBioKey() {
+        val keyStore = KeyStore.getInstance(KEYSTORE).apply { load(null) }
+        if (keyStore.containsAlias(KEY_ALIAS)) keyStore.deleteEntry(KEY_ALIAS)
+    }
+
+    /**
      * Creates the BioKey if missing. Best-effort StrongBox: falls back to
      * TEE-backed storage when the device has no StrongBox.
      */

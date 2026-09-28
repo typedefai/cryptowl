@@ -103,6 +103,7 @@
     <string name="error_biometric_password_lost">主密码已不可用</string>
     <string name="error_biometric_not_enrolled">此设备未注册强生物识别</string>
     <string name="error_biometric_setup_failed">指纹设置失败</string>
+    <string name="error_biometric_unavailable">指纹解锁已不可用——请使用主密码解锁，然后在设置中重新启用。</string>
     <string name="error_unlock_failed">解锁保险库失败</string>
 
     <!-- Language -->
@@ -154,4 +155,14 @@
     <string name="settings_language_subtitle">应用显示语言</string>
     <string name="settings_about">关于密鸮</string>
     <string name="settings_about_subtitle">本地优先的加密保险库</string>
+    <string name="settings_biometric_enable_title">启用指纹解锁</string>
+    <string name="settings_biometric_enable_desc">请确认主密码，以将保险库密钥用受指纹保护的密钥（保存在设备密钥库中）重新包装。</string>
+    <string name="settings_biometric_enable_subtitle">验证指纹以启用解锁</string>
+    <string name="settings_biometric_disable_title">停用指纹解锁？</string>
+    <string name="settings_biometric_disable_desc">受指纹保护的保险库密钥副本将被销毁。你之后可以用主密码重新启用。</string>
+    <string name="settings_biometric_disable_confirm">停用</string>
+
+    <!-- Generic actions -->
+    <string name="action_enable">启用</string>
+    <string name="action_cancel">取消</string>
 </resources>

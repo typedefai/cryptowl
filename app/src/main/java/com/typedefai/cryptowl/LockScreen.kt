@@ -1,8 +1,6 @@
 package com.typedefai.cryptowl
 
 import androidx.activity.compose.LocalActivity
-import androidx.biometric.BiometricManager
-import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -38,7 +36,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.typedefai.cryptowl.crypto.ProtectedValue
 
@@ -59,6 +56,7 @@ fun LockScreen(viewModel: MainViewModel) {
 
     val promptTitle = stringResource(R.string.unlock_biometric_title)
     val promptSubtitle = stringResource(R.string.unlock_biometric_subtitle)
+    val cancelButton = stringResource(R.string.action_cancel)
 
     var password by rememberSaveable { mutableStateOf("") }
     var autoPrompted by remember { mutableStateOf(false) }
@@ -75,7 +73,18 @@ fun LockScreen(viewModel: MainViewModel) {
     LaunchedEffect(bioCipher) {
         val cipher = bioCipher ?: return@LaunchedEffect
         if (activity != null) {
-            showBiometricPrompt(context, activity, cipher, viewModel, promptTitle, promptSubtitle)
+            authenticateWithBiometric(
+                context = context,
+                activity = activity,
+                cipher = cipher,
+                title = promptTitle,
+                subtitle = promptSubtitle,
+                negativeButtonText = cancelButton,
+                onAuthenticated = viewModel::unlockWithBiometric,
+                onCancelled = viewModel::cancelBiometricUnlock,
+            )
+        } else {
+            viewModel.cancelBiometricUnlock()
         }
     }
 
@@ -150,40 +159,4 @@ fun LockScreen(viewModel: MainViewModel) {
             }
         }
     }
-}
-
-private fun showBiometricPrompt(
-    context: android.content.Context,
-    activity: FragmentActivity,
-    cipher: javax.crypto.Cipher,
-    viewModel: MainViewModel,
-    title: String,
-    subtitle: String,
-) {
-    if (BiometricManager.from(context).canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
-        != BiometricManager.BIOMETRIC_SUCCESS
-    ) {
-        viewModel.cancelBiometricUnlock()
-        return
-    }
-    val promptInfo = BiometricPrompt.PromptInfo.Builder()
-        .setTitle(title)
-        .setSubtitle(subtitle)
-        .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
-        .build()
-    val prompt = BiometricPrompt(
-        activity,
-        ContextCompat.getMainExecutor(activity),
-        object : BiometricPrompt.AuthenticationCallback() {
-            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                result.cryptoObject?.cipher?.let { viewModel.unlockWithBiometric(it) }
-            }
-
-            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                // Cancellations are user intent; the password fallback stays.
-                viewModel.cancelBiometricUnlock()
-            }
-        },
-    )
-    prompt.authenticate(promptInfo, BiometricPrompt.CryptoObject(cipher))
 }

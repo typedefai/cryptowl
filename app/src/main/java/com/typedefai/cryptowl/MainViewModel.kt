@@ -8,6 +8,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.typedefai.cryptowl.R
 import com.typedefai.cryptowl.crypto.ProtectedValue
+import com.typedefai.cryptowl.vault.BioKeyManager
 import com.typedefai.cryptowl.vault.BioKeySetup
 import com.typedefai.cryptowl.vault.UnlockService
 import com.typedefai.cryptowl.vault.VaultBackup
@@ -177,16 +178,32 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         refreshBiometricAvailability()
     }
 
+    // ------------------------------------------------- fingerprint enrollment
+
     /** Prepares the biometric wrap (derives VaultKey, creates BioKey encrypt cipher). */
     fun prepareBiometric() {
         val password = masterPassword.get() ?: run {
             _biometricError.value = getApplication<Application>().getString(R.string.error_biometric_password_lost)
             return
         }
+        prepareBiometricWrap(password, clearPassword = false)
+    }
+
+    /**
+     * Enables fingerprint unlock from Settings: wraps the VaultKey with a fresh
+     * BioKey. The entered master password is consumed and wiped here.
+     */
+    fun enableBiometric(password: ProtectedValue) {
+        prepareBiometricWrap(password, clearPassword = true)
+    }
+
+    private fun prepareBiometricWrap(password: ProtectedValue, clearPassword: Boolean) {
+        _biometricError.value = null
         if (BiometricManager.from(getApplication()).canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
             != BiometricManager.BIOMETRIC_SUCCESS
         ) {
             _biometricError.value = getApplication<Application>().getString(R.string.error_biometric_not_enrolled)
+            if (clearPassword) password.clear()
             return
         }
         viewModelScope.launch {
@@ -200,6 +217,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             } catch (e: Throwable) {
                 Log.e(TAG, "prepareBiometric failed", e)
                 _biometricError.value = e.message ?: getApplication<Application>().getString(R.string.error_biometric_setup_failed)
+            } finally {
+                if (clearPassword) password.clear()
             }
         }
     }
@@ -213,6 +232,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     BioKeySetup(getApplication()).complete(prepared, cipher)
                 }
                 _onboardingDone.value = true
+                refreshBiometricAvailability()
             } catch (e: Throwable) {
                 Log.e(TAG, "completeBiometric failed", e)
                 _biometricError.value = e.message ?: getApplication<Application>().getString(R.string.error_biometric_setup_failed)
@@ -235,6 +255,26 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun skipBiometric() {
         cancelBiometricPrompt()
         _onboardingDone.value = true
+    }
+
+    /**
+     * Disables fingerprint unlock by destroying the Keystore BioKey. The
+     * wrapped copy left in vault.meta is undecryptable afterwards; no master
+     * password is needed because nothing usable remains.
+     */
+    fun disableBiometric() {
+        _biometricError.value = null
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                runCatching { BioKeyManager.deleteBioKey() }
+                    .onFailure { Log.e(TAG, "deleteBioKey failed", it) }
+            }
+            refreshBiometricAvailability()
+        }
+    }
+
+    fun clearBiometricError() {
+        _biometricError.value = null
     }
 
     // ------------------------------------------------------------ vault unlock
@@ -262,7 +302,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 _bioUnlockCipher.value = cipher
             } catch (e: Throwable) {
                 Log.e(TAG, "requestBiometricUnlock failed", e)
-                _unlockError.value = e.message ?: getApplication<Application>().getString(R.string.error_unlock_failed)
+                // Covers a Keystore key invalidated by a biometric enrollment
+                // change as well as corrupt metadata: fall back to the password.
+                _unlockError.value = getApplication<Application>().getString(R.string.error_biometric_unavailable)
             }
         }
     }

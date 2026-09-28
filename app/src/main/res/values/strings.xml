@@ -103,6 +103,7 @@
     <string name="error_biometric_password_lost">Master password no longer available</string>
     <string name="error_biometric_not_enrolled">No strong biometrics enrolled on this device</string>
     <string name="error_biometric_setup_failed">Fingerprint setup failed</string>
+    <string name="error_biometric_unavailable">Fingerprint unlock isn\'t available anymore — unlock with your master password, then re-enable it in Settings.</string>
     <string name="error_unlock_failed">Failed to unlock the vault</string>
 
     <!-- Language -->
@@ -157,4 +158,14 @@
     <string name="settings_language_subtitle">App display language</string>
     <string name="settings_about">About Cryptowl</string>
     <string name="settings_about_subtitle">Local-first encrypted vault</string>
+    <string name="settings_biometric_enable_title">Enable fingerprint unlock</string>
+    <string name="settings_biometric_enable_desc">Confirm your master password to wrap the vault key with a fingerprint-protected key stored in the device keystore.</string>
+    <string name="settings_biometric_enable_subtitle">Confirm your fingerprint to enable unlock</string>
+    <string name="settings_biometric_disable_title">Disable fingerprint unlock?</string>
+    <string name="settings_biometric_disable_desc">The fingerprint-protected copy of your vault key will be destroyed. You can re-enable it later with your master password.</string>
+    <string name="settings_biometric_disable_confirm">Disable</string>
+
+    <!-- Generic actions -->
+    <string name="action_enable">Enable</string>
+    <string name="action_cancel">Cancel</string>
 </resources>

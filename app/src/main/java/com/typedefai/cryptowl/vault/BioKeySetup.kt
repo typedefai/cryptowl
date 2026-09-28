@@ -76,9 +76,11 @@ class BioKeySetup(
                 authTag = encrypted.copyOfRange(encrypted.size - TAG_SIZE, encrypted.size),
             )
             val entry = VaultMeta.WrappedKeyEntry.fromWrappedKey(WRAPPED_VAULT_KEY_BIOKEY, wrapped)
+            // Replace an existing copy: re-enrolling after a fingerprint change
+            // must not leave a stale (undecryptable) entry behind.
             val updated = prepared.meta.copy(
                 updatedAt = System.currentTimeMillis(),
-                wrappedKeys = prepared.meta.wrappedKeys + entry,
+                wrappedKeys = prepared.meta.wrappedKeys.filterNot { it.id == WRAPPED_VAULT_KEY_BIOKEY } + entry,
             )
             val macKeyBytes = prepared.macKey.binaryValue()
             val updatedWithMac = updated.copy(

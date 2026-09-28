@@ -35,6 +35,15 @@ object Routes {
     const val PASSWORDS = "vault/passwords"
     const val TOP_SECRET = "vault/top_secret"
     const val MEDIA = "vault/media"
+
+    // Password CRUD
+    const val PASSWORD_DETAIL = "vault/passwords/detail/{id}"
+    const val PASSWORD_EDIT = "vault/passwords/edit?id={id}"
+
+    fun passwordDetail(id: String): String = "vault/passwords/detail/$id"
+
+    fun passwordEdit(id: String? = null): String =
+        if (id == null) "vault/passwords/edit" else "vault/passwords/edit?id=$id"
 }
 
 /** A destination in the bottom navigation bar. */

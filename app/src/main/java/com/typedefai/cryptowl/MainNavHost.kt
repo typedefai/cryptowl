@@ -8,15 +8,21 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.typedefai.cryptowl.nav.Routes
 import com.typedefai.cryptowl.nav.TopLevelDestination
 
@@ -31,6 +37,17 @@ fun MainNavHost(viewModel: MainViewModel) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
     val showBottomBar = TopLevelDestination.entries.any { it.route == currentDestination?.route }
+
+    val passwordViewModel: PasswordViewModel = viewModel()
+    val session by viewModel.session.collectAsState()
+    val biometricUnlockAvailable by viewModel.biometricUnlockAvailable.collectAsState()
+
+    LaunchedEffect(session) {
+        session?.let(passwordViewModel::attach)
+    }
+    DisposableEffect(Unit) {
+        onDispose { passwordViewModel.detach() }
+    }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -92,7 +109,40 @@ fun MainNavHost(viewModel: MainViewModel) {
                 )
             }
             composable(Routes.NOTES) { FeaturePlaceholderScreen(Routes.NOTES) }
-            composable(Routes.PASSWORDS) { FeaturePlaceholderScreen(Routes.PASSWORDS) }
+            composable(Routes.PASSWORDS) {
+                PasswordsScreen(
+                    viewModel = passwordViewModel,
+                    biometricEnabled = biometricUnlockAvailable,
+                    onOpen = { navController.navigate(Routes.passwordDetail(it)) },
+                    onAdd = { navController.navigate(Routes.passwordEdit()) },
+                )
+            }
+            composable(
+                route = Routes.PASSWORD_DETAIL,
+                arguments = listOf(navArgument("id") { type = NavType.StringType }),
+            ) { entry ->
+                val id = entry.arguments?.getString("id") ?: return@composable
+                PasswordDetailScreen(
+                    viewModel = passwordViewModel,
+                    id = id,
+                    onEdit = { navController.navigate(Routes.passwordEdit(id)) },
+                    onBack = { navController.popBackStack() },
+                )
+            }
+            composable(
+                route = Routes.PASSWORD_EDIT,
+                arguments = listOf(navArgument("id") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }),
+            ) { entry ->
+                PasswordEditScreen(
+                    viewModel = passwordViewModel,
+                    id = entry.arguments?.getString("id"),
+                    onBack = { navController.popBackStack() },
+                )
+            }
             composable(Routes.TOP_SECRET) { FeaturePlaceholderScreen(Routes.TOP_SECRET) }
             composable(Routes.MEDIA) { FeaturePlaceholderScreen(Routes.MEDIA) }
             composable(Routes.RESTORE) {

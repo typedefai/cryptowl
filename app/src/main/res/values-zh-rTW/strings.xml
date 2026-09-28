@@ -165,4 +165,33 @@
     <!-- Generic actions -->
     <string name="action_enable">啟用</string>
     <string name="action_cancel">取消</string>
+
+    <!-- Passwords (Secret tier) -->
+    <string name="passwords_title">密碼</string>
+    <string name="passwords_empty">還沒有密碼</string>
+    <string name="passwords_empty_hint">新增一筆登入資訊，加密保存在保險庫中。每次開啟都需要指紋驗證。</string>
+    <string name="passwords_requires_fingerprint">請在設定中啟用指紋解鎖以儲存密碼——機密級項目由指紋衍生金鑰保護。</string>
+    <string name="passwords_error_fingerprint">指紋驗證失敗</string>
+    <string name="passwords_error_operation">操作失敗</string>
+    <string name="passwords_prompt_title">驗證指紋</string>
+    <string name="passwords_prompt_subtitle">驗證以存取機密級密碼</string>
+    <string name="passwords_add">新增密碼</string>
+    <string name="passwords_detail_title">密碼</string>
+    <string name="passwords_edit_title">編輯密碼</string>
+    <string name="passwords_new_title">新增密碼</string>
+    <string name="passwords_untitled">未命名</string>
+    <string name="passwords_unlocking">等待指紋…</string>
+    <string name="passwords_retry">重試</string>
+    <string name="passwords_field_title">標題</string>
+    <string name="passwords_field_username">使用者名稱</string>
+    <string name="passwords_field_password">密碼</string>
+    <string name="passwords_field_url">網址</string>
+    <string name="passwords_field_notes">備註</string>
+    <string name="passwords_title_required">標題不能為空</string>
+    <string name="passwords_save">儲存</string>
+    <string name="passwords_delete">刪除</string>
+    <string name="passwords_delete_title">刪除此密碼？</string>
+    <string name="passwords_delete_desc">此項目將從保險庫中移除。</string>
+    <string name="passwords_show">顯示密碼</string>
+    <string name="passwords_hide">隱藏密碼</string>
 </resources>

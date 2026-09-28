@@ -168,4 +168,33 @@
     <!-- Generic actions -->
     <string name="action_enable">Enable</string>
     <string name="action_cancel">Cancel</string>
+
+    <!-- Passwords (Secret tier) -->
+    <string name="passwords_title">Passwords</string>
+    <string name="passwords_empty">No passwords yet</string>
+    <string name="passwords_empty_hint">Add a login to keep it encrypted in the vault. Each entry needs your fingerprint to open.</string>
+    <string name="passwords_requires_fingerprint">Enable fingerprint unlock in Settings to store passwords — Secret-tier items are protected by a fingerprint-derived key.</string>
+    <string name="passwords_error_fingerprint">Fingerprint authentication failed</string>
+    <string name="passwords_error_operation">The operation failed</string>
+    <string name="passwords_prompt_title">Confirm fingerprint</string>
+    <string name="passwords_prompt_subtitle">Authenticate to access Secret-tier passwords</string>
+    <string name="passwords_add">Add password</string>
+    <string name="passwords_detail_title">Password</string>
+    <string name="passwords_edit_title">Edit password</string>
+    <string name="passwords_new_title">New password</string>
+    <string name="passwords_untitled">Untitled</string>
+    <string name="passwords_unlocking">Waiting for fingerprint…</string>
+    <string name="passwords_retry">Try again</string>
+    <string name="passwords_field_title">Title</string>
+    <string name="passwords_field_username">Username</string>
+    <string name="passwords_field_password">Password</string>
+    <string name="passwords_field_url">URL</string>
+    <string name="passwords_field_notes">Notes</string>
+    <string name="passwords_title_required">Title is required</string>
+    <string name="passwords_save">Save</string>
+    <string name="passwords_delete">Delete</string>
+    <string name="passwords_delete_title">Delete this password?</string>
+    <string name="passwords_delete_desc">The entry will be removed from the vault.</string>
+    <string name="passwords_show">Show password</string>
+    <string name="passwords_hide">Hide password</string>
 </resources>

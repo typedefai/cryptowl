@@ -155,6 +155,20 @@
     <string name="settings_language_subtitle">应用显示语言</string>
     <string name="settings_about">关于密鸮</string>
     <string name="settings_about_subtitle">本地优先的加密保险库</string>
+    <string name="settings_change_password">修改主密码</string>
+    <string name="settings_change_password_subtitle">用新密码重新包装保险库密钥</string>
+    <string name="password_current_label">当前密码</string>
+    <string name="password_new_label">新密码</string>
+    <string name="password_change_success">主密码已修改。下次冷启动请使用新密码。</string>
+    <string name="error_password_change_failed">修改主密码失败</string>
+    <string name="settings_autolock">自动锁定</string>
+    <string name="settings_autolock_subtitle">离开应用后锁定保险库</string>
+    <string name="autolock_immediate">立即</string>
+    <string name="autolock_1m">1 分钟后</string>
+    <string name="autolock_5m">5 分钟后</string>
+    <string name="autolock_30m">30 分钟后</string>
+    <string name="settings_flag_secure">阻止截屏</string>
+    <string name="settings_flag_secure_subtitle">禁止截屏和录屏</string>
     <string name="settings_biometric_enable_title">启用指纹解锁</string>
     <string name="settings_biometric_enable_desc">请确认主密码，以将保险库密钥用受指纹保护的密钥（保存在设备密钥库中）重新包装。</string>
     <string name="settings_biometric_enable_subtitle">验证指纹以启用解锁</string>
@@ -194,4 +208,51 @@
     <string name="passwords_delete_desc">该条目将从保险库中移除。</string>
     <string name="passwords_show">显示密码</string>
     <string name="passwords_hide">隐藏密码</string>
+
+    <!-- Notes (Confidential tier) -->
+    <string name="notes_title">笔记</string>
+    <string name="notes_empty">还没有笔记</string>
+    <string name="notes_empty_hint">用 Markdown 记录私密笔记。它们加密保存在保险库中，解锁后即可阅读。</string>
+    <string name="notes_add">添加笔记</string>
+    <string name="notes_untitled">未命名</string>
+    <string name="notes_pinned">已置顶</string>
+    <string name="notes_pin">置顶</string>
+    <string name="notes_unpin">取消置顶</string>
+    <string name="notes_new_title">新建笔记</string>
+    <string name="notes_edit_title">编辑笔记</string>
+    <string name="notes_field_title">标题</string>
+    <string name="notes_field_content">内容</string>
+    <string name="notes_preview">预览</string>
+    <string name="notes_edit_content">编辑内容</string>
+    <string name="notes_markdown_hint">支持 Markdown。</string>
+    <string name="notes_delete">删除</string>
+    <string name="notes_delete_title">删除此笔记？</string>
+    <string name="notes_delete_desc">该笔记将从保险库中移除。</string>
+    <string name="notes_error_operation">操作失败</string>
+
+    <!-- Media vault (Confidential tier) -->
+    <string name="media_title">照片与视频</string>
+    <string name="media_empty">还没有媒体文件</string>
+    <string name="media_empty_hint">导入照片和视频；每个文件在写入磁盘前都会用保险库密钥加密。</string>
+    <string name="media_import">导入媒体</string>
+    <string name="media_delete">删除</string>
+    <string name="media_delete_title">删除此项目？</string>
+    <string name="media_delete_desc">加密文件将从保险库中移除。</string>
+    <string name="media_error">媒体操作失败</string>
+
+    <!-- Top secret (per-access two-factor) -->
+    <string name="top_secret_setup">设置第二重密码</string>
+    <string name="top_secret_setup_desc">设置一个独立于主密码的第二重密码。每次访问绝密条目都需要指纹和该密码。</string>
+    <string name="top_secret_empty">还没有绝密条目</string>
+    <string name="top_secret_empty_hint">此处的条目使用独立密钥加密，每次访问都需要指纹和第二重密码。</string>
+    <string name="top_secret_add">添加绝密笔记</string>
+    <string name="top_secret_new_title">新建绝密笔记</string>
+    <string name="top_secret_edit_title">编辑绝密笔记</string>
+    <string name="top_secret_password_label">第二重密码</string>
+    <string name="top_secret_prompt_title">验证指纹</string>
+    <string name="top_secret_prompt_subtitle">第一重验证：指纹</string>
+    <string name="top_secret_verify_title">第二重密码</string>
+    <string name="top_secret_verify_desc">第二重验证：输入第二重密码以解密此条目。</string>
+    <string name="top_secret_error">绝密操作失败</string>
+    <string name="about_version">版本 %1$s</string>
 </resources>

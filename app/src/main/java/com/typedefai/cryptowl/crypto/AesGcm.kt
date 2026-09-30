@@ -14,6 +14,7 @@ object AesGcm {
 
     const val KEY_SIZE = 32
     const val NONCE_SIZE = 12
+    const val TAG_SIZE_BYTES = 16
     private const val TAG_SIZE = 16
     private const val TRANSFORMATION = "AES/GCM/NoPadding"
 

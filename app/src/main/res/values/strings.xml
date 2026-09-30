@@ -158,6 +158,20 @@
     <string name="settings_language_subtitle">App display language</string>
     <string name="settings_about">About Cryptowl</string>
     <string name="settings_about_subtitle">Local-first encrypted vault</string>
+    <string name="settings_change_password">Change master password</string>
+    <string name="settings_change_password_subtitle">Rewrap the vault key with a new password</string>
+    <string name="password_current_label">Current password</string>
+    <string name="password_new_label">New password</string>
+    <string name="password_change_success">Master password changed. Use the new password on the next cold start.</string>
+    <string name="error_password_change_failed">Failed to change the master password</string>
+    <string name="settings_autolock">Auto-lock</string>
+    <string name="settings_autolock_subtitle">Lock the vault after leaving the app</string>
+    <string name="autolock_immediate">Immediately</string>
+    <string name="autolock_1m">After 1 minute</string>
+    <string name="autolock_5m">After 5 minutes</string>
+    <string name="autolock_30m">After 30 minutes</string>
+    <string name="settings_flag_secure">Block screenshots</string>
+    <string name="settings_flag_secure_subtitle">Prevent screenshots and screen recording</string>
     <string name="settings_biometric_enable_title">Enable fingerprint unlock</string>
     <string name="settings_biometric_enable_desc">Confirm your master password to wrap the vault key with a fingerprint-protected key stored in the device keystore.</string>
     <string name="settings_biometric_enable_subtitle">Confirm your fingerprint to enable unlock</string>
@@ -197,4 +211,51 @@
     <string name="passwords_delete_desc">The entry will be removed from the vault.</string>
     <string name="passwords_show">Show password</string>
     <string name="passwords_hide">Hide password</string>
+
+    <!-- Notes (Confidential tier) -->
+    <string name="notes_title">Notes</string>
+    <string name="notes_empty">No notes yet</string>
+    <string name="notes_empty_hint">Write private notes with markdown. They are encrypted inside the vault and readable right after unlock.</string>
+    <string name="notes_add">Add note</string>
+    <string name="notes_untitled">Untitled</string>
+    <string name="notes_pinned">Pinned</string>
+    <string name="notes_pin">Pin</string>
+    <string name="notes_unpin">Unpin</string>
+    <string name="notes_new_title">New note</string>
+    <string name="notes_edit_title">Edit note</string>
+    <string name="notes_field_title">Title</string>
+    <string name="notes_field_content">Content</string>
+    <string name="notes_preview">Preview</string>
+    <string name="notes_edit_content">Edit content</string>
+    <string name="notes_markdown_hint">Markdown is supported.</string>
+    <string name="notes_delete">Delete</string>
+    <string name="notes_delete_title">Delete this note?</string>
+    <string name="notes_delete_desc">The note will be removed from the vault.</string>
+    <string name="notes_error_operation">The operation failed</string>
+
+    <!-- Media vault (Confidential tier) -->
+    <string name="media_title">Photos &amp; videos</string>
+    <string name="media_empty">No media yet</string>
+    <string name="media_empty_hint">Import photos and videos; each file is encrypted with the vault key before it touches the disk.</string>
+    <string name="media_import">Import media</string>
+    <string name="media_delete">Delete</string>
+    <string name="media_delete_title">Delete this item?</string>
+    <string name="media_delete_desc">The encrypted file will be removed from the vault.</string>
+    <string name="media_error">The media operation failed</string>
+
+    <!-- Top secret (per-access two-factor) -->
+    <string name="top_secret_setup">Set up secondary password</string>
+    <string name="top_secret_setup_desc">Choose a second password, separate from your master password. Every Top-Secret access requires a fingerprint and this password.</string>
+    <string name="top_secret_empty">No top-secret items yet</string>
+    <string name="top_secret_empty_hint">Items here are encrypted with their own key and need a fingerprint plus your secondary password every time.</string>
+    <string name="top_secret_add">Add top-secret note</string>
+    <string name="top_secret_new_title">New top-secret note</string>
+    <string name="top_secret_edit_title">Edit top-secret note</string>
+    <string name="top_secret_password_label">Secondary password</string>
+    <string name="top_secret_prompt_title">Confirm fingerprint</string>
+    <string name="top_secret_prompt_subtitle">First factor: fingerprint</string>
+    <string name="top_secret_verify_title">Secondary password</string>
+    <string name="top_secret_verify_desc">Second factor: enter your secondary password to decrypt this item.</string>
+    <string name="top_secret_error">The Top-Secret operation failed</string>
+    <string name="about_version">Version %1$s</string>
 </resources>

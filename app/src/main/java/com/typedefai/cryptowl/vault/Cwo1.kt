@@ -135,7 +135,50 @@ object Cwo1 {
         return out.toByteArray()
     }
 
+    /**
+     * Streams a chunked CWO1 file to [target] one record at a time, so a large
+     * video never has to be held in memory whole (playback bridge).
+     */
+    fun decryptChunkedToFile(fek: ProtectedValue, aad: ByteArray, source: java.io.File, target: java.io.File) {
+        java.io.RandomAccessFile(source, "r").use { raf ->
+            val headerBytes = ByteArray(HEADER_LEN)
+            raf.readFully(headerBytes)
+            val header = parseHeader(headerBytes)
+            require(header.isChunked) { "not a chunked CWO1 file" }
+            fek.use { key ->
+                target.outputStream().use { out ->
+                    var offset = HEADER_LEN.toLong()
+                    for (i in 0 until header.chunkCount) {
+                        val isLast = i == header.chunkCount - 1
+                        val recordLen = if (isLast) (raf.length() - offset).toInt() else header.recordLength
+                        val cipherTextLen = recordLen - TAG_SIZE
+                        val record = ByteArray(recordLen)
+                        raf.seek(offset)
+                        raf.readFully(record)
+                        val plain = AesGcm.decrypt(
+                            key = key,
+                            nonce = chunkNonce(i, header.nonceOrIvPrefix),
+                            aad = aad,
+                            encrypted = com.typedefai.cryptowl.crypto.AuthEncryptedData(
+                                cipherText = record.copyOf(cipherTextLen),
+                                authTag = record.copyOfRange(cipherTextLen, recordLen),
+                            ),
+                        )
+                        out.write(plain)
+                        offset += recordLen
+                    }
+                }
+            }
+        }
+    }
+
     // ---------------------------------------------------------------- helpers
+
+    /** Header bytes for a chunked file (streaming writers need the count first). */
+    fun headerForChunked(chunkCount: Long, ivPrefix: ByteArray): ByteArray = headerChunked(chunkCount, ivPrefix)
+
+    /** Per-chunk nonce for a chunked file (nonce = u64(index) || iv_prefix). */
+    fun nonceForChunk(index: Long, ivPrefix: ByteArray): ByteArray = chunkNonce(index, ivPrefix)
 
     private fun headerWhole(nonce: ByteArray): ByteArray {
         require(nonce.size == AesGcm.NONCE_SIZE) { "nonce must be 12 bytes" }

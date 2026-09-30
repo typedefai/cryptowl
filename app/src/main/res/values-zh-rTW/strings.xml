@@ -155,6 +155,20 @@
     <string name="settings_language_subtitle">應用程式顯示語言</string>
     <string name="settings_about">關於密鴞</string>
     <string name="settings_about_subtitle">本地優先的加密保險庫</string>
+    <string name="settings_change_password">修改主密碼</string>
+    <string name="settings_change_password_subtitle">用新密碼重新包裝保險庫金鑰</string>
+    <string name="password_current_label">目前密碼</string>
+    <string name="password_new_label">新密碼</string>
+    <string name="password_change_success">主密碼已修改。下次冷啟動請使用新密碼。</string>
+    <string name="error_password_change_failed">修改主密碼失敗</string>
+    <string name="settings_autolock">自動鎖定</string>
+    <string name="settings_autolock_subtitle">離開應用程式後鎖定保險庫</string>
+    <string name="autolock_immediate">立即</string>
+    <string name="autolock_1m">1 分鐘後</string>
+    <string name="autolock_5m">5 分鐘後</string>
+    <string name="autolock_30m">30 分鐘後</string>
+    <string name="settings_flag_secure">阻止截圖</string>
+    <string name="settings_flag_secure_subtitle">禁止截圖與螢幕錄影</string>
     <string name="settings_biometric_enable_title">啟用指紋解鎖</string>
     <string name="settings_biometric_enable_desc">請確認主密碼，以將保險庫金鑰用受指紋保護的金鑰（保存在裝置金鑰庫中）重新包裝。</string>
     <string name="settings_biometric_enable_subtitle">驗證指紋以啟用解鎖</string>
@@ -194,4 +208,51 @@
     <string name="passwords_delete_desc">此項目將從保險庫中移除。</string>
     <string name="passwords_show">顯示密碼</string>
     <string name="passwords_hide">隱藏密碼</string>
+
+    <!-- Notes (Confidential tier) -->
+    <string name="notes_title">筆記</string>
+    <string name="notes_empty">還沒有筆記</string>
+    <string name="notes_empty_hint">用 Markdown 記錄私密筆記。它們加密保存在保險庫中，解鎖後即可閱讀。</string>
+    <string name="notes_add">新增筆記</string>
+    <string name="notes_untitled">未命名</string>
+    <string name="notes_pinned">已置頂</string>
+    <string name="notes_pin">置頂</string>
+    <string name="notes_unpin">取消置頂</string>
+    <string name="notes_new_title">新增筆記</string>
+    <string name="notes_edit_title">編輯筆記</string>
+    <string name="notes_field_title">標題</string>
+    <string name="notes_field_content">內容</string>
+    <string name="notes_preview">預覽</string>
+    <string name="notes_edit_content">編輯內容</string>
+    <string name="notes_markdown_hint">支援 Markdown。</string>
+    <string name="notes_delete">刪除</string>
+    <string name="notes_delete_title">刪除此筆記？</string>
+    <string name="notes_delete_desc">此筆記將從保險庫中移除。</string>
+    <string name="notes_error_operation">操作失敗</string>
+
+    <!-- Media vault (Confidential tier) -->
+    <string name="media_title">照片與影片</string>
+    <string name="media_empty">還沒有媒體檔案</string>
+    <string name="media_empty_hint">匯入照片和影片；每個檔案在寫入磁碟前都會用保險庫金鑰加密。</string>
+    <string name="media_import">匯入媒體</string>
+    <string name="media_delete">刪除</string>
+    <string name="media_delete_title">刪除此項目？</string>
+    <string name="media_delete_desc">加密檔案將從保險庫中移除。</string>
+    <string name="media_error">媒體操作失敗</string>
+
+    <!-- Top secret (per-access two-factor) -->
+    <string name="top_secret_setup">設定第二重密碼</string>
+    <string name="top_secret_setup_desc">設定一個獨立於主密碼的第二重密碼。每次存取絕密項目都需要指紋和該密碼。</string>
+    <string name="top_secret_empty">還沒有絕密項目</string>
+    <string name="top_secret_empty_hint">此處的項目使用獨立金鑰加密，每次存取都需要指紋和第二重密碼。</string>
+    <string name="top_secret_add">新增絕密筆記</string>
+    <string name="top_secret_new_title">新增絕密筆記</string>
+    <string name="top_secret_edit_title">編輯絕密筆記</string>
+    <string name="top_secret_password_label">第二重密碼</string>
+    <string name="top_secret_prompt_title">驗證指紋</string>
+    <string name="top_secret_prompt_subtitle">第一重驗證：指紋</string>
+    <string name="top_secret_verify_title">第二重密碼</string>
+    <string name="top_secret_verify_desc">第二重驗證：輸入第二重密碼以解密此項目。</string>
+    <string name="top_secret_error">絕密操作失敗</string>
+    <string name="about_version">版本 %1$s</string>
 </resources>

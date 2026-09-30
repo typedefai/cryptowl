@@ -56,7 +56,7 @@ fun LanguageButton(modifier: Modifier = Modifier) {
 
 /** App-language picker: Follow system / English / 简体中文 / 繁體中文. */
 @Composable
-private fun LanguageDialog(onDismiss: () -> Unit) {
+fun LanguageDialog(onDismiss: () -> Unit) {
     val current = AppCompatDelegate.getApplicationLocales().toLanguageTags()
     AlertDialog(
         onDismissRequest = onDismiss,

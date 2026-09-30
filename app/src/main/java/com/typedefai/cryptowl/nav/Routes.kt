@@ -44,6 +44,21 @@ object Routes {
 
     fun passwordEdit(id: String? = null): String =
         if (id == null) "vault/passwords/edit" else "vault/passwords/edit?id=$id"
+
+    // Notes CRUD (Confidential tier)
+    const val NOTE_EDIT = "vault/notes/edit?id={id}"
+
+    fun noteEdit(id: String? = null): String =
+        if (id == null) "vault/notes/edit" else "vault/notes/edit?id=$id"
+
+    // Top-Secret notes (per-access two-factor gate)
+    const val TOP_SECRET_DETAIL = "vault/top_secret/detail/{id}"
+    const val TOP_SECRET_EDIT = "vault/top_secret/edit?id={id}"
+
+    fun topSecretDetail(id: String): String = "vault/top_secret/detail/$id"
+
+    fun topSecretEdit(id: String? = null): String =
+        if (id == null) "vault/top_secret/edit" else "vault/top_secret/edit?id=$id"
 }
 
 /** A destination in the bottom navigation bar. */

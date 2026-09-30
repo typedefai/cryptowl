@@ -25,6 +25,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.typedefai.cryptowl.nav.Routes
 import com.typedefai.cryptowl.nav.TopLevelDestination
+import com.typedefai.cryptowl.ui.MediaLoader
 
 /**
  * The authenticated shell: a bottom navigation bar over four top-level
@@ -39,14 +40,28 @@ fun MainNavHost(viewModel: MainViewModel) {
     val showBottomBar = TopLevelDestination.entries.any { it.route == currentDestination?.route }
 
     val passwordViewModel: PasswordViewModel = viewModel()
+    val noteViewModel: NoteViewModel = viewModel()
+    val mediaViewModel: MediaViewModel = viewModel()
+    val topSecretViewModel: TopSecretViewModel = viewModel()
     val session by viewModel.session.collectAsState()
     val biometricUnlockAvailable by viewModel.biometricUnlockAvailable.collectAsState()
 
     LaunchedEffect(session) {
-        session?.let(passwordViewModel::attach)
+        session?.let {
+            passwordViewModel.attach(it)
+            noteViewModel.attach(it)
+            mediaViewModel.attach(it)
+            topSecretViewModel.attach(it)
+        }
     }
     DisposableEffect(Unit) {
-        onDispose { passwordViewModel.detach() }
+        onDispose {
+            passwordViewModel.detach()
+            noteViewModel.detach()
+            mediaViewModel.detach()
+            topSecretViewModel.detach()
+            MediaLoader.clear()
+        }
     }
 
     Scaffold(
@@ -108,7 +123,27 @@ fun MainNavHost(viewModel: MainViewModel) {
                     onRestore = { navController.navigate(Routes.RESTORE) },
                 )
             }
-            composable(Routes.NOTES) { FeaturePlaceholderScreen(Routes.NOTES) }
+            composable(Routes.NOTES) {
+                NotesScreen(
+                    viewModel = noteViewModel,
+                    onOpen = { navController.navigate(Routes.noteEdit(it)) },
+                    onAdd = { navController.navigate(Routes.noteEdit()) },
+                )
+            }
+            composable(
+                route = Routes.NOTE_EDIT,
+                arguments = listOf(navArgument("id") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }),
+            ) { entry ->
+                NoteEditScreen(
+                    viewModel = noteViewModel,
+                    id = entry.arguments?.getString("id"),
+                    onBack = { navController.popBackStack() },
+                )
+            }
             composable(Routes.PASSWORDS) {
                 PasswordsScreen(
                     viewModel = passwordViewModel,
@@ -143,8 +178,40 @@ fun MainNavHost(viewModel: MainViewModel) {
                     onBack = { navController.popBackStack() },
                 )
             }
-            composable(Routes.TOP_SECRET) { FeaturePlaceholderScreen(Routes.TOP_SECRET) }
-            composable(Routes.MEDIA) { FeaturePlaceholderScreen(Routes.MEDIA) }
+            composable(Routes.TOP_SECRET) {
+                TopSecretScreen(
+                    viewModel = topSecretViewModel,
+                    onOpen = { navController.navigate(Routes.topSecretDetail(it)) },
+                    onAdd = { navController.navigate(Routes.topSecretEdit()) },
+                )
+            }
+            composable(
+                route = Routes.TOP_SECRET_DETAIL,
+                arguments = listOf(navArgument("id") { type = NavType.StringType }),
+            ) { entry ->
+                val id = entry.arguments?.getString("id") ?: return@composable
+                TopSecretDetailScreen(
+                    viewModel = topSecretViewModel,
+                    id = id,
+                    onEdit = { navController.navigate(Routes.topSecretEdit(id)) },
+                    onBack = { navController.popBackStack() },
+                )
+            }
+            composable(
+                route = Routes.TOP_SECRET_EDIT,
+                arguments = listOf(navArgument("id") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }),
+            ) { entry ->
+                TopSecretEditScreen(
+                    viewModel = topSecretViewModel,
+                    id = entry.arguments?.getString("id"),
+                    onBack = { navController.popBackStack() },
+                )
+            }
+            composable(Routes.MEDIA) { MediaScreen(mediaViewModel, session) }
             composable(Routes.RESTORE) {
                 RestoreScreen(viewModel, onBack = { navController.popBackStack() })
             }

@@ -8,18 +8,24 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.typedefai.cryptowl.R
 import com.typedefai.cryptowl.crypto.ProtectedValue
+import com.typedefai.cryptowl.settings.AutoLockPolicy
+import com.typedefai.cryptowl.settings.SettingsStore
 import com.typedefai.cryptowl.vault.BioKeyManager
 import com.typedefai.cryptowl.vault.BioKeySetup
+import com.typedefai.cryptowl.vault.MasterPasswordChange
 import com.typedefai.cryptowl.vault.UnlockService
 import com.typedefai.cryptowl.vault.VaultBackup
 import com.typedefai.cryptowl.vault.VaultCreator
 import com.typedefai.cryptowl.vault.VaultMeta
+import com.typedefai.cryptowl.vault.VaultMetaJson
 import com.typedefai.cryptowl.vault.VaultSession
 import com.typedefai.cryptowl.vault.VaultStore
 import java.io.File
 import java.util.concurrent.atomic.AtomicReference
 import javax.crypto.Cipher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -275,6 +281,121 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun clearBiometricError() {
         _biometricError.value = null
+    }
+
+    // ------------------------------------------------- master password change
+
+    private val _passwordChangeBusy = MutableStateFlow(false)
+    val passwordChangeBusy: StateFlow<Boolean> = _passwordChangeBusy.asStateFlow()
+
+    private val _passwordChangeError = MutableStateFlow<String?>(null)
+    val passwordChangeError: StateFlow<String?> = _passwordChangeError.asStateFlow()
+
+    private val _passwordChanged = MutableStateFlow(false)
+    val passwordChanged: StateFlow<Boolean> = _passwordChanged.asStateFlow()
+
+    fun changeMasterPassword(current: String, new: String) {
+        _passwordChangeBusy.value = true
+        _passwordChangeError.value = null
+        _passwordChanged.value = false
+        viewModelScope.launch {
+            val currentValue = ProtectedValue.fromString(current)
+            val newValue = ProtectedValue.fromString(new)
+            try {
+                withContext(Dispatchers.IO) {
+                    MasterPasswordChange(getApplication()).change(currentValue, newValue, vaultId)
+                }
+                _passwordChanged.value = true
+            } catch (e: Throwable) {
+                Log.e(TAG, "changeMasterPassword failed", e)
+                _passwordChangeError.value = e.message
+                    ?: getApplication<Application>().getString(R.string.error_password_change_failed)
+            } finally {
+                currentValue.clear()
+                newValue.clear()
+                _passwordChangeBusy.value = false
+            }
+        }
+    }
+
+    fun consumePasswordChanged() {
+        _passwordChanged.value = false
+    }
+
+    fun clearPasswordChangeError() {
+        _passwordChangeError.value = null
+    }
+
+    // ------------------------------------------------------------------ about
+
+    private val _vaultInfo = MutableStateFlow<String?>(null)
+    val vaultInfo: StateFlow<String?> = _vaultInfo.asStateFlow()
+
+    fun loadVaultInfo() {
+        viewModelScope.launch {
+            _vaultInfo.value = withContext(Dispatchers.IO) {
+                runCatching {
+                    val meta = VaultMetaJson.decode(VaultStore.metaFile(getApplication(), vaultId).readText())
+                    "vault ${meta.vaultId} · format v${meta.version} · " +
+                        "argon2id m=${meta.kdf.mKib}KiB t=${meta.kdf.t} p=${meta.kdf.p}"
+                }.getOrNull()
+            }
+        }
+    }
+
+    // ------------------------------------------------------ auto-lock / privacy
+
+    private val settingsStore = SettingsStore(getApplication())
+
+    private val _autoLockTimeoutMs = MutableStateFlow(settingsStore.autoLockTimeoutMs)
+    val autoLockTimeoutMs: StateFlow<Long> = _autoLockTimeoutMs.asStateFlow()
+
+    private val _flagSecure = MutableStateFlow(settingsStore.flagSecure)
+    val flagSecure: StateFlow<Boolean> = _flagSecure.asStateFlow()
+
+    private var autoLockJob: Job? = null
+    private var backgroundedAtMs = 0L
+
+    fun setAutoLockTimeout(timeoutMs: Long) {
+        settingsStore.autoLockTimeoutMs = timeoutMs
+        _autoLockTimeoutMs.value = timeoutMs
+    }
+
+    fun setFlagSecure(enabled: Boolean) {
+        settingsStore.flagSecure = enabled
+        _flagSecure.value = enabled
+    }
+
+    /** App moved to the background: lock now or after the configured timeout. */
+    fun onAppBackgrounded() {
+        if (_session.value == null) return
+        backgroundedAtMs = System.currentTimeMillis()
+        val timeout = _autoLockTimeoutMs.value
+        if (AutoLockPolicy.shouldLockImmediately(timeout)) {
+            lockVault()
+            return
+        }
+        autoLockJob?.cancel()
+        autoLockJob = viewModelScope.launch {
+            delay(timeout)
+            lockVault()
+        }
+    }
+
+    /**
+     * App returned to the foreground: cancel the pending lock unless the
+     * process was frozen past the timeout (the delayed job may not have run).
+     */
+    fun onAppForegrounded() {
+        autoLockJob?.cancel()
+        autoLockJob = null
+        if (_session.value != null && backgroundedAtMs > 0) {
+            val elapsed = System.currentTimeMillis() - backgroundedAtMs
+            if (AutoLockPolicy.shouldLockOnResume(elapsed, _autoLockTimeoutMs.value)) {
+                lockVault()
+            }
+        }
+        backgroundedAtMs = 0L
     }
 
     // ------------------------------------------------------------ vault unlock

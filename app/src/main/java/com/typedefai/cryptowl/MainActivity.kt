@@ -1,6 +1,7 @@
 package com.typedefai.cryptowl
 
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -19,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,6 +32,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.ViewModelProvider
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
@@ -46,6 +51,11 @@ class MainActivity : AppCompatActivity() {
 
     private var splashShownAt = 0L
 
+    private val processLifecycleObserver = object : DefaultLifecycleObserver {
+        override fun onStart(owner: LifecycleOwner) = viewModel.onAppForegrounded()
+        override fun onStop(owner: LifecycleOwner) = viewModel.onAppBackgrounded()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // System splash; hold the minimum time, then hand over to the Compose
         // splash (logo + wordmark) until MIN_TOTAL_SPLASH_MS.
@@ -53,6 +63,7 @@ class MainActivity : AppCompatActivity() {
         splashShownAt = System.currentTimeMillis()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        ProcessLifecycleOwner.get().lifecycle.addObserver(processLifecycleObserver)
 
         setContent {
             setSingletonImageLoaderFactory { context ->
@@ -61,6 +72,14 @@ class MainActivity : AppCompatActivity() {
                     .build()
             }
             CryptowlTheme {
+                val flagSecure by viewModel.flagSecure.collectAsState()
+                LaunchedEffect(flagSecure) {
+                    if (flagSecure) {
+                        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                    } else {
+                        window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                    }
+                }
                 var showSplash by remember { mutableStateOf(true) }
                 if (showSplash) {
                     LaunchedEffect(Unit) {
@@ -76,6 +95,11 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    override fun onDestroy() {
+        ProcessLifecycleOwner.get().lifecycle.removeObserver(processLifecycleObserver)
+        super.onDestroy()
     }
 
     private companion object {

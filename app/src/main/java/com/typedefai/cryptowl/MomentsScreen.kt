@@ -1,10 +1,7 @@
 package com.typedefai.cryptowl
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.util.LruCache
-import android.widget.Toast
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -56,15 +53,14 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.typedefai.cryptowl.LanguageButton
 import com.typedefai.cryptowl.R
-import com.typedefai.cryptowl.vault.Cwo1
+import com.typedefai.cryptowl.media.Cwo1VideoPlayer
+import com.typedefai.cryptowl.ui.MediaLoader
 import com.typedefai.cryptowl.vault.MomentCard
 import com.typedefai.cryptowl.vault.MomentComment
 import com.typedefai.cryptowl.vault.MomentMedia
 import com.typedefai.cryptowl.vault.MomentPost
 import com.typedefai.cryptowl.vault.MomentsRepository
 import com.typedefai.cryptowl.vault.VaultSession
-import com.typedefai.cryptowl.vault.VaultStore
-import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -440,54 +436,27 @@ private fun CardView(card: MomentCard, session: VaultSession, context: Context, 
 
 object MomentsMediaLoader {
 
-    /** In-memory cache of decrypted thumbnails — a re-scroll must not re-decrypt. */
-    private val cache = object : LruCache<String, Bitmap>(maxCacheEntries()) {
-        override fun sizeOf(key: String, value: Bitmap) = value.byteCount
-    }
-
-    private fun maxCacheEntries(): Int {
-        val maxKb = (Runtime.getRuntime().maxMemory() / 1024).toInt()
-        return maxKb / 8
-    }
-
     fun loadThumbnail(context: Context, session: VaultSession, media: MomentMedia): ImageBitmap? {
         val name = media.thumbnailFilename ?: return null
-        return loadCwoImage(context, session, subdir = "thumbnails", filename = name, aad = media.id)
+        return MediaLoader.loadCwo(context, session, subdir = "thumbnails", filename = name, aad = media.id)
     }
 
     fun loadOriginal(context: Context, session: VaultSession, media: MomentMedia): ImageBitmap? =
-        loadCwoImage(context, session, subdir = "attachments", filename = media.filename, aad = media.id)
+        MediaLoader.loadCwo(context, session, subdir = "attachments", filename = media.filename, aad = media.id)
 
     fun loadCardCover(context: Context, session: VaultSession, cardId: String, filename: String): ImageBitmap? =
-        loadCwoImage(context, session, subdir = "attachments", filename = filename, aad = cardId)
-
-    private fun loadCwoImage(context: Context, session: VaultSession, subdir: String, filename: String, aad: String): ImageBitmap? {
-        val cacheKey = "${session.vaultId}/$subdir/$filename"
-        cache.get(cacheKey)?.let { return it.asImageBitmap() }
-        val file = File(File(VaultStore.vaultDir(context, session.vaultId), subdir), filename)
-        if (!file.exists()) return null
-        val bytes = Cwo1.decryptWholeFile(session.fek, aad.toByteArray(Charsets.UTF_8), file.readBytes())
-        val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: return null
-        bytes.fill(0)
-        cache.put(cacheKey, bitmap)
-        return bitmap.asImageBitmap()
-    }
+        MediaLoader.loadCwo(context, session, subdir = "attachments", filename = filename, aad = cardId)
 }
 
 // ------------------------------------------------------------------ viewer
 
-/** Full-screen decrypted original of a media item (images; videos later). */
+/** Full-screen decrypted original of a media item (images; videos stream). */
 @Composable
 private fun MediaViewer(media: MomentMedia, session: VaultSession, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val bitmap by produceState<ImageBitmap?>(initialValue = null, media.id, session) {
         if (media.mediaType == "image") {
             value = withContext(Dispatchers.IO) { MomentsMediaLoader.loadOriginal(context, session, media) }
-        }
-    }
-    LaunchedEffect(media.mediaType) {
-        if (media.mediaType != "image") {
-            Toast.makeText(context, R.string.viewer_video_unsupported, Toast.LENGTH_SHORT).show()
         }
     }
     Dialog(
@@ -497,10 +466,34 @@ private fun MediaViewer(media: MomentMedia, session: VaultSession, onDismiss: ()
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.9f))
-                .clickable(onClick = onDismiss),
+                .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.9f)),
             contentAlignment = Alignment.Center,
         ) {
+            if (media.mediaType == "image") {
+                val image = bitmap
+                if (image != null) {
+                    Image(
+                        bitmap = image,
+                        contentDescription = media.originalName,
+                        contentScale = ContentScale.FillWidth,
+                        modifier = Modifier.fillMaxWidth().clickable(onClick = onDismiss),
+                    )
+                } else {
+                    androidx.compose.material3.CircularProgressIndicator(
+                        modifier = Modifier.height(24.dp),
+                        strokeWidth = 2.dp,
+                        color = androidx.compose.ui.graphics.Color.White,
+                    )
+                }
+            } else {
+                Cwo1VideoPlayer(
+                    session = session,
+                    subdir = "attachments",
+                    filename = media.filename,
+                    aad = media.id,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
             IconButton(
                 onClick = onDismiss,
                 modifier = Modifier
@@ -512,21 +505,6 @@ private fun MediaViewer(media: MomentMedia, session: VaultSession, onDismiss: ()
                     Icons.Filled.Close,
                     contentDescription = stringResource(R.string.viewer_close),
                     tint = androidx.compose.ui.graphics.Color.White,
-                )
-            }
-            val image = bitmap
-            if (image != null) {
-                Image(
-                    bitmap = image,
-                    contentDescription = media.originalName,
-                    contentScale = ContentScale.FillWidth,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            } else {
-                androidx.compose.material3.CircularProgressIndicator(
-                    modifier = Modifier.height(24.dp),
-                    strokeWidth = 2.dp,
-                    color = androidx.compose.ui.graphics.Color.White,
                 )
             }
         }

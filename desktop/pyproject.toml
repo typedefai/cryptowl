@@ -1,0 +1,20 @@
+[project]
+name = "cryptowl-desktop"
+version = "0.1.0"
+description = "CryptOwl desktop vault manager and debugging tool (byte-compatible with the Android app)"
+requires-python = ">=3.9"
+dependencies = [
+    "PyQt6>=6.6",
+    "pycryptodome>=3.19",
+    "argon2-cffi>=23.1",
+]
+
+[project.scripts]
+cryptowl-desktop = "cryptowl_desktop.ui.main_window:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["cryptowl_desktop"]

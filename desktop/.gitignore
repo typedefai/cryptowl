@@ -1,0 +1,5 @@
+.venv/
+.native/
+__pycache__/
+*.pyc
+native/

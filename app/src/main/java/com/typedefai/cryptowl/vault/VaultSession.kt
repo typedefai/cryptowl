@@ -1,5 +1,6 @@
 package com.typedefai.cryptowl.vault
 
+import com.typedefai.cryptowl.crypto.CryptoLog
 import com.typedefai.cryptowl.crypto.ProtectedValue
 import net.zetetic.database.sqlcipher.SQLiteDatabase
 
@@ -16,6 +17,7 @@ class VaultSession(
 ) : AutoCloseable {
 
     override fun close() {
+        CryptoLog.d("VaultSession", "close: wiping session vaultId=$vaultId (fek + vaultKey zeroized, db closed)")
         fek.clear()
         vaultKey.clear()
         db.close()

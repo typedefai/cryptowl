@@ -1,5 +1,6 @@
 package com.typedefai.cryptowl.vault
 
+import com.typedefai.cryptowl.crypto.CryptoLog
 import net.zetetic.database.sqlcipher.SQLiteDatabase
 
 /** List row for the notes list (title/pin/timestamps only). */
@@ -35,6 +36,11 @@ data class NoteDraft(
  * `encrypted_data_id` is reserved for a future S/T escalation.
  */
 class NoteRepository(private val db: SQLiteDatabase) {
+
+    private companion object {
+        const val C = "NoteRepository"
+    }
+
 
     fun list(): List<NoteSummary> =
         db.rawQuery(
@@ -73,6 +79,7 @@ class NoteRepository(private val db: SQLiteDatabase) {
 
     fun create(draft: NoteDraft): String {
         val id = com.typedefai.cryptowl.crypto.RandomUtil.generateUUID()
+        CryptoLog.d(C, "create: noteId=$id title='${draft.title}' content=${draft.content.length}ch pinned=${draft.pinned} (classification C, SQLCipher only)")
         val now = System.currentTimeMillis()
         db.execSQL(
             """INSERT INTO t_note (id, classification, title, content, pinned, created_at, updated_at)
@@ -83,6 +90,7 @@ class NoteRepository(private val db: SQLiteDatabase) {
     }
 
     fun update(id: String, draft: NoteDraft) {
+        CryptoLog.d(C, "update: noteId=$id title='${draft.title}' content=${draft.content.length}ch")
         db.execSQL(
             "UPDATE t_note SET title = ?, content = ?, pinned = ?, updated_at = ? WHERE id = ?",
             arrayOf<Any>(draft.title, draft.content, if (draft.pinned) 1 else 0, System.currentTimeMillis(), id),
@@ -97,6 +105,7 @@ class NoteRepository(private val db: SQLiteDatabase) {
     }
 
     fun softDelete(id: String) {
+        CryptoLog.d(C, "softDelete: noteId=$id")
         val now = System.currentTimeMillis()
         db.execSQL("UPDATE t_note SET deleted_at = ?, updated_at = ? WHERE id = ?", arrayOf<Any>(now, now, id))
     }
@@ -126,6 +135,7 @@ class NoteRepository(private val db: SQLiteDatabase) {
 
     fun createEncrypted(title: String, classification: String, encryptedDataId: String): String {
         val id = com.typedefai.cryptowl.crypto.RandomUtil.generateUUID()
+        CryptoLog.d(C, "createEncrypted: noteId=$id classification=$classification encryptedDataId=$encryptedDataId title='$title'")
         val now = System.currentTimeMillis()
         db.execSQL(
             """INSERT INTO t_note (id, classification, title, content, pinned, encrypted_data_id, created_at, updated_at)

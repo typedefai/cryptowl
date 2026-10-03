@@ -31,6 +31,11 @@ object AesGcm {
         cipher.updateAAD(aad)
         val output = cipher.doFinal(plainText)
 
+        CryptoLog.d(
+            C,
+            "encrypt key(${CryptoLog.key(key)}) nonce=${nonce.toHexString()} aad='${aad.decodeToString()}' " +
+                "plain=${plainText.size}B -> cipher=${output.size - TAG_SIZE}B tag=$TAG_SIZE",
+        )
         return AuthEncryptedData(
             cipherText = output.copyOf(output.size - TAG_SIZE),
             authTag = output.copyOfRange(output.size - TAG_SIZE, output.size),
@@ -49,6 +54,24 @@ object AesGcm {
         )
         cipher.updateAAD(aad)
         val combined = encrypted.cipherText + encrypted.authTag
-        return cipher.doFinal(combined)
+        val plain = try {
+            cipher.doFinal(combined)
+        } catch (e: Throwable) {
+            CryptoLog.e(
+                C,
+                "decrypt FAILED (bad tag/AAD/nonce): key(${CryptoLog.key(key)}) nonce=${nonce.toHexString()} " +
+                    "aad='${aad.decodeToString()}' cipher=${encrypted.cipherText.size}B",
+                e,
+            )
+            throw e
+        }
+        CryptoLog.d(
+            C,
+            "decrypt key(${CryptoLog.key(key)}) nonce=${nonce.toHexString()} aad='${aad.decodeToString()}' " +
+                "cipher=${encrypted.cipherText.size}B -> plain=${plain.size}B",
+        )
+        return plain
     }
+
+    private const val C = "AesGcm"
 }

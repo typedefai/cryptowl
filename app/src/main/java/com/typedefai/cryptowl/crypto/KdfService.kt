@@ -1,7 +1,6 @@
 package com.typedefai.cryptowl.crypto
 
 import android.os.SystemClock
-import android.util.Log
 
 /**
  * Argon2 password hashing, injectable so JVM unit tests can stub it
@@ -54,10 +53,11 @@ class KdfService(
             try {
                 val t0 = SystemClock.elapsedRealtime()
                 val tmk = hasher.hash(preHashed, salt, params, KEY_SIZE)
-                Log.d(
-                    TAG,
-                    "TMK: argon2 m=${params.mCostKiB}KiB t=${params.tCost} p=${params.parallelism} " +
-                        "hashLen=$KEY_SIZE salt=${salt.toHexString(8)} took=${SystemClock.elapsedRealtime() - t0}ms",
+                CryptoLog.d(
+                    C,
+                    "TMK: argon2id m=${params.mCostKiB}KiB t=${params.tCost} p=${params.parallelism} " +
+                        "hashLen=$KEY_SIZE salt=${salt.toHexString(8)} took=${SystemClock.elapsedRealtime() - t0}ms " +
+                        "tmk(${CryptoLog.key(tmk)})",
                 )
                 ProtectedValue.fromBinary(tmk)
             } finally {
@@ -78,9 +78,10 @@ class KdfService(
         ProtectedValue.fromBinary(
             Hkdf.deriveKey(ikm = tmk, salt = salt, info = vaultId, outputLength = SMK_SIZE),
         ).also {
-            Log.d(
-                TAG,
-                "SMK: hkdf salt=${salt.toHexString(8)} info=${vaultId.decodeToString()} L=$SMK_SIZE",
+            CryptoLog.d(
+                C,
+                "SMK: hkdf salt=${salt.toHexString(8)} info=${vaultId.decodeToString()} L=$SMK_SIZE " +
+                    "tmk(${CryptoLog.key(tmk)}) -> smk(${CryptoLog.key(it)})",
             )
         }
     }
@@ -102,7 +103,14 @@ class KdfService(
         salt: ByteArray,
         params: KdfParams = KdfParams.OWASP,
     ): ProtectedValue = secondaryPassword.use { password ->
-        ProtectedValue.fromBinary(hasher.hash(password, salt, params, KEY_SIZE))
+        val t0 = SystemClock.elapsedRealtime()
+        ProtectedValue.fromBinary(hasher.hash(password, salt, params, KEY_SIZE)).also {
+            CryptoLog.d(
+                C,
+                "TS-KEK: argon2id secondary password salt=${salt.toHexString(8)} " +
+                    "took=${SystemClock.elapsedRealtime() - t0}ms tsKek(${CryptoLog.key(it)})",
+            )
+        }
     }
 
     /**
@@ -117,9 +125,10 @@ class KdfService(
     ): WrappedKey = wrappingKey.use { wk ->
         key.use { k ->
             val encrypted = AesGcm.encrypt(wk, nonce, aad, k)
-            Log.d(
-                TAG,
-                "wrap: aad=${aad.decodeToString()} nonce=${nonce.toHexString()} " +
+            CryptoLog.d(
+                C,
+                "wrapKey: aad='${aad.decodeToString()}' nonce=${nonce.toHexString()} " +
+                    "KEK(${CryptoLog.key(wk)}) + key(${CryptoLog.key(k)}) -> " +
                     "cipher=${encrypted.cipherText.size}B tag=${encrypted.authTag.size}B",
             )
             WrappedKey(cipherText = encrypted.cipherText, nonce = nonce, authTag = encrypted.authTag)
@@ -132,16 +141,26 @@ class KdfService(
      */
     fun unwrapKey(wrapped: WrappedKey, wrappingKey: ProtectedValue, aad: ByteArray): ProtectedValue =
         wrappingKey.use { wk ->
-            val plain = AesGcm.decrypt(
-                key = wk,
-                nonce = wrapped.nonce,
-                aad = aad,
-                encrypted = AuthEncryptedData(wrapped.cipherText, wrapped.authTag),
-            )
-            Log.d(
-                TAG,
-                "unwrap: aad=${aad.decodeToString()} nonce=${wrapped.nonce.toHexString()} " +
-                    "cipher=${wrapped.cipherText.size}B tag=${wrapped.authTag.size}B",
+            val plain = try {
+                AesGcm.decrypt(
+                    key = wk,
+                    nonce = wrapped.nonce,
+                    aad = aad,
+                    encrypted = AuthEncryptedData(wrapped.cipherText, wrapped.authTag),
+                )
+            } catch (e: Throwable) {
+                CryptoLog.e(
+                    C,
+                    "unwrapKey FAILED: aad='${aad.decodeToString()}' nonce=${wrapped.nonce.toHexString()} " +
+                        "KEK(${CryptoLog.key(wk)}) cipher=${wrapped.cipherText.size}B",
+                    e,
+                )
+                throw e
+            }
+            CryptoLog.d(
+                C,
+                "unwrapKey: aad='${aad.decodeToString()}' nonce=${wrapped.nonce.toHexString()} " +
+                    "KEK(${CryptoLog.key(wk)}) -> key(${CryptoLog.key(plain)})",
             )
             ProtectedValue.fromBinary(plain)
         }
@@ -151,13 +170,14 @@ class KdfService(
      * HKDF-SHA256(ikm=VaultKey, salt="", info="file", L=32).
      */
     fun fileKey(vaultKey: ProtectedValue): ProtectedValue = vaultKey.use { vk ->
+        CryptoLog.d(C, "FEK: hkdf info=file vaultKey(${CryptoLog.key(vk)})")
         ProtectedValue.fromBinary(
             Hkdf.deriveKey(ikm = vk, salt = ByteArray(0), info = "file".toByteArray(), outputLength = KEY_SIZE),
-        )
+        ).also { CryptoLog.d(C, "FEK: derived fek(${CryptoLog.key(it)})") }
     }
 
     private companion object {
-        const val TAG = "cwl:KdfService"
+        const val C = "KdfService"
         const val KEY_SIZE = 32
         const val SMK_SIZE = 64
     }

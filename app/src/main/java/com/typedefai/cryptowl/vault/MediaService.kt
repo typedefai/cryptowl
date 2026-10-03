@@ -6,7 +6,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.media.MediaMetadataRetriever
 import android.net.Uri
-import android.util.Log
+import com.typedefai.cryptowl.crypto.CryptoLog
 import androidx.exifinterface.media.ExifInterface
 import com.typedefai.cryptowl.crypto.AesGcm
 import com.typedefai.cryptowl.crypto.RandomUtil
@@ -35,6 +35,7 @@ class MediaService(
     /** Encrypts an in-memory image (capture/import), with a downscaled thumbnail. */
     fun importImage(bytes: ByteArray, originalName: String?, mimeType: String?): MediaItem {
         val id = RandomUtil.generateUUID()
+        CryptoLog.d(C, "importImage: id=$id name='$originalName' mime=$mimeType plain=${bytes.size}B fek(${CryptoLog.key(session.fek)}) aad=$id")
         val aad = id.toByteArray(Charsets.UTF_8)
         val encrypted = Cwo1.encryptWholeFile(session.fek, aad, bytes)
         writeAttachment(id, encrypted)
@@ -53,6 +54,7 @@ class MediaService(
             createdAt = System.currentTimeMillis(),
         )
         repo.insert(item)
+        CryptoLog.d(C, "importImage: done id=$id attachment=${attachmentFile(item)} thumbnail=${thumbnailFile(id)}")
         return item
     }
 
@@ -65,6 +67,7 @@ class MediaService(
         val ivPrefix = RandomUtil.generateSecureBytes(4)
 
         val totalBytes = countBytes(uri)
+        CryptoLog.d(C, "importFile: id=$id name='$originalName' mime=$mimeType uri=$uri total=${totalBytes}B fek(${CryptoLog.key(session.fek)})")
         val chunkCount = if (totalBytes == 0L) 0L else (totalBytes + Cwo1.CHUNK_SIZE - 1) / Cwo1.CHUNK_SIZE
         session.fek.use { key ->
             FileOutputStream(target).use { out ->
@@ -114,6 +117,8 @@ class MediaService(
             createdAt = System.currentTimeMillis(),
         )
         repo.insert(item)
+        CryptoLog.d(C, "importFile: done id=$id chunks=${if (totalBytes == 0L) 0 else (totalBytes + Cwo1.CHUNK_SIZE - 1) / Cwo1.CHUNK_SIZE} " +
+            "attachment=${attachmentFile(item)}")
         return item
     }
 
@@ -123,11 +128,13 @@ class MediaService(
         require(file.exists()) { "missing attachment: ${item.storageName}" }
         val aad = item.id.toByteArray(Charsets.UTF_8)
         val cipher = file.readBytes()
+        CryptoLog.d(C, "originalBytes: id=${item.id} file=$file cipher=${cipher.size}B fek(${CryptoLog.key(session.fek)}) aad=${item.id}")
         return Cwo1.decryptWholeFile(session.fek, aad, cipher)
     }
 
     fun delete(id: String) {
         val item = repo.get(id)
+        CryptoLog.d(C, "delete: id=$id exists=${item != null}")
         repo.softDelete(id)
         if (item != null) {
             attachmentFile(item).delete()
@@ -181,7 +188,7 @@ class MediaService(
             retriever.setDataSource(context, uri)
             retriever.getFrameAtTime(0)
         } catch (e: Throwable) {
-            Log.e(TAG, "video thumbnail extraction failed", e)
+            CryptoLog.e(C, "video thumbnail extraction failed", e)
             null
         } finally {
             runCatching { retriever.release() }
@@ -239,7 +246,7 @@ class MediaService(
     private fun thumbnailName(id: String) = "${id}_t.cwo"
 
     private companion object {
-        const val TAG = "cwl:MediaService"
+        const val C = "MediaService"
         const val PAGE_SIZE = 60
         const val THUMB_MAX_DIM = 512
         const val THUMB_QUALITY = 85

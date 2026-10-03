@@ -2,6 +2,7 @@ package com.typedefai.cryptowl.vault
 
 import android.content.Context
 import com.typedefai.cryptowl.crypto.AesGcm
+import com.typedefai.cryptowl.crypto.CryptoLog
 import com.typedefai.cryptowl.crypto.AuthEncryptedData
 import com.typedefai.cryptowl.crypto.KdfParams
 import com.typedefai.cryptowl.crypto.KdfService
@@ -57,11 +58,13 @@ class TopSecretService(
         val meta = loadMeta()
         val salt = meta.salts.secondary ?: error("vault.meta has no secondary salt")
         val tsKek = kdf.createSecondaryKey(secondaryPassword, salt, paramsOf(meta))
+        CryptoLog.d(C, "completeSetup: salt=${salt.toHexString(8)} tsKek(${CryptoLog.key(tsKek)}) aad='$TS_KEK_ID'")
         try {
             val wrappedTsKek = tsKek.use { encryptCipher.doFinal(it) }
             insertWrappedKey(TS_KEK_ID, TS_KEK_ROLE, TS_KEK_WRAPPER, encryptCipher.iv, wrappedTsKek)
 
             val topSecretKek = ProtectedValue.fromBinary(RandomUtil.generateSecureBytes(KEY_SIZE))
+            CryptoLog.d(C, "completeSetup: topSecretKek(${CryptoLog.key(topSecretKek)}) wrapped by ts_kek:ts_kek")
             try {
                 val wrapped = kdf.wrapKey(topSecretKek, tsKek, aad = TOP_SECRET_KEK_AAD)
                 insertWrappedKey(
@@ -84,6 +87,7 @@ class TopSecretService(
     /** DECRYPT cipher for `ts_kek:biokey` (factor 1). */
     fun prepareUnlockCipher(): Cipher {
         val row = loadRow(TS_KEK_ID) ?: error("no $TS_KEK_ID row in t_wrapped_key")
+        CryptoLog.d(C, "prepareUnlockCipher: $TS_KEK_ID nonce=${row.nonce.toHexString(8)} (factor 1: fingerprint)")
         return BioKeyManager.createDecryptCipher(row.nonce).apply { updateAAD(TS_KEK_AAD) }
     }
 
@@ -96,7 +100,7 @@ class TopSecretService(
             throw VaultOpenException("fingerprint key cannot unwrap the Top-Secret KEK")
         }
         return try {
-            ProtectedValue.fromBinary(plain)
+            ProtectedValue.fromBinary(plain).also { CryptoLog.d(C, "unlockTsKek: factor 1 OK tsKek(${CryptoLog.key(it)})") }
         } finally {
             plain.fill(0)
         }
@@ -116,8 +120,10 @@ class TopSecretService(
             val pw = tsKekPw.binaryValue()
             try {
                 if (!MessageDigest.isEqual(bio, pw)) {
+                    CryptoLog.w(C, "unlockTopSecretKek: factor 2 FAILED (secondary password mismatch)")
                     throw VaultOpenException("secondary password is incorrect")
                 }
+                CryptoLog.d(C, "unlockTopSecretKek: factor 2 OK (bio + password TS-KEK identical)")
             } finally {
                 bio.fill(0)
                 pw.fill(0)
@@ -139,6 +145,7 @@ class TopSecretService(
 
     fun create(title: String, content: String, topSecretKek: ProtectedValue): String {
         val noteId = RandomUtil.generateUUID()
+        CryptoLog.d(C, "create: T-note='$title' encryptedDataId/generated, topSecretKek(${CryptoLog.key(topSecretKek)})")
         val encryptedDataId = RandomUtil.generateUUID()
         val dekId = RandomUtil.generateUUID()
         val dek = ProtectedValue.fromBinary(RandomUtil.generateSecureBytes(KEY_SIZE))
@@ -237,6 +244,7 @@ class TopSecretService(
     }
 
     fun delete(id: String) {
+        CryptoLog.d(C, "softDelete: T-note id=$id")
         NoteRepository(db).softDelete(id)
     }
 
@@ -343,6 +351,7 @@ class TopSecretService(
             }
 
     private companion object {
+        const val C = "TopSecretService"
         const val KEY_SIZE = 32
         const val CLASSIFICATION = "T"
         const val TS_KEK_ID = "ts_kek:biokey"

@@ -1,6 +1,7 @@
 package com.typedefai.cryptowl.vault
 
 import com.typedefai.cryptowl.crypto.AesGcm
+import com.typedefai.cryptowl.crypto.CryptoLog
 import com.typedefai.cryptowl.crypto.ProtectedValue
 import com.typedefai.cryptowl.crypto.RandomUtil
 
@@ -47,9 +48,11 @@ object Cwo1 {
         val chunkSize = ((data[6].toInt() and 0xff) shl 24) or ((data[7].toInt() and 0xff) shl 16) or
             ((data[8].toInt() and 0xff) shl 8) or (data[9].toInt() and 0xff)
         return if (chunkSize == 0) {
+            CryptoLog.d(C, "parseHeader: whole-file version=$version nonce=${data.copyOfRange(10, 22).toHexString(8)} total=${data.size}B")
             Header(version, 0, 0, data.copyOfRange(10, 22))
         } else {
             val count = (0 until 8).fold(0L) { acc, i -> (acc shl 8) or (data[10 + i].toLong() and 0xff) }
+            CryptoLog.d(C, "parseHeader: chunked version=$version chunkSize=$chunkSize chunks=$count ivPrefix=${data.copyOfRange(18, 22).toHexString(4)} total=${data.size}B")
             Header(version, chunkSize, count, data.copyOfRange(18, 22))
         }
     }
@@ -62,6 +65,7 @@ object Cwo1 {
         plaintext: ByteArray,
         nonce: ByteArray = RandomUtil.generateSecureBytes(AesGcm.NONCE_SIZE),
     ): ByteArray = fek.use { key ->
+        CryptoLog.d(C, "encryptWholeFile: aad='${aad.decodeToString()}' plain=${plaintext.size}B fek(${CryptoLog.key(key)}) nonce=${nonce.toHexString(8)}")
         val encrypted = AesGcm.encrypt(key, nonce, aad, plaintext)
         headerWhole(nonce) + encrypted.cipherText + encrypted.authTag
     }
@@ -74,6 +78,7 @@ object Cwo1 {
         ivPrefix: ByteArray = RandomUtil.generateSecureBytes(4),
     ): ByteArray = fek.use { key ->
         val count = (plaintext.size + CHUNK_SIZE - 1) / CHUNK_SIZE
+        CryptoLog.d(C, "encryptChunked: aad='${aad.decodeToString()}' plain=${plaintext.size}B chunks=$count fek(${CryptoLog.key(key)})")
         val out = java.io.ByteArrayOutputStream(HEADER_LEN + plaintext.size + count * TAG_SIZE)
         out.write(headerChunked(count.toLong(), ivPrefix))
         for (i in 0 until count) {
@@ -89,6 +94,7 @@ object Cwo1 {
 
     /** Decrypts a whole-file CWO1 blob in full. */
     fun decryptWholeFile(fek: ProtectedValue, aad: ByteArray, data: ByteArray): ByteArray {
+        CryptoLog.d(C, "decryptWholeFile: aad='${aad.decodeToString()}' cipher=${data.size}B")
         val header = parseHeader(data)
         require(!header.isChunked) { "not a whole-file CWO1 blob" }
         return fek.use { key ->
@@ -140,6 +146,7 @@ object Cwo1 {
      * video never has to be held in memory whole (playback bridge).
      */
     fun decryptChunkedToFile(fek: ProtectedValue, aad: ByteArray, source: java.io.File, target: java.io.File) {
+        CryptoLog.d(C, "decryptChunkedToFile: src=$source (${source.length()}B) dst=$target aad='${aad.decodeToString()}'")
         java.io.RandomAccessFile(source, "r").use { raf ->
             val headerBytes = ByteArray(HEADER_LEN)
             raf.readFully(headerBytes)
@@ -167,6 +174,7 @@ object Cwo1 {
                         out.write(plain)
                         offset += recordLen
                     }
+                    CryptoLog.d(C, "decryptChunkedToFile: done records=${header.chunkCount} plaintext=${target.length()}B")
                 }
             }
         }
@@ -193,6 +201,8 @@ object Cwo1 {
     }
 
     private fun chunkNonce(index: Long, ivPrefix: ByteArray): ByteArray = u64(index) + ivPrefix
+
+    private const val C = "Cwo1"
 
     private fun u16(v: Int): ByteArray = byteArrayOf((v shr 8).toByte(), v.toByte())
 

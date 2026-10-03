@@ -1,7 +1,7 @@
 package com.typedefai.cryptowl.vault
 
 import android.content.Context
-import android.util.Log
+import com.typedefai.cryptowl.crypto.CryptoLog
 import net.zetetic.database.sqlcipher.SQLiteDatabase
 
 /**
@@ -27,7 +27,7 @@ import net.zetetic.database.sqlcipher.SQLiteDatabase
  */
 object SchemaApplier {
 
-    private const val TAG = "SchemaApplier"
+    private const val C = "SchemaApplier"
     private const val MIGRATIONS_DIR = "migrations"
 
     /** Applies every migration script newer than the DB's `user_version`. */
@@ -39,10 +39,10 @@ object SchemaApplier {
             applyScript(db, sql)
             setVersion(db, version)
             applied++
-            Log.d(TAG, "migrate: applied $name")
+            CryptoLog.d(C, "migrate: applied $name")
         }
         if (applied == 0) {
-            Log.d(TAG, "migrate: up to date (user_version=$current)")
+            CryptoLog.d(C, "migrate: up to date (user_version=$current)")
         }
     }
 
@@ -87,7 +87,7 @@ object SchemaApplier {
                     db.execSQL(trimmed)
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "apply failed at statement: ${trimmed.take(100)}", e)
+                CryptoLog.e(C, "apply failed at statement: ${trimmed.take(100)}", e)
                 throw e
             }
         }

@@ -1,5 +1,6 @@
 package com.typedefai.cryptowl.vault
 
+import com.typedefai.cryptowl.crypto.CryptoLog
 import net.zetetic.database.sqlcipher.SQLiteDatabase
 
 /** One vault media item (`t_file` row; C tier). */
@@ -24,6 +25,11 @@ data class MediaPage(
  * and `classification = 'C'` (docs/design.md "File Encryption by Tier").
  */
 class MediaRepository(private val db: SQLiteDatabase) {
+
+    private companion object {
+        const val C = "MediaRepository"
+    }
+
 
     fun page(limit: Int, offset: Int = 0): MediaPage {
         val items = db.rawQuery(
@@ -68,6 +74,7 @@ class MediaRepository(private val db: SQLiteDatabase) {
         }
 
     fun insert(item: MediaItem) {
+        CryptoLog.d(C, "insert: id=${item.id} storage=${item.storageName} size=${item.sizeBytes}B mime=${item.mimeType} (classification C, FEK)")
         val values = android.content.ContentValues().apply {
             put("id", item.id)
             putNull("dek_id")
@@ -83,6 +90,7 @@ class MediaRepository(private val db: SQLiteDatabase) {
     }
 
     fun softDelete(id: String) {
+        CryptoLog.d(C, "softDelete: id=$id")
         val now = System.currentTimeMillis()
         db.execSQL("UPDATE t_file SET deleted_at = ?, updated_at = ? WHERE id = ?", arrayOf<Any>(now, now, id))
     }

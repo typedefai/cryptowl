@@ -1,6 +1,7 @@
 package com.typedefai.cryptowl.vault
 
 import android.content.Context
+import com.typedefai.cryptowl.crypto.CryptoLog
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import java.security.KeyStore
@@ -21,8 +22,13 @@ object BioKeyManager {
     private const val KEYSTORE = "AndroidKeyStore"
     private const val GCM_TRANSFORMATION = "AES/GCM/NoPadding"
 
-    fun hasBioKey(): Boolean =
-        KeyStore.getInstance(KEYSTORE).apply { load(null) }.containsAlias(KEY_ALIAS)
+    private const val C = "BioKeyManager"
+
+    fun hasBioKey(): Boolean {
+        val exists = KeyStore.getInstance(KEYSTORE).apply { load(null) }.containsAlias(KEY_ALIAS)
+        CryptoLog.d(C, "hasBioKey: alias=$KEY_ALIAS exists=$exists")
+        return exists
+    }
 
     /**
      * Destroys the BioKey. Used to disable fingerprint unlock from Settings:
@@ -32,7 +38,10 @@ object BioKeyManager {
      */
     fun deleteBioKey() {
         val keyStore = KeyStore.getInstance(KEYSTORE).apply { load(null) }
-        if (keyStore.containsAlias(KEY_ALIAS)) keyStore.deleteEntry(KEY_ALIAS)
+        if (keyStore.containsAlias(KEY_ALIAS)) {
+            keyStore.deleteEntry(KEY_ALIAS)
+            CryptoLog.d(C, "deleteBioKey: removed alias=$KEY_ALIAS (wrapped copies become undecryptable)")
+        }
     }
 
     /**
@@ -41,7 +50,10 @@ object BioKeyManager {
      */
     fun ensureBioKey() {
         val keyStore = KeyStore.getInstance(KEYSTORE).apply { load(null) }
-        if (keyStore.containsAlias(KEY_ALIAS)) return
+        if (keyStore.containsAlias(KEY_ALIAS)) {
+            CryptoLog.d(C, "ensureBioKey: alias=$KEY_ALIAS already present")
+            return
+        }
         val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, KEYSTORE)
         val spec = KeyGenParameterSpec.Builder(
             KEY_ALIAS,
@@ -62,6 +74,7 @@ object BioKeyManager {
             .build()
         generator.init(spec)
         generator.generateKey()
+        CryptoLog.d(C, "ensureBioKey: created Keystore key alias=$KEY_ALIAS (StrongBox when available)")
     }
 
     /** Returns an ENCRYPT-mode cipher that must be authorized via BiometricPrompt. */
@@ -69,6 +82,7 @@ object BioKeyManager {
         val key = loadKey()
         val cipher = Cipher.getInstance(GCM_TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, key)
+        CryptoLog.d(C, "createEncryptCipher: alias=$KEY_ALIAS ready for BiometricPrompt")
         return cipher
     }
 
@@ -80,6 +94,7 @@ object BioKeyManager {
         val key = loadKey()
         val cipher = Cipher.getInstance(GCM_TRANSFORMATION)
         cipher.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(TAG_SIZE * 8, nonce))
+        CryptoLog.d(C, "createDecryptCipher: alias=$KEY_ALIAS nonce=${nonce.joinToString("") { "%02x".format(it) }} ready for BiometricPrompt")
         return cipher
     }
 

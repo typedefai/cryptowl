@@ -1,7 +1,7 @@
 package com.typedefai.cryptowl.vault
 
 import android.content.Context
-import android.util.Log
+import com.typedefai.cryptowl.crypto.CryptoLog
 import com.typedefai.cryptowl.crypto.CrockfordBase32
 import com.typedefai.cryptowl.crypto.HmacSha256
 import com.typedefai.cryptowl.crypto.KdfParams
@@ -46,6 +46,7 @@ class MasterPasswordChange(
             parallelism = meta.kdf.p,
         )
         val deviceSecret = DeviceSecretStore.getOrCreate(context)
+        CryptoLog.d(C, "change: vaultId=$vaultId deviceSecret(${CryptoLog.key(deviceSecret)}) argon2Salt=${meta.salts.argon2.toHexString(8)}")
         val oldTmk = kdf.createTransformedMasterKey(currentPassword, deviceSecret, meta.salts.argon2, params)
         val oldSmk = kdf.createStretchedMasterKey(oldTmk, vaultId.toByteArray(Charsets.UTF_8), meta.salts.hkdf)
         val entry = meta.wrappedKeys.firstOrNull { it.id == WRAPPED_VAULT_KEY_SMK }
@@ -57,11 +58,12 @@ class MasterPasswordChange(
                 aad = WRAPPED_VAULT_KEY_SMK.toByteArray(Charsets.UTF_8),
             )
         } catch (e: Exception) {
-            Log.e(TAG, "change: current password rejected", e)
+            CryptoLog.e(C, "change: current password rejected (vault key unwrap failed)", e)
             throw VaultOpenException("current password is incorrect")
         }
 
         try {
+            CryptoLog.d(C, "change: current password accepted, rewrapping vaultKey(${CryptoLog.key(vaultKey)})")
             val newTmk = kdf.createTransformedMasterKey(newPassword, deviceSecret, meta.salts.argon2, params)
             val newSmk = kdf.createStretchedMasterKey(newTmk, vaultId.toByteArray(Charsets.UTF_8), meta.salts.hkdf)
             try {
@@ -89,7 +91,8 @@ class MasterPasswordChange(
                 } finally {
                     macKeyBytes.fill(0)
                 }
-                Log.d(TAG, "change: vault_key:smk rewrapped, config.sig + meta mac re-signed")
+                CryptoLog.d(C, "change: vault_key:smk rewrapped (new smk(${CryptoLog.key(newSmk)}), nonce=${reWrapped.nonce.toHexString(8)}), " +
+                    "config.sig + vault.meta mac re-signed with the NEW MAC key")
                 return updatedWithMac
             } finally {
                 newTmk.clear()
@@ -104,6 +107,7 @@ class MasterPasswordChange(
     }
 
     private fun resignConfig(vaultId: String, macKeyBytes: ByteArray) {
+        CryptoLog.d(C, "resignConfig: re-signing config.sig for $vaultId")
         val configBytes = VaultStore.configFile(context, vaultId).readBytes()
         try {
             val newSig = CrockfordBase32.encode(HmacSha256.mac(macKeyBytes, configBytes))
@@ -120,6 +124,7 @@ class MasterPasswordChange(
     }
 
     private fun writeMetaAtomically(meta: VaultMeta) {
+        CryptoLog.d(C, "writeMetaAtomically: ${meta.wrappedKeys.map { it.id }} mac=${meta.mac?.value?.take(12)}…")
         val metaFile = VaultStore.metaFile(context, meta.vaultId)
         val tmp = File(metaFile.parentFile, "vault.meta.tmp")
         tmp.writeText(VaultMetaJson.encode(meta))
@@ -130,7 +135,7 @@ class MasterPasswordChange(
     }
 
     private companion object {
-        const val TAG = "cwl:MasterPasswordChange"
+        const val C = "MasterPasswordChange"
         const val META_VERSION = 2
         const val WRAPPED_VAULT_KEY_SMK = "vault_key:smk"
     }

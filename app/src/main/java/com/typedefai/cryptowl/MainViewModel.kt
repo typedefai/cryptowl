@@ -43,7 +43,7 @@ enum class AppState { ONBOARDING, LOCKED, UNLOCKED }
 class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     private companion object {
-        const val TAG = "MainViewModel"
+        const val TAG = "cwl:MainViewModel"
         const val PATHS_TAG = "cwl:Paths"
         const val MODEL_DIR = "model"
     }
@@ -139,6 +139,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 "  config.json          = ${VaultStore.configFile(app, vaultId)}\n" +
                 "  config.sig           = ${VaultStore.configSigFile(app, vaultId)}\n" +
                 "  device_secret        = ${VaultStore.deviceSecretFile(app, vaultId)}\n" +
+                "  attachments/         = ${File(VaultStore.vaultDir(app, vaultId), "attachments")}\n" +
+                "  thumbnails/          = ${File(VaultStore.vaultDir(app, vaultId), "thumbnails")}\n" +
+                "cacheDir (video temp)  = ${app.cacheDir}\n" +
                 "vault index            = ${VaultStore.indexFile(app)} (exists=${VaultStore.indexFile(app).exists()})\n" +
                 "model dir (external)   = ${File(app.getExternalFilesDir(null), MODEL_DIR)}\n" +
                 "model dir (internal)   = ${File(app.filesDir, MODEL_DIR)}\n" +
@@ -473,12 +476,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun openSession(session: VaultSession) {
+        Log.d(TAG, "openSession: vaultId=${session.vaultId} (session keys held until lock)")
         _session.value?.close()
         _session.value = session
         _appState.value = AppState.UNLOCKED
     }
 
     fun lockVault() {
+        Log.d(TAG, "lockVault: wiping session + closing db")
         _session.value?.close()
         _session.value = null
         _unlockError.value = null

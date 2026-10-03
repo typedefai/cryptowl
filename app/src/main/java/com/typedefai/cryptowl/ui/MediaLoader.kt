@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory
 import android.util.LruCache
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import com.typedefai.cryptowl.crypto.CryptoLog
 import com.typedefai.cryptowl.vault.Cwo1
 import com.typedefai.cryptowl.vault.VaultSession
 import com.typedefai.cryptowl.vault.VaultStore
@@ -24,16 +25,24 @@ object MediaLoader {
 
     fun loadCwo(context: Context, session: VaultSession, subdir: String, filename: String, aad: String): ImageBitmap? {
         val cacheKey = "${session.vaultId}/$subdir/$filename"
-        cache.get(cacheKey)?.let { return it.asImageBitmap() }
+        cache.get(cacheKey)?.let {
+            CryptoLog.d(C, "loadCwo: cache HIT $cacheKey")
+            return it.asImageBitmap()
+        }
         val file = File(File(VaultStore.vaultDir(context, session.vaultId), subdir), filename)
-        if (!file.exists()) return null
+        if (!file.exists()) {
+            CryptoLog.w(C, "loadCwo: file missing $file")
+            return null
+        }
         return try {
             val bytes = Cwo1.decryptWholeFile(session.fek, aad.toByteArray(Charsets.UTF_8), file.readBytes())
             val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: return null
             bytes.fill(0)
             cache.put(cacheKey, bitmap)
+            CryptoLog.d(C, "loadCwo: decrypted $cacheKey (${bytes.size}B cipher -> ${bitmap.width}x${bitmap.height}) aad=$aad")
             bitmap.asImageBitmap()
         } catch (e: Exception) {
+            CryptoLog.e(C, "loadCwo: decrypt FAILED $cacheKey aad=$aad", e)
             null
         }
     }
@@ -41,6 +50,8 @@ object MediaLoader {
     fun clear() {
         cache.evictAll()
     }
+
+    private const val C = "MediaLoader"
 
     private fun maxCacheKb(): Int {
         val maxKb = (Runtime.getRuntime().maxMemory() / 1024).toInt()

@@ -1,6 +1,7 @@
 package com.typedefai.cryptowl.vault
 
 import android.content.Context
+import com.typedefai.cryptowl.crypto.CryptoLog
 import com.typedefai.cryptowl.crypto.KdfParams
 import com.typedefai.cryptowl.crypto.KdfService
 import com.typedefai.cryptowl.crypto.ProtectedValue
@@ -61,6 +62,7 @@ class BioKeySetup(
         smk.clear()
         deviceSecret.clear()
 
+        CryptoLog.d(C, "prepare: vaultKey(${CryptoLog.key(vaultKey)}) macKey(${CryptoLog.key(macKey)}) vaultId=$vaultId")
         BioKeyManager.ensureBioKey()
         val cipher = BioKeyManager.createEncryptCipher()
         return Prepared(meta, vaultKey, macKey, cipher)
@@ -91,6 +93,7 @@ class BioKeySetup(
             )
             macKeyBytes.fill(0)
 
+            CryptoLog.d(C, "complete: wrapped vault_key:biokey nonce=${wrapped.nonce.toHexString(8)} meta entries=${updatedWithMac.wrappedKeys.map { it.id }}")
             val metaFile = VaultStore.metaFile(context, updated.vaultId)
             val tmp = File(metaFile.parentFile, "vault.meta.tmp")
             tmp.writeText(VaultMetaJson.encode(updatedWithMac))
@@ -107,6 +110,7 @@ class BioKeySetup(
 
     /** Clears the derived keys when the flow is aborted or the user skips. */
     fun cancel(prepared: Prepared) {
+        CryptoLog.d(C, "cancel: wiping prepared vaultKey/macKey")
         prepared.vaultKey.clear()
         prepared.macKey.clear()
     }
@@ -116,5 +120,6 @@ class BioKeySetup(
         const val TAG_SIZE = 16
         const val WRAPPED_VAULT_KEY_SMK = "vault_key:smk"
         const val WRAPPED_VAULT_KEY_BIOKEY = "vault_key:biokey"
+        const val C = "BioKeySetup"
     }
 }

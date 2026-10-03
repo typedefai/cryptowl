@@ -4,6 +4,7 @@ import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
+import com.typedefai.cryptowl.crypto.CryptoLog
 import androidx.core.content.edit
 import com.typedefai.cryptowl.crypto.ProtectedValue
 import com.typedefai.cryptowl.crypto.RandomUtil
@@ -27,6 +28,7 @@ object DeviceSecretStore {
     private const val GCM_TRANSFORMATION = "AES/GCM/NoPadding"
     private const val DEVICE_SECRET_SIZE = 32
     private const val TAG_BITS = 128
+    private const val C = "DeviceSecretStore"
 
     /**
      * Returns the Device Secret, creating it on first use.
@@ -37,13 +39,19 @@ object DeviceSecretStore {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val stored = prefs.getString(PREFS_KEY, null)
         if (stored != null) {
-            return decrypt(loadKey(), stored)
+            val secret = decrypt(loadKey(), stored)
+            CryptoLog.d(C, "getOrCreate: loaded from prefs=$PREFS ($PREFS_KEY) secret(${CryptoLog.key(secret)})")
+            return secret
         }
+        CryptoLog.d(C, "getOrCreate: creating new device secret (prefs=$PREFS key=$PREFS_KEY)")
         val secret = RandomUtil.generateSecureBytes(DEVICE_SECRET_SIZE)
         val wrapped = encrypt(loadOrCreateKey(), secret)
         val encoded = Base64.encodeToString(wrapped, Base64.NO_WRAP)
         prefs.edit { putString(PREFS_KEY, encoded) }
-        return ProtectedValue.fromBinary(secret).also { secret.fill(0) }
+        return ProtectedValue.fromBinary(secret).also {
+            CryptoLog.d(C, "getOrCreate: created device secret secret(${CryptoLog.key(it)}) wrapped=${wrapped.size}B")
+            secret.fill(0)
+        }
     }
 
     /** True if a Device Secret exists (i.e. a vault was created on this device before). */
@@ -53,6 +61,7 @@ object DeviceSecretStore {
     private fun loadOrCreateKey(): SecretKey {
         val keyStore = KeyStore.getInstance(KEYSTORE).apply { load(null) }
         (keyStore.getKey(KEY_ALIAS, null) as? SecretKey)?.let { return it }
+        CryptoLog.d(C, "loadOrCreateKey: creating Keystore key alias=$KEY_ALIAS")
         val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, KEYSTORE)
         generator.init(
             KeyGenParameterSpec.Builder(
@@ -76,6 +85,7 @@ object DeviceSecretStore {
         val cipher = Cipher.getInstance(GCM_TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, key)
         val ciphertext = cipher.doFinal(plaintext)
+        CryptoLog.d(C, "encrypt: wrapped device secret iv=${cipher.iv.joinToString("") { "%02x".format(it) }} blob=${cipher.iv.size + ciphertext.size}B")
         // iv(12) || ciphertext || authTag(16)
         return cipher.iv + ciphertext
     }

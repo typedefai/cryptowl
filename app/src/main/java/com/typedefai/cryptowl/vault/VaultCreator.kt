@@ -1,7 +1,7 @@
 package com.typedefai.cryptowl.vault
 
 import android.content.Context
-import android.util.Log
+import com.typedefai.cryptowl.crypto.CryptoLog
 import com.typedefai.cryptowl.crypto.KdfParams
 import com.typedefai.cryptowl.crypto.KdfService
 import com.typedefai.cryptowl.crypto.toHexString
@@ -32,13 +32,12 @@ class VaultCreator(
             }
             // Partial vault from a crashed previous attempt (meta written but
             // db incomplete): wipe and start over.
-            Log.w(TAG, "create: removing partial vault dir from a failed attempt")
+            CryptoLog.w(C, "create: removing partial vault dir from a failed attempt")
             vaultDir.deleteRecursively()
         }
         vaultDir.mkdirs()
 
-        Log.d(
-            TAG,
+        CryptoLog.d(C,
             "create: vault layout — dir=$vaultDir\n" +
                 "  meta=${VaultStore.metaFile(context, vaultId)}\n" +
                 "  config=${VaultStore.configFile(context, vaultId)}\n" +
@@ -48,27 +47,26 @@ class VaultCreator(
                 "  deviceSecret=${VaultStore.deviceSecretFile(context, vaultId)}",
         )
         val deviceSecret = DeviceSecretStore.getOrCreate(context)
-        Log.d(TAG, "create: device secret ready (${deviceSecret.binaryValue().size} bytes)")
+        CryptoLog.d(C, "create: device secret ready deviceSecret(${CryptoLog.key(deviceSecret)})")
         val argon2Salt = RandomUtil.generateSecureBytes(SALT_SIZE)
         val hkdfSalt = RandomUtil.generateSecureBytes(SALT_SIZE)
         val secondarySalt = RandomUtil.generateSecureBytes(SALT_SIZE)
-        Log.d(
-            TAG,
+        CryptoLog.d(C,
             "create: salts argon2=${argon2Salt.toHexString(8)} hkdf=${hkdfSalt.toHexString(8)} " +
                 "secondary=${secondarySalt.toHexString(8)}",
         )
 
         val tmk = kdf.createTransformedMasterKey(masterPassword, deviceSecret, argon2Salt)
-        Log.d(TAG, "create: TMK derived")
+        CryptoLog.d(C, "create: TMK derived tmk(${CryptoLog.key(tmk)})")
         val smk = kdf.createStretchedMasterKey(tmk, vaultId.toByteArray(Charsets.UTF_8), hkdfSalt)
-        Log.d(TAG, "create: SMK derived")
+        CryptoLog.d(C, "create: SMK derived smk(${CryptoLog.key(smk)})")
         val vaultKey = ProtectedValue.fromBinary(RandomUtil.generateSecureBytes(KEY_SIZE))
         val wrappedVaultKey = kdf.wrapKey(
             key = vaultKey,
             wrappingKey = kdf.vaultKey(smk),
             aad = WRAPPED_VAULT_KEY_SMK.toByteArray(Charsets.UTF_8),
         )
-        Log.d(TAG, "create: vault key wrapped")
+        CryptoLog.d(C, "create: vault key wrapped vaultKey(${CryptoLog.key(vaultKey)}) nonce=${wrappedVaultKey.nonce.toHexString(8)}")
 
         val now = System.currentTimeMillis()
         val meta = VaultMeta(
@@ -96,21 +94,19 @@ class VaultCreator(
 
         try {
             writeConfig(macKey, vaultId)
-            Log.d(
-                TAG,
+            CryptoLog.d(C,
                 "create: config written (${VaultStore.configFile(context, vaultId).length()}B), " +
                     "content=${VaultMetaJson.canonicalConfig(vaultId).decodeToString()}",
             )
             writeMetaAtomically(metaWithMac)
-            Log.d(
-                TAG,
+            CryptoLog.d(C,
                 "create: vault.meta written (${VaultStore.metaFile(context, vaultId).length()}B)\n" +
                     VaultMetaJson.encode(metaWithMac),
             )
             createDatabase(vaultKey, vaultId)
-            Log.d(TAG, "create: database created (${VaultStore.dbFile(context, vaultId).length()}B)")
+            CryptoLog.d(C, "create: database created (${VaultStore.dbFile(context, vaultId).length()}B)")
             VaultStore.writeIndex(context, vaultId)
-            Log.d(TAG, "create: index written (${VaultStore.indexFile(context).readText()})")
+            CryptoLog.d(C, "create: index written (${VaultStore.indexFile(context).readText()})")
         } finally {
             tmk.clear()
             smk.clear()
@@ -175,7 +171,7 @@ class VaultCreator(
     }
 
     private companion object {
-        const val TAG = "cwl:VaultCreator"
+        const val C = "VaultCreator"
         const val META_VERSION = 2
         const val KEY_SIZE = 32
         const val SALT_SIZE = 32

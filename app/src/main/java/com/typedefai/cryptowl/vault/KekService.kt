@@ -1,6 +1,6 @@
 package com.typedefai.cryptowl.vault
 
-import android.util.Log
+import com.typedefai.cryptowl.crypto.CryptoLog
 import com.typedefai.cryptowl.crypto.ProtectedValue
 import com.typedefai.cryptowl.crypto.RandomUtil
 import javax.crypto.Cipher
@@ -28,6 +28,7 @@ class KekService(private val db: SQLiteDatabase) {
     /** DECRYPT cipher bound to the stored nonce (AAD applied). */
     fun prepareUnlockCipher(): Cipher {
         val wrapped = loadWrapped() ?: error("no $KEK_ID row in t_wrapped_key")
+        CryptoLog.d(C, "prepareUnlockCipher: $KEK_ID nonce=${wrapped.nonce.toHexString(8)} aad='$KEK_ID'")
         return BioKeyManager.createDecryptCipher(wrapped.nonce).apply { updateAAD(AAD) }
     }
 
@@ -54,7 +55,8 @@ class KekService(private val db: SQLiteDatabase) {
                     now,
                 ),
             )
-            Log.d(TAG, "KEK created and wrapped as $KEK_ID")
+            CryptoLog.d(C, "completeCreate: $KEK_ID wrapped kek(${CryptoLog.key(kek)}) nonce=${cipher.iv.toHexString(8)} " +
+                "cipher=${encrypted.size - TAG_SIZE}B tag=${TAG_SIZE}B")
             return kek
         } catch (e: Throwable) {
             kek.clear()
@@ -70,11 +72,11 @@ class KekService(private val db: SQLiteDatabase) {
         val plain = try {
             cipher.doFinal(wrapped.ciphertext + wrapped.authTag)
         } catch (e: Throwable) {
-            Log.e(TAG, "KEK unwrap failed", e)
+            CryptoLog.e(C, "unlock: $KEK_ID unwrap FAILED (fingerprint/AAD mismatch)", e)
             throw IllegalStateException("fingerprint key cannot unwrap the KEK")
         }
         return try {
-            ProtectedValue.fromBinary(plain)
+            ProtectedValue.fromBinary(plain).also { CryptoLog.d(C, "unlock: KEK unwrapped kek(${CryptoLog.key(it)})") }
         } finally {
             plain.fill(0)
         }
@@ -91,7 +93,7 @@ class KekService(private val db: SQLiteDatabase) {
         }
 
     private companion object {
-        const val TAG = "cwl:KekService"
+        const val C = "KekService"
         const val KEK_ID = "kek:biokey"
         val AAD = KEK_ID.toByteArray(Charsets.UTF_8)
         const val KEY_SIZE = 32

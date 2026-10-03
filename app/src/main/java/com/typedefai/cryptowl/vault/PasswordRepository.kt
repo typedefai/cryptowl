@@ -1,5 +1,6 @@
 package com.typedefai.cryptowl.vault
 
+import com.typedefai.cryptowl.crypto.CryptoLog
 import net.zetetic.database.sqlcipher.SQLiteDatabase
 
 /** L0 list row: only the plaintext title and timestamps. */
@@ -63,6 +64,11 @@ data class DataEncryptKeyRow(
  * Metadata and payload are separate rows so the list never touches ciphertext.
  */
 class PasswordRepository(private val db: SQLiteDatabase) {
+
+    private companion object {
+        const val C = "PasswordRepository"
+    }
+
 
     fun list(): List<PasswordSummary> =
         db.rawQuery(
@@ -140,6 +146,8 @@ class PasswordRepository(private val db: SQLiteDatabase) {
         contentTag: ByteArray,
         now: Long,
     ) {
+        CryptoLog.d(C, "create: passwordId=$passwordId encryptedDataId=$encryptedDataId dekId=$dekId " +
+            "content=${content.size}B dekAad=$dekId contentAad=$encryptedDataId")
         db.beginTransaction()
         try {
             db.execSQL(
@@ -176,6 +184,8 @@ class PasswordRepository(private val db: SQLiteDatabase) {
         contentTag: ByteArray,
         now: Long,
     ) {
+        CryptoLog.d(C, "update: passwordId=$passwordId encryptedDataId=$encryptedDataId " +
+            "content=${content.size}B contentAad=$encryptedDataId")
         db.beginTransaction()
         try {
             db.execSQL(
@@ -195,6 +205,7 @@ class PasswordRepository(private val db: SQLiteDatabase) {
     }
 
     fun softDelete(id: String, now: Long) {
+        CryptoLog.d(C, "softDelete: passwordId=$id")
         db.execSQL(
             "UPDATE t_password SET deleted_at = ?, updated_at = ? WHERE id = ?",
             arrayOf<Any>(now, now, id),

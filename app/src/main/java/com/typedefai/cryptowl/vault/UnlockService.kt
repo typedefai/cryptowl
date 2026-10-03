@@ -1,7 +1,7 @@
 package com.typedefai.cryptowl.vault
 
 import android.content.Context
-import android.util.Log
+import com.typedefai.cryptowl.crypto.CryptoLog
 import com.typedefai.cryptowl.crypto.CrockfordBase32
 import com.typedefai.cryptowl.crypto.HmacSha256
 import com.typedefai.cryptowl.crypto.KdfParams
@@ -40,7 +40,7 @@ class UnlockService(
     ): VaultSession {
         val metaFile = VaultStore.metaFile(context, vaultId)
         if (!metaFile.exists()) throw VaultOpenException("not a vault: $vaultId")
-        Log.d(TAG, "unlock: vaultId=$vaultId meta=${metaFile.length()}B db=${VaultStore.dbFile(context, vaultId).length()}B")
+        CryptoLog.d(C, "unlock: vaultId=$vaultId meta=${metaFile.length()}B db=${VaultStore.dbFile(context, vaultId).length()}B")
         val meta = try {
             VaultMetaJson.decode(metaFile.readText())
         } catch (e: Exception) {
@@ -49,8 +49,7 @@ class UnlockService(
         if (meta.version > META_VERSION) {
             throw VaultOpenException("unsupported vault.meta version: ${meta.version}")
         }
-        Log.d(
-            TAG,
+        CryptoLog.d(C,
             "unlock: meta version=${meta.version} kdf=${meta.kdf.algorithm} " +
                 "m=${meta.kdf.mKib}KiB t=${meta.kdf.t} p=${meta.kdf.p} " +
                 "argon2Salt=${meta.salts.argon2.toHexString(8)} hkdfSalt=${meta.salts.hkdf.toHexString(8)} " +
@@ -66,9 +65,9 @@ class UnlockService(
         val desktopSecret = readDesktopSecret(vaultId)
         val deviceSecret = desktopSecret?.let { ProtectedValue.fromBinary(it) }
             ?: DeviceSecretStore.getOrCreate(context)
-        Log.d(
-            TAG,
-            "unlock: deviceSecret from ${if (desktopSecret != null) "desktop device_secret file (re-bind needed)" else "Android Keystore"}",
+        CryptoLog.d(C,
+            "unlock: deviceSecret from ${if (desktopSecret != null) "desktop device_secret file (re-bind needed)" else "Android Keystore"} " +
+                "deviceSecret(${CryptoLog.key(deviceSecret)})",
         )
 
         val tmk = kdf.createTransformedMasterKey(masterPassword, deviceSecret, meta.salts.argon2, params)
@@ -77,9 +76,9 @@ class UnlockService(
 
         try {
             verifyConfig(meta, macKey)
-            Log.d(TAG, "unlock: config.sig verified")
+            CryptoLog.d(C, "unlock: config.sig verified")
             verifyMetaMac(meta, macKey)
-            Log.d(TAG, "unlock: vault.meta mac verified")
+            CryptoLog.d(C, "unlock: vault.meta mac verified")
 
             val wrappedVaultKey = meta.wrappedKeys.firstOrNull { it.id == WRAPPED_VAULT_KEY_SMK }
                 ?: throw VaultOpenException("no vault_key:smk wrapped key in vault.meta")
@@ -88,16 +87,18 @@ class UnlockService(
                 wrappingKey = kdf.vaultKey(smk),
                 aad = WRAPPED_VAULT_KEY_SMK.toByteArray(Charsets.UTF_8),
             )
-            Log.d(TAG, "unlock: vault_key unwrapped (${vaultKey.binaryValue().size}B)")
+            CryptoLog.d(C, "unlock: vault_key unwrapped vaultKey(${CryptoLog.key(vaultKey)})")
 
             val db = openDatabase(vaultId, vaultKey)
-            Log.d(TAG, "unlock: db opened (user_version=${db.version})")
+            CryptoLog.d(C, "unlock: db opened (user_version=${db.version}) " +
+                "db=${VaultStore.dbFile(context, vaultId)} (${VaultStore.dbFile(context, vaultId).length()}B)")
             val fek = kdf.fileKey(vaultKey)
+            CryptoLog.d(C, "unlock: session ready vaultId=$vaultId fek(${CryptoLog.key(fek)})")
 
             // Desktop-created vault: re-bind to this device before handing out.
             if (desktopSecret != null) {
                 rebindVaultKey(meta, vaultId, masterPassword, vaultKey)
-                Log.d(TAG, "unlock: rebind to Android Keystore done, desktop device_secret deleted")
+                CryptoLog.d(C, "unlock: rebind to Android Keystore done, desktop device_secret deleted")
             }
             return VaultSession(vaultId, db, vaultKey, fek)
         } catch (e: VaultOpenException) {
@@ -177,7 +178,7 @@ class UnlockService(
         val plain = try {
             cipher.doFinal(entry.cipherText + entry.authTag)
         } catch (e: Exception) {
-            Log.e(TAG, "unlockWithBiometric: vault_key unwrap failed", e)
+            CryptoLog.e(C, "unlockWithBiometric: vault_key unwrap failed", e)
             throw VaultOpenException("fingerprint unlock failed")
         }
         val vaultKey = try {
@@ -185,14 +186,16 @@ class UnlockService(
         } finally {
             plain.fill(0)
         }
+        CryptoLog.d(C, "unlockWithBiometric: vault_key unwrapped vaultKey(${CryptoLog.key(vaultKey)})")
         return try {
             val db = openDatabase(vaultId, vaultKey)
             val fek = kdf.fileKey(vaultKey)
-            Log.d(TAG, "unlockWithBiometric: db opened (user_version=${db.version})")
+            CryptoLog.d(C, "unlockWithBiometric: db opened (user_version=${db.version}) " +
+                "fek(${CryptoLog.key(fek)})")
             VaultSession(vaultId, db, vaultKey, fek)
         } catch (e: Exception) {
             vaultKey.clear()
-            Log.e(TAG, "unlockWithBiometric failed", e)
+            CryptoLog.e(C, "unlockWithBiometric failed", e)
             throw if (e is VaultOpenException) e else VaultOpenException("fingerprint unlock failed: ${e.message}")
         }
     }
@@ -324,7 +327,7 @@ class UnlockService(
     )
 
     private companion object {
-        private const val TAG = "cwl:UnlockService"
+        private const val C = "UnlockService"
         const val META_VERSION = 2
         const val WRAPPED_VAULT_KEY_SMK = "vault_key:smk"
         const val WRAPPED_VAULT_KEY_BIOKEY = "vault_key:biokey"

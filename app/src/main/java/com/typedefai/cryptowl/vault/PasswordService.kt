@@ -1,6 +1,7 @@
 package com.typedefai.cryptowl.vault
 
 import com.typedefai.cryptowl.crypto.AesGcm
+import com.typedefai.cryptowl.crypto.CryptoLog
 import com.typedefai.cryptowl.crypto.AuthEncryptedData
 import com.typedefai.cryptowl.crypto.KdfService
 import com.typedefai.cryptowl.crypto.ProtectedValue
@@ -35,6 +36,8 @@ class PasswordService(
         val encryptedDataId = RandomUtil.generateUUID()
         val dekId = RandomUtil.generateUUID()
         val dek = ProtectedValue.fromBinary(RandomUtil.generateSecureBytes(KEY_SIZE))
+        CryptoLog.d(C, "create: passwordId=$passwordId encryptedDataId=$encryptedDataId dekId=$dekId " +
+            "title='${draft.title}' kek(${CryptoLog.key(kek)}) dek(${CryptoLog.key(dek)})")
         try {
             val wrapped = kdf.wrapKey(dek, kek, aad = dekId.toByteArray(Charsets.UTF_8))
             val payload = draft.toJsonBytes()
@@ -59,6 +62,7 @@ class PasswordService(
                 contentTag = content.authTag,
                 now = now,
             )
+            CryptoLog.d(C, "create: stored (classification S, title L0) passwordId=$passwordId")
             return passwordId
         } finally {
             dek.clear()
@@ -68,6 +72,7 @@ class PasswordService(
     /** Re-encrypts the payload and title in place (same DEK, fresh content nonce). */
     fun update(kek: ProtectedValue, draft: PasswordDraft) {
         val id = requireNotNull(draft.id) { "update requires a password id" }
+        CryptoLog.d(C, "update: passwordId=$id title='${draft.title}'")
         val encrypted = encryptedDataOf(id)
         val dek = unwrapDek(kek, encrypted)
         try {
@@ -97,6 +102,7 @@ class PasswordService(
     /** Decrypts one entry with the per-access KEK. */
     fun detail(kek: ProtectedValue, id: String): PasswordDetail? {
         val record = repo.record(id) ?: return null
+        CryptoLog.d(C, "detail: passwordId=$id encryptedDataId=${record.encryptedDataId}")
         val encrypted = repo.encryptedData(record.encryptedDataId) ?: return null
         val dek = unwrapDek(kek, encrypted)
         return try {
@@ -119,6 +125,7 @@ class PasswordService(
     }
 
     fun softDelete(id: String) {
+        CryptoLog.d(C, "softDelete: passwordId=$id")
         repo.softDelete(id, System.currentTimeMillis())
     }
 
@@ -160,6 +167,7 @@ class PasswordService(
     }
 
     private companion object {
+        const val C = "PasswordService"
         const val KEY_SIZE = 32
     }
 }

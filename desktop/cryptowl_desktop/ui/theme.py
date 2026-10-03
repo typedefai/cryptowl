@@ -28,8 +28,9 @@ STATUS_TOP = "#3E7CB8"
 STATUS_BOTTOM = "#2E5F8A"
 
 VS2010_QSS = f"""
+/* No explicit UI font: use the platform default (an explicit missing family
+   such as "Segoe UI" makes Qt populate alias tables at startup — slow + noisy). */
 QWidget {{
-    font-family: "Segoe UI", "Helvetica Neue", "Noto Sans", sans-serif;
     font-size: 12px;
     color: {TEXT};
 }}
@@ -218,6 +219,12 @@ QLabel#WelcomeTitle {{
 }}
 QLabel#WelcomeSubtitle {{ color: {MUTED}; }}
 QLabel#SectionHint {{ color: {MUTED}; }}
+QLabel#SectionHeader {{
+    font-weight: 600;
+    color: {CAPTION_TEXT};
+}}
+QListWidget#RecentList {{ background: #FFFFFF; }}
+QTableView {{ gridline-color: #E3E3E3; }}
 """
 
 

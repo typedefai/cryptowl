@@ -149,6 +149,37 @@ class SqlCipherConnection:
             _lib.sqlite3_bind_text(stmt, index, ctypes.c_char_p(data),
                                    len(data), SQLITE_TRANSIENT)
 
+    def query2(self, sql: str, params=()):
+        """SELECT with bound parameters; returns (column names, rows)."""
+        import ctypes
+
+        if _lib is None:
+            _load_lib()
+        stmt = _STMT()
+        rc = _lib.sqlite3_prepare_v2(self._db, sql.encode("utf-8"), -1,
+                                       ctypes.byref(stmt), None)
+        if rc != SQLITE_OK:
+            raise SqlCipherError(f"sqlite3_prepare_v2: {self.errmsg()}")
+        try:
+            for index, value in enumerate(params, start=1):
+                self._bind(stmt, index, value)
+            columns = []
+            for i in range(_lib.sqlite3_column_count(stmt)):
+                ptr = _lib.sqlite3_column_name(stmt, i)
+                columns.append(ctypes.string_at(ptr).decode("utf-8") if ptr else "")
+            rows = []
+            while True:
+                step = _lib.sqlite3_step(stmt)
+                if step == SQLITE_ROW:
+                    rows.append(self._row(stmt))
+                elif step == SQLITE_DONE:
+                    break
+                else:
+                    raise SqlCipherError(f"sqlite3_step: {self.errmsg()}")
+            return columns, rows
+        finally:
+            _lib.sqlite3_finalize(stmt)
+
     def query_one(self, sql: str):
         rows = self.query(sql)
         return rows[0] if rows else None
@@ -278,6 +309,7 @@ def _load_lib():
         ("sqlite3_bind_double", [_STMT, ctypes.c_int, ctypes.c_double], ctypes.c_int),
         ("sqlite3_bind_text", [_STMT, ctypes.c_int, ctypes.c_char_p, ctypes.c_int,
                                ctypes.c_void_p], ctypes.c_int),
+        ("sqlite3_column_name", [_STMT, ctypes.c_int], ctypes.c_char_p),
         ("sqlite3_bind_blob", [_STMT, ctypes.c_int, ctypes.c_char_p, ctypes.c_int,
                                ctypes.c_void_p], ctypes.c_int),
     ]:

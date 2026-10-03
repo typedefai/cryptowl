@@ -105,12 +105,32 @@ Logs use the same `cwl:` convention as the Android app (`cwl:vault`,
 
 ## UI
 
-The shell is styled after **Visual Studio 2010**: menu bar + standard toolbar,
-a docked **Vault Explorer** on the left (Notes / Media / Moments / Passwords /
-Debug open as document tabs), a **Properties** tool window on the right, an
-**Output** tool window at the bottom that mirrors the `cwl:` logs, and a blue
-status bar with the vault id + schema version. Docks are movable/floatable and
-toggle from the **View** menu.
+DBeaver-style shell, styled after **Visual Studio 2010**:
+
+- **Vault Navigator** (left tree): Overview, Metadata (vault.meta / config /
+  device_secret), **Schema** (every table with live row counts), **Security**
+  (key fingerprints + wrap chain), **Files on disk** (attachments/thumbnails
+  with CWO1 header info), **Features** (the friendly Notes/Media/Moments/
+  Passwords editors), **Tools** (SQL console, Crypto lab).
+- **Editor tabs** (centre, one instance per object): every table opens as
+  Data (read-only grid with filter, click-to-sort, paging) | DDL | Stats.
+  Right-click a cell to inspect it in the value panel, copy hex/base32, or
+  **navigate a foreign key** (e.g. t_password → t_encrypted_data →
+  t_data_encrypt_key) — the crypto chain is walkable row by row.
+- **Value panel** (bottom dock): selected cell as Text / Hex dump / Base32 /
+  JSON / Image, with CWO1 header summary and a decrypt-with-FEK preview +
+  export for t_file rows.
+- **Properties** (right dock): context info for the active editor.
+- **Output** (bottom dock): the `cwl:` logs.
+- **SQL console**: arbitrary SQL with results grid, timing, history, snippets;
+  non-SELECT statements ask for confirmation (writes are manual and visible).
+- **Crypto lab** (dev-only): paste a 32-byte key hex to attempt unwrapping a
+  wrapped-key copy or decrypting a `t_encrypted_data` payload locally
+  (AAD rules respected; results show fingerprints, raw hex on demand) — the
+  only way to analyse S/T-tier payloads on the desktop.
+
+Grids are deliberately **read-only** (writes go through the friendly editors
+or the SQL console) so a mis-click cannot corrupt FKs, triggers or ciphertext.
 
 Recently opened vaults are remembered (most-recent-first, up to 10) and shown on
 the start page and under **File ▸ Recent vaults** — double-click to reopen with

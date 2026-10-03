@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-"""Main window — Visual Studio 2010-style shell.
+"""Main window — DBeaver-style shell (Vault Navigator + tabbed editors).
 
-Layout: menu bar + standard toolbar on top, a docked Vault Explorer on the
-left, document tabs in the centre, a Properties tool window on the right, an
-Output tool window at the bottom, and a blue status bar.
+Reuses the VS2010 chrome: menu bar + toolbar on top, a docked Vault Navigator
+on the left, one tab per opened editor in the centre, Properties on the right,
+and tabified bottom docks (Value panel + Output).
 """
 
 import logging
@@ -17,28 +17,26 @@ from PyQt6.QtCore import QSize, Qt, pyqtSignal
 from PyQt6.QtGui import QAction
 from PyQt6.QtWidgets import (QApplication, QDockWidget, QLabel, QListWidget,
                              QListWidgetItem, QMainWindow, QMenu,
-                             QPlainTextEdit, QStackedWidget, QStyle,
-                             QTabWidget, QToolBar, QTreeWidget, QTreeWidgetItem,
-                             QVBoxLayout, QWidget)
+                             QMessageBox, QPlainTextEdit, QStackedWidget,
+                             QStyle, QTabWidget, QToolBar, QTreeWidget,
+                             QTreeWidgetItem, QVBoxLayout, QWidget)
 
 from .. import __version__
 from ..vault import Vault
 from ..vault.schema import expected_version
 from .dialogs import ChangePasswordDialog, CreateVaultDialog, OpenVaultDialog
+from .editors.console import CryptoLab, SqlConsole
+from .editors.overview import KeysEditor, OverviewEditor
+from .editors.table import TableEditor
+from .editors.viewers import FilesEditor, MetaViewer
 from .media_tab import MediaTab
+from .navigator import (FEATURE, FILES, KEYS, LAB, META, OVERVIEW, SQL,
+                        TABLE, NavigatorTree)
 from .notes_tab import NotesTab
-from .readonly_tabs import DebugTab, MomentsTab, PasswordsTab
+from .readonly_tabs import MomentsTab, PasswordsTab
 from .recent import RecentVaults
 from .theme import apply_vs2010_theme
-
-# explorer document ids -> (title, factory)
-DOCUMENTS = [
-    ("notes", "Notes", NotesTab),
-    ("media", "Media", MediaTab),
-    ("moments", "Moments", MomentsTab),
-    ("passwords", "Passwords", PasswordsTab),
-    ("debug", "Debug", DebugTab),
-]
+from .value_panel import ValuePanel
 
 
 def _setup_logging(level=logging.INFO) -> None:
@@ -50,7 +48,6 @@ def _setup_logging(level=logging.INFO) -> None:
 
 
 class OutputLogHandler(logging.Handler):
-    """Forwards log records to the Output tool window via a Qt signal."""
 
     def __init__(self, emit):
         super().__init__(level=logging.INFO)
@@ -74,7 +71,7 @@ class WelcomePage(QWidget):
         title = QLabel("CryptOwl Desktop")
         title.setObjectName("WelcomeTitle")
         subtitle = QLabel(
-            "Desktop manager and debugging tool for CryptOwl vaults.\n"
+            "Desktop manager and analysis tool for CryptOwl vaults.\n"
             "Byte-compatible with the Android app: vault.meta, SQLCipher database "
             "and CWO1 encrypted files.")
         subtitle.setObjectName("WelcomeSubtitle")
@@ -109,8 +106,8 @@ class WelcomePage(QWidget):
         layout.addWidget(title)
         layout.addWidget(subtitle)
         layout.addSpacing(6)
-        for widget in (open_btn, create_btn):
-            layout.addWidget(widget)
+        layout.addWidget(open_btn)
+        layout.addWidget(create_btn)
         layout.addSpacing(14)
         layout.addWidget(recent_label)
         layout.addWidget(self.empty_label)
@@ -155,10 +152,10 @@ class MainWindow(QMainWindow):
     def __init__(self, start_dir: str | None = None):
         super().__init__()
         self.setWindowTitle(f"CryptOwl Desktop {__version__}")
-        self.resize(1000, 660)
-        self.setMinimumSize(760, 520)
+        self.resize(1080, 700)
+        self.setMinimumSize(800, 560)
         self.vault = None
-        self._documents = {}
+        self._editors = {}
         self.recent = RecentVaults()
         self._start_dir = (start_dir or self.recent.latest_path()
                            or os.path.expanduser("~"))
@@ -183,28 +180,30 @@ class MainWindow(QMainWindow):
     # -------------------------------------------------------------- actions
 
     def _create_actions(self):
-        self.act_open = self._action(
-            "&Open vault…", QStyle.StandardPixmap.SP_DialogOpenButton,
-            self.open_vault_dialog, "Open an existing vault folder")
-        self.act_create = self._action(
-            "&New vault…", QStyle.StandardPixmap.SP_FileDialogNewFolder,
-            self.create_vault_dialog, "Create a desktop-bound vault")
-        self.act_lock = self._action(
-            "&Lock", QStyle.StandardPixmap.SP_DialogCloseButton,
-            self.lock, "Close the vault and wipe session keys")
-        self.act_backup = self._action(
-            "&Backup copy…", QStyle.StandardPixmap.SP_DialogSaveButton,
-            self.backup_copy, "Copy the encrypted vault folder")
+        sp = QStyle.StandardPixmap
+        self.act_open = self._action("&Open vault…", sp.SP_DialogOpenButton,
+                                     self.open_vault_dialog, "Open an existing vault folder")
+        self.act_create = self._action("&New vault…", sp.SP_FileDialogNewFolder,
+                                       self.create_vault_dialog, "Create a desktop-bound vault")
+        self.act_lock = self._action("&Lock", sp.SP_DialogCloseButton,
+                                     self.lock, "Close the vault and wipe session keys")
+        self.act_backup = self._action("&Backup copy…", sp.SP_DialogSaveButton,
+                                       self.backup_copy, "Copy the encrypted vault folder")
         self.act_change_password = self._action(
-            "Change master &password…", QStyle.StandardPixmap.SP_DialogApplyButton,
+            "Change master &password…", sp.SP_DialogApplyButton,
             self.change_password, "Rewrap the vault key with a new password")
-        self.act_refresh = self._action(
-            "&Refresh", QStyle.StandardPixmap.SP_BrowserReload,
-            self.refresh_document, "Reload the current document")
-        self.act_about = self._action(
-            "&About", QStyle.StandardPixmap.SP_MessageBoxInformation, self.about)
-        self.act_exit = self._action(
-            "E&xit", QStyle.StandardPixmap.SP_DialogCancelButton, self.close)
+        self.act_refresh = self._action("&Refresh", sp.SP_BrowserReload,
+                                        self.refresh_editor, "Reload the current editor")
+        self.act_sql = self._action("&SQL console", sp.SP_FileDialogContentsView,
+                                    lambda: self.open_editor(SQL, "sql"),
+                                    "Run SQL against the open vault")
+        self.act_lab = self._action("Crypto &lab", sp.SP_MessageBoxWarning,
+                                    lambda: self.open_editor(LAB, "lab"),
+                                    "Dev-only key/payload experiments")
+        self.act_overview = self._action("&Overview", sp.SP_ComputerIcon,
+                                         lambda: self.open_editor(OVERVIEW, "overview"))
+        self.act_about = self._action("&About", sp.SP_MessageBoxInformation, self.about)
+        self.act_exit = self._action("E&xit", sp.SP_DialogCancelButton, self.close)
 
     def _action(self, text, icon, slot, tip=None):
         action = QAction(self.style().standardIcon(icon), text, self)
@@ -213,6 +212,18 @@ class MainWindow(QMainWindow):
             action.setStatusTip(tip)
             action.setToolTip(tip)
         return action
+
+    def _create_toolbar(self):
+        self.toolbar = QToolBar("Standard", self)
+        self.toolbar.setObjectName("StandardToolbar")
+        self.toolbar.setMovable(False)
+        self.toolbar.setIconSize(QSize(16, 16))
+        self.toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
+        self.addToolBar(Qt.ToolBarArea.TopToolBarArea, self.toolbar)
+        for action in (self.act_open, self.act_create, self.act_lock,
+                       self.act_backup, self.act_change_password, self.act_sql,
+                       self.act_refresh):
+            self.toolbar.addAction(action)
 
     def _create_menus(self):
         file_menu = self.menuBar().addMenu("&File")
@@ -227,82 +238,64 @@ class MainWindow(QMainWindow):
         file_menu.addAction(self.act_exit)
 
         view_menu = self.menuBar().addMenu("&View")
-        view_menu.addAction(self.explorer_dock.toggleViewAction())
+        view_menu.addAction(self.navigator_dock.toggleViewAction())
         view_menu.addAction(self.properties_dock.toggleViewAction())
+        view_menu.addAction(self.value_dock.toggleViewAction())
         view_menu.addAction(self.output_dock.toggleViewAction())
         view_menu.addSeparator()
         view_menu.addAction(self.toolbar.toggleViewAction())
 
         tools_menu = self.menuBar().addMenu("&Tools")
+        tools_menu.addAction(self.act_sql)
+        tools_menu.addAction(self.act_lab)
+        tools_menu.addAction(self.act_overview)
+        tools_menu.addSeparator()
         tools_menu.addAction(self.act_change_password)
         tools_menu.addAction(self.act_refresh)
 
         help_menu = self.menuBar().addMenu("&Help")
         help_menu.addAction(self.act_about)
 
-    def _create_toolbar(self):
-        self.toolbar = QToolBar("Standard", self)
-        self.toolbar.setObjectName("StandardToolbar")
-        self.toolbar.setMovable(False)
-        self.toolbar.setIconSize(QSize(16, 16))
-        self.toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
-        self.addToolBar(Qt.ToolBarArea.TopToolBarArea, self.toolbar)
-        for action in (self.act_open, self.act_create):
-            self.toolbar.addAction(action)
-        self.toolbar.addSeparator()
-        for action in (self.act_lock, self.act_backup, self.act_change_password):
-            self.toolbar.addAction(action)
-        self.toolbar.addSeparator()
-        self.toolbar.addAction(self.act_refresh)
-
     # ------------------------------------------------------------ workspace
 
     def _create_workspace(self):
-        # central document area (welcome page until a vault is open)
         self.welcome = WelcomePage(
             self.open_vault_dialog, self.create_vault_dialog,
             self.open_recent, self.forget_recent)
-        self.documents = QTabWidget()
-        self.documents.setTabsClosable(True)
-        self.documents.setMovable(True)
-        self.documents.tabCloseRequested.connect(self._close_document)
-        self.documents.currentChanged.connect(lambda _: self._refresh_properties())
+
+        self.editors = QTabWidget()
+        self.editors.setTabsClosable(True)
+        self.editors.setMovable(True)
+        self.editors.tabCloseRequested.connect(self._close_editor)
+        self.editors.currentChanged.connect(lambda _: self._refresh_properties())
         self.central_stack = QStackedWidget()
         self.central_stack.addWidget(self.welcome)
-        self.central_stack.addWidget(self.documents)
+        self.central_stack.addWidget(self.editors)
         self.setCentralWidget(self.central_stack)
 
-        # left: vault explorer
-        self.explorer = QTreeWidget()
-        self.explorer.setHeaderHidden(True)
-        self.explorer.setRootIsDecorated(True)
-        self.explorer.itemClicked.connect(self._explorer_activated)
-        self.explorer.itemActivated.connect(self._explorer_activated)
-        self.explorer_dock = QDockWidget("Vault Explorer", self)
-        self.explorer_dock.setObjectName("ExplorerDock")
-        self.explorer_dock.setWidget(self.explorer)
-        self.explorer_dock.setFeatures(
-            QDockWidget.DockWidgetFeature.DockWidgetMovable |
-            QDockWidget.DockWidgetFeature.DockWidgetFloatable)
-        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.explorer_dock)
+        self.navigator = NavigatorTree(None, self._nav_open)
+        self.navigator_dock = QDockWidget("Vault Navigator", self)
+        self.navigator_dock.setObjectName("NavigatorDock")
+        self.navigator_dock.setWidget(self.navigator)
+        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.navigator_dock)
 
-        # right: properties
         self.properties = QTreeWidget()
         self.properties.setColumnCount(2)
         self.properties.setHeaderLabels(["Property", "Value"])
-        self.properties.setRootIsDecorated(True)
         self.properties.setAlternatingRowColors(True)
         self.properties.header().setStretchLastSection(True)
         self.properties.setColumnWidth(0, 150)
         self.properties_dock = QDockWidget("Properties", self)
         self.properties_dock.setObjectName("PropertiesDock")
         self.properties_dock.setWidget(self.properties)
-        self.properties_dock.setFeatures(
-            QDockWidget.DockWidgetFeature.DockWidgetMovable |
-            QDockWidget.DockWidgetFeature.DockWidgetFloatable)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.properties_dock)
 
-        # bottom: output
+        self.value_panel = ValuePanel(None)
+        self.value_dock = QDockWidget("Value", self)
+        self.value_dock.setObjectName("ValueDock")
+        self.value_dock.setWidget(self.value_panel)
+        self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.value_dock)
+
         self.output = QPlainTextEdit()
         self.output.setObjectName("OutputView")
         self.output.setReadOnly(True)
@@ -310,95 +303,126 @@ class MainWindow(QMainWindow):
         self.output_dock = QDockWidget("Output", self)
         self.output_dock.setObjectName("OutputDock")
         self.output_dock.setWidget(self.output)
-        self.output_dock.setFeatures(
-            QDockWidget.DockWidgetFeature.DockWidgetMovable |
-            QDockWidget.DockWidgetFeature.DockWidgetFloatable)
         self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.output_dock)
+        self.tabifyDockWidget(self.output_dock, self.value_dock)
+        self.output_dock.raise_()
 
-        self.resizeDocks([self.explorer_dock], [230], Qt.Orientation.Horizontal)
+        self.resizeDocks([self.navigator_dock], [240], Qt.Orientation.Horizontal)
         self.resizeDocks([self.properties_dock], [260], Qt.Orientation.Horizontal)
-        self.resizeDocks([self.output_dock], [140], Qt.Orientation.Vertical)
+        self.resizeDocks([self.output_dock, self.value_dock], [150, 150],
+                         Qt.Orientation.Vertical)
 
     def _create_statusbar(self):
         self.status_left = QLabel("Ready")
         self.statusBar().addWidget(self.status_left, 1)
-        self.status_vault = QLabel("No vault")
+        self.status_vault = QLabel("")
         self.status_schema = QLabel("")
         self.statusBar().addPermanentWidget(self.status_vault)
         self.statusBar().addPermanentWidget(self.status_schema)
 
-    # -------------------------------------------------------------- recents
+    # ------------------------------------------------------------- editors
 
-    def _refresh_recents(self):
-        self.welcome.set_recents(self.recent.entries())
-        self.recent_menu.clear()
-        entries = self.recent.entries()
-        if not entries:
-            placeholder = self.recent_menu.addAction("(no recent vaults)")
-            placeholder.setEnabled(False)
-            return
-        for entry in entries:
-            action = self.recent_menu.addAction(entry["name"])
-            action.setToolTip(entry["path"])
-            action.setStatusTip(entry["path"])
-            action.triggered.connect(
-                lambda _checked=False, p=entry["path"]: self.open_recent(p))
-        self.recent_menu.addSeparator()
-        self.recent_menu.addAction("Clear list", self.clear_recents)
+    def _nav_open(self, kind, key):
+        self.open_editor(kind, key)
 
-    # ----------------------------------------------------------- documents
-
-    def open_document(self, key: str):
+    def open_editor(self, kind, key=None, extra=None):
         if self.vault is None:
             return
-        existing = self._documents.get(key)
+        editor_id = f"{kind}:{key or ''}"
+        existing = self._editors.get(editor_id)
         if existing is not None:
-            self.documents.setCurrentWidget(existing)
+            self.editors.setCurrentWidget(existing)
+            if kind == TABLE and extra and "fk" in extra:
+                column, value = extra["fk"]
+                existing.set_fk_filter(column, value)
             return
-        entry = next((e for e in DOCUMENTS if e[0] == key), None)
-        if entry is None:
+
+        widget = self._build_editor(kind, key)
+        if widget is None:
             return
-        _, title, factory = entry
-        widget = factory(self.vault)
-        widget.on_properties_changed = self._refresh_properties
-        index = self.documents.addTab(widget, title)
-        self._documents[key] = widget
-        self.documents.setCurrentIndex(index)
+        index = self.editors.addTab(widget, self._title_for(kind, key))
+        self._editors[editor_id] = widget
+        self.editors.setCurrentIndex(index)
+        if kind == TABLE and extra and "fk" in extra:
+            column, value = extra["fk"]
+            widget.set_fk_filter(column, value)
         self._refresh_properties()
 
-    def _close_document(self, index: int):
-        widget = self.documents.widget(index)
-        for key, known in list(self._documents.items()):
+    def _build_editor(self, kind, key):
+        vault = self.vault
+        hooks = (self._value_selected, self._fk_open, self._files_open)
+        if kind == OVERVIEW:
+            return OverviewEditor(vault, on_open=self._nav_open)
+        if kind == META:
+            return MetaViewer(vault, key)
+        if kind == TABLE:
+            return TableEditor(vault, key, *hooks)
+        if kind == KEYS:
+            return KeysEditor(vault)
+        if kind == FILES:
+            return FilesEditor(vault, key)
+        if kind == SQL:
+            return SqlConsole(vault, on_open=self._nav_open)
+        if kind == LAB:
+            return CryptoLab(vault)
+        if kind == FEATURE:
+            if key == "notes":
+                return NotesTab(vault)
+            if key == "media":
+                return MediaTab(vault)
+            if key == "moments":
+                return MomentsTab(vault)
+            if key == "passwords":
+                return PasswordsTab(vault)
+        return None
+
+    def _title_for(self, kind, key):
+        if kind == TABLE:
+            return key
+        if kind == META:
+            return {"vault.meta": "vault.meta", "config": "config.json",
+                    "device_secret": "device_secret"}.get(key, key or "meta")
+        if kind == FILES:
+            return f"{key}/"
+        return {OVERVIEW: "Overview", KEYS: "Keys & chain", SQL: "SQL console",
+                LAB: "Crypto lab", FEATURE: (key or "feature").capitalize(),
+                }.get(kind, key or kind)
+
+    def _close_editor(self, index: int):
+        widget = self.editors.widget(index)
+        for editor_id, known in list(self._editors.items()):
             if known is widget:
-                del self._documents[key]
+                del self._editors[editor_id]
                 break
-        self.documents.removeTab(index)
+        self.editors.removeTab(index)
         widget.deleteLater()
         self._refresh_properties()
 
-    def refresh_document(self):
-        current = self.documents.currentWidget()
+    def refresh_editor(self):
+        current = self.editors.currentWidget()
         if current is not None and hasattr(current, "refresh"):
-            current.refresh()
+            try:
+                current.refresh()
+            except Exception as exc:  # noqa: BLE001
+                logging.getLogger("ui").exception("refresh failed")
+                QMessageBox.warning(self, "Refresh", str(exc))
             self._refresh_properties()
 
-    def _explorer_activated(self, item: QTreeWidgetItem, _column: int = 0):
-        key = item.data(0, Qt.ItemDataRole.UserRole)
-        if key:
-            self.open_document(key)
+    # ------------------------------------------------------- value panel / FK
 
-    def _populate_explorer(self):
-        self.explorer.clear()
-        root = QTreeWidgetItem([f"Vault ({self.vault.vault_id})"])
-        root.setIcon(0, self.style().standardIcon(QStyle.StandardPixmap.SP_DirOpenIcon))
-        for key, title, _ in DOCUMENTS:
-            child = QTreeWidgetItem([title])
-            child.setData(0, Qt.ItemDataRole.UserRole, key)
-            child.setIcon(0, self.style().standardIcon(
-                QStyle.StandardPixmap.SP_FileIcon))
-            root.addChild(child)
-        self.explorer.addTopLevelItem(root)
-        root.setExpanded(True)
+    def _value_selected(self, table, column, row):
+        if self.vault is None:
+            return
+        self.value_panel.vault = self.vault
+        self.value_panel.set_cell((table, column, row))
+        self.value_dock.raise_()
+        self._refresh_properties()
+
+    def _fk_open(self, table, column, value):
+        self.open_editor(TABLE, table, extra={"fk": (column, value)})
+
+    def _files_open(self, subdir):
+        self.open_editor(FILES, subdir)
 
     # ---------------------------------------------------------- properties
 
@@ -406,33 +430,29 @@ class MainWindow(QMainWindow):
         self.properties.clear()
         if self.vault is None:
             return
-        user_version = "?"
-        row = self.vault.conn.query_one("PRAGMA user_version")
-        if row:
-            user_version = str(row[0])
-        vault_rows = [
+        version = self.vault.conn.query_one("PRAGMA user_version")
+        self._add_section("Vault", [
             ("Name", self.vault.config.get("name") or self.vault.vault_id),
             ("Vault id", self.vault.vault_id),
             ("Path", self.vault.path),
-            ("Schema", f"v{user_version} (expected v{expected_version()})"),
-            ("VaultKey fp", self.vault.vault_key_fingerprint),
-            ("FEK fp", self.vault.fek_fingerprint),
-        ]
-        self._add_property_section("Vault", vault_rows)
-
-        current = self.documents.currentWidget()
+            ("Schema", f"v{version[0] if version else 0} (expected v{expected_version()})"),
+        ])
+        current = self.editors.currentWidget()
         if current is not None and hasattr(current, "properties"):
-            index = self.documents.currentIndex()
-            self._add_property_section(self.documents.tabText(index), current.properties())
+            try:
+                rows = current.properties()
+            except Exception as exc:  # noqa: BLE001
+                rows = [("properties()", f"error: {exc}")]
+            self._add_section(self.editors.tabText(self.editors.currentIndex()), rows)
 
-    def _add_property_section(self, name, rows):
+    def _add_section(self, name, rows):
         top = QTreeWidgetItem([name, ""])
         top.setExpanded(True)
         for key, value in rows:
             top.addChild(QTreeWidgetItem([str(key), str(value)]))
         self.properties.addTopLevelItem(top)
 
-    # ------------------------------------------------------------- output
+    # -------------------------------------------------------------- output
 
     def _append_output(self, line: str):
         self.output.appendPlainText(line)
@@ -447,16 +467,20 @@ class MainWindow(QMainWindow):
         self.act_backup.setEnabled(not locked)
         self.act_change_password.setEnabled(not locked)
         self.act_refresh.setEnabled(not locked)
-        for dock in (self.explorer_dock, self.properties_dock, self.output_dock):
+        self.act_sql.setEnabled(not locked)
+        self.act_lab.setEnabled(not locked)
+        self.act_overview.setEnabled(not locked)
+        for dock in (self.navigator_dock, self.properties_dock,
+                     self.value_dock, self.output_dock):
             dock.setVisible(not locked)
         self.toolbar.setVisible(not locked)
         if locked:
             self.central_stack.setCurrentWidget(self.welcome)
-            self.status_vault.setText("No vault")
+            self.status_vault.setText("")
             self.status_schema.setText("")
             self.status_left.setText("Ready")
         else:
-            self.central_stack.setCurrentWidget(self.documents)
+            self.central_stack.setCurrentWidget(self.editors)
 
     def open_vault_dialog(self, *_):
         self._open_vault_dialog(prefill=None)
@@ -490,14 +514,12 @@ class MainWindow(QMainWindow):
                                       vault_id=vault_id, name=name)
         except Exception as exc:  # noqa: BLE001 - surfaced to the user
             logging.getLogger("ui").exception("create failed")
-            from PyQt6.QtWidgets import QMessageBox
             QMessageBox.critical(self, "Create vault", str(exc))
             return
         self._enter_workspace()
         self.append_output(f"Created vault at {path}")
 
     def _unlock(self, path: str, password: str):
-        from PyQt6.QtWidgets import QMessageBox
         try:
             self.vault = Vault.open(path, password.encode("utf-8"))
         except FileNotFoundError as exc:
@@ -512,30 +534,52 @@ class MainWindow(QMainWindow):
         self.append_output(f"Unlocked {path}")
 
     def _enter_workspace(self):
-        for index in reversed(range(self.documents.count())):
-            self._close_document(index)
-        self._populate_explorer()
+        for index in reversed(range(self.editors.count())):
+            self._close_editor(index)
         self.recent.add(self.vault.path,
                         self.vault.config.get("name") or self.vault.vault_id)
         self._refresh_recents()
         self._set_locked_ui(False)
-        self.status_vault.setText(f"  {self.vault.vault_id}  ")
+        self.navigator.vault = self.vault
+        self.navigator.build()
+        self.value_panel.vault = self.vault
         row = self.vault.conn.query_one("PRAGMA user_version")
+        self.status_vault.setText(f"  {self.vault.vault_id}  ")
         self.status_schema.setText(f"  schema v{row[0] if row else 0}  ")
         self.status_left.setText(f"Unlocked {self.vault.path}")
-        self.open_document("notes")
+        self.open_editor(OVERVIEW, "overview")
         self._refresh_properties()
 
     def lock(self):
         if self.vault is not None:
             self.vault.close()
             self.vault = None
-        for index in reversed(range(self.documents.count())):
-            self._close_document(index)
-        self.explorer.clear()
+        for index in reversed(range(self.editors.count())):
+            self._close_editor(index)
+        self.navigator.clear()
         self.properties.clear()
+        self.value_panel.set_cell(None)
         self._set_locked_ui(True)
         logging.getLogger("ui").info("vault locked")
+
+    # -------------------------------------------------------------- recents
+
+    def _refresh_recents(self):
+        self.welcome.set_recents(self.recent.entries())
+        self.recent_menu.clear()
+        entries = self.recent.entries()
+        if not entries:
+            placeholder = self.recent_menu.addAction("(no recent vaults)")
+            placeholder.setEnabled(False)
+            return
+        for entry in entries:
+            action = self.recent_menu.addAction(entry["name"])
+            action.setToolTip(entry["path"])
+            action.setStatusTip(entry["path"])
+            action.triggered.connect(
+                lambda _checked=False, p=entry["path"]: self.open_recent(p))
+        self.recent_menu.addSeparator()
+        self.recent_menu.addAction("Clear list", self.clear_recents)
 
     # --------------------------------------------------------------- tools
 
@@ -545,9 +589,10 @@ class MainWindow(QMainWindow):
         ChangePasswordDialog(self.vault, self).exec()
 
     def backup_copy(self):
-        from PyQt6.QtWidgets import QFileDialog, QMessageBox
         if self.vault is None:
             return
+        target_root = None
+        from PyQt6.QtWidgets import QFileDialog
         target_root = QFileDialog.getExistingDirectory(
             self, "Choose backup folder", self._start_dir)
         if not target_root:
@@ -563,14 +608,14 @@ class MainWindow(QMainWindow):
         QMessageBox.information(self, "Backup", f"Backup written to {target}")
 
     def about(self):
-        from PyQt6.QtWidgets import QMessageBox
         QMessageBox.about(
             self, "About CryptOwl Desktop",
             f"<b>CryptOwl Desktop {__version__}</b><br><br>"
-            "Desktop manager and debugging tool for CryptOwl vaults.<br>"
+            "Desktop manager and analysis tool for CryptOwl vaults.<br>"
             "Byte-compatible with the Android app: vault.meta, SQLCipher raw-key "
             "database and CWO1 encrypted files.<br><br>"
-            "Fingerprint-protected keys (Secret/Top-Secret tiers) are Android-only.")
+            "Fingerprint-protected keys (Secret/Top-Secret tiers) are Android-only; "
+            "the Crypto lab can attempt local unwraps with a manually supplied key.")
 
     def closeEvent(self, event):
         if self.vault is not None:

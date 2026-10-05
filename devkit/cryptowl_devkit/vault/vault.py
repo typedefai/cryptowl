@@ -19,15 +19,23 @@ import hashlib
 import hmac
 import json
 import os
+import secrets
+import tempfile
+import time
 from dataclasses import dataclass
+from importlib.resources import files as _resource_files
 
 from . import crockford32
-from .crypto import (aes_gcm_decrypt, argon2id_raw, hkdf_sha256, hmac_sha256)
+from .crypto import (ARGON2_M_KIB, aes_gcm_decrypt, aes_gcm_encrypt,
+                     argon2id_raw, hkdf_sha256, hmac_sha256)
 from .sqlcipher import SqlCipherDatabase
 
 META_VERSION = 2
-WRAPPED_KEY_ID = "vault_key:smk"
+SALT_LEN = 32
 DEVICE_SECRET_LEN = 32
+WRAPPED_KEY_ID = "vault_key:smk"
+
+KDF_DEFAULTS = {"algorithm": "argon2id", "m_kib": ARGON2_M_KIB, "t": 2, "p": 1}
 
 REQUIRED_FILES = ("vault.meta", "vault.db", "config.json", "config.sig")
 
@@ -46,6 +54,10 @@ class AndroidBoundError(VaultError):
 
 class WrongPasswordError(VaultError):
     """The master password failed to unwrap the vault key."""
+
+
+class VaultExistsError(VaultError):
+    """Refusing to create a vault over existing vault files."""
 
 
 class CorruptVaultError(VaultError):
@@ -265,6 +277,94 @@ class Vault:
 
         return Vault(path, meta, config, vault_key, db)
 
+    # -- create -------------------------------------------------------------
+
+    @staticmethod
+    def create(path: str, master_password: bytes, vault_id: str | None = None,
+               name: str | None = None) -> "Vault":
+        """Create a new desktop-bound vault, byte-exact with vaultlib.
+
+        Writes `device_secret`, config.json + config.sig, vault.meta with the
+        wrapped VaultKey, and vault.db with the SQLCipher raw key. Schema comes
+        from the vendored migration scripts (currently `v1__init.sql`,
+        user_version 1); Android's SchemaApplier applies any newer ones on open.
+        """
+        path = os.path.abspath(os.path.expanduser(path))
+        if not master_password:
+            raise VaultError("master password must not be empty")
+        vault_id = (vault_id or os.path.basename(path)).strip()
+        if (not vault_id or vault_id in (".", "..")
+                or os.sep in vault_id or "/" in vault_id):
+            raise VaultError("vault id must be a simple folder name")
+        name = (name or vault_id).strip() or vault_id
+        if (os.path.exists(os.path.join(path, "vault.meta"))
+                or os.path.exists(os.path.join(path, "vault.db"))):
+            raise VaultExistsError(
+                f"'{path}' already contains a vault — refusing to overwrite it")
+        os.makedirs(path, exist_ok=True)
+
+        device_secret = secrets.token_bytes(DEVICE_SECRET_LEN)
+        _write_device_secret(path, device_secret)
+
+        argon2_salt = secrets.token_bytes(SALT_LEN)
+        hkdf_salt = secrets.token_bytes(SALT_LEN)
+        meta = {
+            "version": META_VERSION,
+            "vault_id": vault_id,
+            "created_at": _now_ms(),
+            "updated_at": _now_ms(),
+            "kdf": dict(KDF_DEFAULTS),
+            "salts": {
+                "argon2": crockford32.encode(argon2_salt),
+                "hkdf": crockford32.encode(hkdf_salt),
+            },
+            "wrapped_keys": [],
+        }
+        _, smk = _derive_keys(device_secret, master_password, vault_id, meta)
+
+        # config.json + config.sig (written before vault.meta, per design order)
+        config_bytes = _canonical_json({"name": name})
+        _atomic_write(os.path.join(path, "config.json"), config_bytes)
+        _atomic_write(
+            os.path.join(path, "config.sig"),
+            crockford32.encode(hmac_sha256(smk[32:64], config_bytes)).encode("ascii"))
+
+        # wrap VaultKey with SMK[0:32], AAD = wrapped-key id
+        vault_key = secrets.token_bytes(32)
+        nonce = secrets.token_bytes(12)
+        ciphertext, tag = aes_gcm_encrypt(
+            smk[:32], nonce, WRAPPED_KEY_ID.encode("ascii"), vault_key)
+        meta["wrapped_keys"].append({
+            "id": WRAPPED_KEY_ID,
+            "role": "vault_key",
+            "wrapper": "smk",
+            "algorithm": "AES-256-GCM",
+            "ciphertext": crockford32.encode(ciphertext),
+            "nonce": crockford32.encode(nonce),
+            "auth_tag": crockford32.encode(tag),
+        })
+        meta["updated_at"] = _now_ms()
+        meta["mac"] = {
+            "algorithm": "HMAC-SHA256",
+            "value": crockford32.encode(
+                hmac_sha256(smk[32:64],
+                            _canonical_json(_meta_without_mac(meta)))),
+        }
+        _atomic_write(os.path.join(path, "vault.meta"), _canonical_json(meta))
+
+        # create vault.db with the raw key + vendored schema migrations
+        db = SqlCipherDatabase(os.path.join(path, "vault.db"),
+                               raw_key=vault_key, readonly=False, create=True)
+        try:
+            if not db.verify_key():
+                raise CorruptVaultError("vault.db raw-key verification failed")
+            _apply_migrations(db)
+        finally:
+            db.close()
+
+        # reopen to verify the whole chain end-to-end
+        return Vault.open(path, master_password, device_secret)
+
 
 # -- key derivation / verification ------------------------------------------
 
@@ -288,6 +388,27 @@ def _canonical_json(obj: dict) -> bytes:
 
 def _meta_without_mac(meta: dict) -> dict:
     return {k: v for k, v in meta.items() if k != "mac"}
+
+
+def _now_ms() -> int:
+    return int(time.time() * 1000)
+
+
+def _atomic_write(path: str, data: bytes) -> None:
+    fd, tmp = tempfile.mkstemp(dir=os.path.dirname(path), prefix=".tmp-")
+    try:
+        with os.fdopen(fd, "wb") as f:
+            f.write(data)
+        os.replace(tmp, path)
+    finally:
+        if os.path.exists(tmp):
+            os.remove(tmp)
+
+
+def _write_device_secret(path: str, secret: bytes) -> None:
+    secret_path = os.path.join(path, "device_secret")
+    _atomic_write(secret_path, secret.hex().encode("ascii"))
+    os.chmod(secret_path, 0o600)
 
 
 def _read_device_secret(path: str) -> bytes:
@@ -358,3 +479,36 @@ def _load_and_verify_config(path: str, mac_key: bytes) -> dict:
         return json.loads(config_bytes.decode("utf-8"))
     except ValueError as exc:
         raise CorruptVaultError(f"config.json invalid: {exc}") from exc
+
+
+# -- schema migrations ------------------------------------------------------
+#
+# Vendored copies of docs/migrations/*.sql, byte-for-byte mirrors of the
+# Android app's assets/migrations/. Applied scripts are immutable: add a new
+# vN__<desc>.sql on all three sides instead of editing an existing one. Keep
+# them comment-free — SchemaApplier splits on ';' before executing.
+
+MIGRATIONS = [
+    (1, "v1__init.sql"),
+]
+
+
+def expected_version() -> int:
+    return MIGRATIONS[-1][0] if MIGRATIONS else 0
+
+
+def _read_migration(filename: str) -> str:
+    return (_resource_files("cryptowl_devkit.vault")
+            .joinpath("migrations", filename)
+            .read_text(encoding="utf-8"))
+
+
+def _apply_migrations(db: SqlCipherDatabase) -> int:
+    """Applies every migration newer than PRAGMA user_version; returns it."""
+    current = db.user_version()
+    for version, filename in MIGRATIONS:
+        if version > current:
+            db.exec_(_read_migration(filename))
+            db.exec_(f"PRAGMA user_version = {version}")
+            current = version
+    return current

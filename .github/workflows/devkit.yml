@@ -1,0 +1,58 @@
+name: DevKit
+
+on:
+  push:
+    paths:
+      - 'devkit/**'
+      - '.gitmodules'
+      - 'docs/migrations/**'
+      - 'app/src/main/assets/migrations/**'
+      - '.github/workflows/devkit.yml'
+  pull_request:
+    paths:
+      - 'devkit/**'
+      - '.gitmodules'
+      - 'docs/migrations/**'
+      - 'app/src/main/assets/migrations/**'
+      - '.github/workflows/devkit.yml'
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Build & test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    defaults:
+      run:
+        working-directory: devkit
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Install OpenSSL headers (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libssl-dev
+
+      - name: Build SQLCipher from the pinned submodule
+        run: make FORCE=1 native
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install Python dependencies (Qt is not needed for tests)
+        run: >-
+          uv sync
+          --no-install-package pyside6
+          --no-install-package pyside6-essentials
+          --no-install-package pyside6-addons
+          --no-install-package shiboken6
+
+      - name: Run tests
+        run: uv run --no-sync pytest -q

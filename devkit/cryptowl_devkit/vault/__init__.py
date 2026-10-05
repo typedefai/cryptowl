@@ -1,6 +1,7 @@
 from .vault import (META_VERSION, AndroidBoundError, CorruptVaultError,
-                    NotAVaultError, Vault, VaultError, VaultFolderStatus,
-                    WrongPasswordError, inspect_folder, key_fingerprint)
+                    NotAVaultError, Vault, VaultError, VaultExistsError,
+                    VaultFolderStatus, WrongPasswordError, expected_version,
+                    inspect_folder, key_fingerprint)
 
 __all__ = [
     "META_VERSION",
@@ -9,8 +10,10 @@ __all__ = [
     "NotAVaultError",
     "Vault",
     "VaultError",
+    "VaultExistsError",
     "VaultFolderStatus",
     "WrongPasswordError",
+    "expected_version",
     "inspect_folder",
     "key_fingerprint",
 ]

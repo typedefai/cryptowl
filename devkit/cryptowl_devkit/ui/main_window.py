@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (QFileDialog, QFormLayout, QHBoxLayout, QLabel,
 from .. import __version__
 from ..recent import RecentVaults
 from ..vault import Vault, VaultError, inspect_folder
+from .dialogs import CreateVaultDialog
 
 logger = logging.getLogger("devkit.ui")
 
@@ -31,6 +32,7 @@ class UnlockPage(QWidget):
     """Login-style panel: current vault, master password, switch-vault menu."""
 
     unlock_requested = Signal(str, str)
+    create_requested = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -68,10 +70,21 @@ class UnlockPage(QWidget):
         password_row.addWidget(self.unlock_btn)
         password_row.addStretch(1)
 
+        self.create_link = QLabel('<a href="create">Create vault…</a>')
         self.switch_link = QLabel('<a href="switch">Switch vault…</a>')
-        self.switch_link.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.switch_link.setTextInteractionFlags(
-            Qt.TextInteractionFlag.LinksAccessibleByMouse)
+        separator = QLabel("·")
+        separator.setStyleSheet(f"color: {HINT_COLOR};")
+        links = QHBoxLayout()
+        links.addStretch(1)
+        links.addWidget(self.create_link)
+        links.addWidget(separator)
+        links.addWidget(self.switch_link)
+        links.addStretch(1)
+        for link in (self.create_link, self.switch_link):
+            link.setTextInteractionFlags(
+                Qt.TextInteractionFlag.LinksAccessibleByMouse)
+        self.create_link.linkActivated.connect(
+            lambda _: self.create_requested.emit())
         self.switch_link.linkActivated.connect(lambda _: self._show_switch_menu())
 
         layout = QVBoxLayout(self)
@@ -84,7 +97,7 @@ class UnlockPage(QWidget):
         layout.addSpacing(14)
         layout.addLayout(password_row)
         layout.addSpacing(10)
-        layout.addWidget(self.switch_link)
+        layout.addLayout(links)
         layout.addStretch(4)
         layout.setContentsMargins(28, 20, 28, 20)
 
@@ -245,6 +258,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.stack)
 
         self.unlock_page.unlock_requested.connect(self._unlock)
+        self.unlock_page.create_requested.connect(self._create_vault)
         self.vault_page.lock_requested.connect(self.lock)
 
         self._build_menu()
@@ -259,12 +273,15 @@ class MainWindow(QMainWindow):
 
     def _build_menu(self) -> None:
         file_menu = self.menuBar().addMenu("&File")
+        new_action = QAction("&New vault…", self)
+        new_action.triggered.connect(self._create_vault)
         open_action = QAction("&Open vault…", self)
         open_action.triggered.connect(self._open_from_menu)
         self.lock_action = QAction("&Lock", self)
         self.lock_action.triggered.connect(self.lock)
         exit_action = QAction("E&xit", self)
         exit_action.triggered.connect(self.close)
+        file_menu.addAction(new_action)
         file_menu.addAction(open_action)
         file_menu.addAction(self.lock_action)
         file_menu.addSeparator()
@@ -305,6 +322,32 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Unlock", f"Could not open the vault:\n{exc}")
             return
 
+        self._adopt_vault(vault)
+        self.statusBar().showMessage(f"Unlocked {vault.path}")
+
+    def _create_vault(self) -> None:
+        if self.stack.currentWidget() is self.vault_page:
+            return
+        dialog = CreateVaultDialog(self, start_dir=self._start_dir())
+        if not dialog.exec():
+            return
+        path, vault_id, name, password = dialog.values()
+        try:
+            vault = Vault.create(path, password.encode("utf-8"),
+                                 vault_id=vault_id, name=name)
+        except VaultError as exc:
+            logger.warning("create failed for %s: %s", path, exc)
+            QMessageBox.warning(self, "Create vault", str(exc))
+            return
+        except Exception as exc:  # noqa: BLE001 - native errors can be Error
+            logger.exception("unexpected create failure for %s", path)
+            QMessageBox.critical(self, "Create vault",
+                                 f"Could not create the vault:\n{exc}")
+            return
+        self._adopt_vault(vault)
+        self.statusBar().showMessage(f"Created vault at {vault.path}")
+
+    def _adopt_vault(self, vault: Vault) -> None:
         self.vault = vault
         self.vault_page.set_vault(vault)
         self.unlock_page.password_edit.clear()
@@ -312,7 +355,12 @@ class MainWindow(QMainWindow):
         self._refresh_recents()
         self.stack.setCurrentWidget(self.vault_page)
         self._set_locked_ui(False)
-        self.statusBar().showMessage(f"Unlocked {vault.path}")
+
+    def _start_dir(self) -> str:
+        current = self.unlock_page.current_path()
+        if current:
+            return os.path.dirname(current)
+        return os.path.expanduser("~")
 
     def lock(self) -> None:
         path = self.vault.path if self.vault is not None else None

@@ -1,26 +1,34 @@
 from __future__ import annotations
 
-"""Backend tests for step 1: folder detection + vault open.
+"""Backend tests for step 1: folder detection + vault open, and initializing
+new vaults.
 
-The fixture in `tests/fixtures/personal` was created by the cross-verification
-oracle (`wechat_sns_export/vaultlib`, password `devkit-fixture-password`), so a
-successful open proves byte-compatibility with the reference implementation and
-the Android key chain.
+The committed fixture in `tests/fixtures/personal` was created by the
+cross-verification oracle (`wechat_sns_export/vaultlib`, password
+`devkit-fixture-password`), so a successful open proves byte-compatibility with
+the reference implementation and the Android key chain. The tests themselves
+stay self-contained (no files outside this repo).
 """
 
 import os
 import shutil
-import sys
+from importlib.resources import files as resource_files
+from pathlib import Path
 
 import pytest
 
 from cryptowl_devkit.vault import (AndroidBoundError, NotAVaultError, Vault,
-                                   WrongPasswordError, inspect_folder,
-                                   key_fingerprint)
+                                   VaultError, VaultExistsError,
+                                   WrongPasswordError, expected_version,
+                                   inspect_folder, key_fingerprint)
+from cryptowl_devkit.vault.vault import MIGRATIONS
 
 FIXTURE = os.path.join(os.path.dirname(__file__), "fixtures", "personal")
 PASSWORD = b"devkit-fixture-password"
+CREATE_PASSWORD = b"create-test-password"
 
+
+# -- open -------------------------------------------------------------------
 
 def test_inspect_folder_detects_vault():
     status = inspect_folder(FIXTURE)
@@ -45,6 +53,13 @@ def test_wrong_password_rejected():
         Vault.open(FIXTURE, b"not-the-password")
 
 
+def test_loaded_library_is_sqlcipher():
+    """Guard that the loaded library is SQLCipher 4.x, not plain SQLite."""
+    with Vault.open(FIXTURE, PASSWORD) as vault:
+        row = vault.db.query_one("PRAGMA cipher_version")
+    assert row and row[0].startswith("4."), row
+
+
 def test_android_bound_vault_rejected(tmp_path):
     copied = tmp_path / "personal"
     shutil.copytree(FIXTURE, copied)
@@ -63,25 +78,62 @@ def test_not_a_vault(tmp_path):
         Vault.open(str(tmp_path), PASSWORD)
 
 
-def test_matches_vaultlib_oracle():
-    oracle_root = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "..", "..", "..", "wechat_sns_export"))
-    if not os.path.isdir(os.path.join(oracle_root, "vaultlib")):
-        pytest.skip("sibling vaultlib oracle not available")
-    from cryptowl_devkit.vault import sqlcipher
-    lib = next((p for p in sqlcipher._candidate_library_paths()
-                if p and os.path.exists(p)), None)
-    if lib:
-        os.environ.setdefault("LIBSQLCIPHER", lib)
-    sys.path.insert(0, oracle_root)
-    try:
-        oracle = pytest.importorskip("vaultlib.vault")
-    finally:
-        sys.path.remove(oracle_root)
+# -- create -----------------------------------------------------------------
 
-    with Vault.open(FIXTURE, PASSWORD) as devkit_vault, \
-            oracle.Vault.open(FIXTURE, PASSWORD) as oracle_vault:
-        assert devkit_vault.vault_key == oracle_vault.vault_key
-        assert devkit_vault.file_encryption_key == oracle_vault.file_encryption_key
-        assert devkit_vault.schema_version == \
-            oracle_vault.conn.query_one("PRAGMA user_version")[0]
+def test_create_and_reopen(tmp_path):
+    path = tmp_path / "personal"
+    with Vault.create(str(path), CREATE_PASSWORD,
+                      vault_id="personal", name="New Vault") as vault:
+        assert vault.vault_id == "personal"
+        assert vault.name == "New Vault"
+        assert set(vault.tables) == {"t_wrapped_key", "t_data_encrypt_key",
+                                     "t_encrypted_data", "t_file"}
+        assert vault.schema_version == expected_version() == 1
+
+    for name in ("vault.meta", "vault.db", "config.json", "config.sig",
+                 "device_secret"):
+        assert (path / name).is_file(), name
+    assert (path / "device_secret").stat().st_mode & 0o777 == 0o600
+
+    assert inspect_folder(str(path)).ready
+    with pytest.raises(WrongPasswordError):
+        Vault.open(str(path), b"wrong-password")
+
+
+def test_create_defaults_id_and_name(tmp_path):
+    path = tmp_path / "personal"
+    with Vault.create(str(path), CREATE_PASSWORD) as vault:
+        assert vault.vault_id == "personal"
+        assert vault.name == "personal"
+
+
+def test_create_refuses_existing_vault(tmp_path):
+    path = tmp_path / "personal"
+    Vault.create(str(path), CREATE_PASSWORD).close()
+    with pytest.raises(VaultExistsError):
+        Vault.create(str(path), CREATE_PASSWORD)
+
+
+def test_create_validates_id_and_password(tmp_path):
+    with pytest.raises(VaultError):
+        Vault.create(str(tmp_path / "a"), CREATE_PASSWORD, vault_id="../escape")
+    with pytest.raises(VaultError):
+        Vault.create(str(tmp_path / "b"), b"")
+
+
+# -- schema cross-checks ----------------------------------------------------
+
+def test_schema_files_match_android_migrations():
+    """Vendored scripts must stay byte-identical to the canonical chain."""
+    repo = Path(__file__).resolve().parents[2]
+    canonical = repo / "docs" / "migrations"
+    android_assets = repo / "app" / "src" / "main" / "assets" / "migrations"
+    assert (canonical / MIGRATIONS[0][1]).is_file(), \
+        "canonical migration chain (docs/migrations) not found"
+    for _version, filename in MIGRATIONS:
+        ours = resource_files("cryptowl_devkit.vault") \
+            .joinpath("migrations", filename).read_bytes()
+        for mirror in (canonical / filename, android_assets / filename):
+            if mirror.is_file():
+                assert ours == mirror.read_bytes(), \
+                    f"schema drift vs {mirror.relative_to(repo)}"

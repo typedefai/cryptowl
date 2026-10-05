@@ -8,7 +8,7 @@ The vault key is passed as the RAW KEY expression `x'<hex>'` via
 would make SQLCipher treat it as a passphrase (PBKDF2), which "works" only for
 vaults created the same way and fails on vaults created elsewhere (AGENTS.md).
 
-Step 1 scope: open/key/query/close. No writes, no parameter binding, no exec.
+Scope: open/key/query/exec/close. No parameter binding yet.
 """
 
 import ctypes
@@ -22,6 +22,7 @@ SQLITE_DONE = 101
 
 SQLITE_OPEN_READONLY = 0x00000001
 SQLITE_OPEN_READWRITE = 0x00000002
+SQLITE_OPEN_CREATE = 0x00000004
 
 SQLITE_INTEGER = 1
 SQLITE_FLOAT = 2
@@ -40,12 +41,15 @@ class SqlCipherDatabase:
     """A SQLCipher database handle; use as a context manager."""
 
     def __init__(self, path: str, raw_key: bytes | None = None,
-                 readonly: bool = True):
+                 readonly: bool = True, create: bool = False):
         _load_lib()
         self.path = path
-        if not os.path.isfile(path):
+        if not os.path.isfile(path) and not create:
             raise FileNotFoundError(f"database not found: {path}")
-        flags = SQLITE_OPEN_READONLY if readonly else SQLITE_OPEN_READWRITE
+        if create:
+            flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE
+        else:
+            flags = SQLITE_OPEN_READONLY if readonly else SQLITE_OPEN_READWRITE
         db = ctypes.c_void_p()
         rc = _lib.sqlite3_open_v2(path.encode("utf-8"), ctypes.byref(db),
                                   flags, None)
@@ -66,6 +70,19 @@ class SqlCipherDatabase:
         rc = _lib.sqlite3_key_v2(self._db, b"main", expr, len(expr))
         if rc != SQLITE_OK:
             raise SqlCipherError(f"sqlite3_key_v2 failed ({rc}): {self.errmsg()}")
+
+    # -- statements ---------------------------------------------------------
+
+    def exec_(self, sql: str) -> None:
+        """Execute raw SQL (one or more statements, no result rows)."""
+        err = ctypes.c_char_p()
+        rc = _lib.sqlite3_exec(self._db, sql.encode("utf-8"), None, None,
+                               ctypes.byref(err))
+        if rc != SQLITE_OK:
+            msg = err.value.decode("utf-8") if err.value else self.errmsg()
+            if err.value:
+                _lib.sqlite3_free(err)
+            raise SqlCipherError(msg)
 
     # -- queries ------------------------------------------------------------
 
@@ -158,7 +175,7 @@ _lib = None
 
 
 def _candidate_library_paths():
-    """LIBSQLCIPHER, devkit-local native/, the sibling desktop build, then OS."""
+    """LIBSQLCIPHER, the devkit-local native/ build, then OS package managers."""
     env = os.environ.get("LIBSQLCIPHER")
     if env:
         yield env
@@ -168,7 +185,6 @@ def _candidate_library_paths():
         else ("libsqlcipher.so",)
     for name in names:
         yield os.path.join(project, "native", name)
-        yield os.path.join(project, "..", "desktop", "native", name)
     yield "/opt/homebrew/opt/sqlcipher/lib/libsqlcipher.dylib"
     yield "/usr/local/opt/sqlcipher/lib/libsqlcipher.dylib"
     yield "/opt/local/lib/libsqlcipher.dylib"
@@ -185,8 +201,8 @@ def _load_lib():
         path = ctypes.util.find_library("sqlcipher")
     if not path:
         raise ImportError(
-            "libsqlcipher not found. Build a local copy with "
-            "`scripts/build_sqlcipher.sh`, install SQLCipher "
+            "libsqlcipher not found. Run `make native` in the devkit folder "
+            "(builds the pinned SQLCipher submodule), install SQLCipher "
             "(`brew install sqlcipher` / `port install sqlcipher`), or set "
             "LIBSQLCIPHER to the library path.")
     lib = ctypes.cdll.LoadLibrary(path)
@@ -195,6 +211,10 @@ def _load_lib():
                              ctypes.c_int, ctypes.c_void_p], ctypes.c_int),
         ("sqlite3_key_v2", [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p,
                             ctypes.c_int], ctypes.c_int),
+        ("sqlite3_exec", [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p,
+                          ctypes.c_void_p, ctypes.POINTER(ctypes.c_char_p)],
+         ctypes.c_int),
+        ("sqlite3_free", [ctypes.c_void_p], None),
         ("sqlite3_prepare_v2", [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int,
                                 ctypes.POINTER(_STMT), ctypes.c_void_p],
          ctypes.c_int),

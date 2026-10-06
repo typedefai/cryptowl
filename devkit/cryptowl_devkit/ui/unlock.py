@@ -7,10 +7,11 @@ import os
 from PySide6.QtCore import QPoint, Qt, Signal
 from PySide6.QtGui import QFontMetrics
 from PySide6.QtWidgets import (QFileDialog, QHBoxLayout, QLabel, QLineEdit,
-                               QMenu, QMessageBox, QPushButton, QStyle,
-                               QVBoxLayout, QWidget)
+                               QMenu, QMessageBox, QPushButton, QVBoxLayout,
+                               QWidget)
 
 from ..vault import inspect_folder
+from . import app_icon
 
 WARN_COLOR = "#9a6700"
 ERROR_COLOR = "#cf222e"
@@ -29,9 +30,7 @@ class UnlockPage(QWidget):
         self._entries = []
 
         icon = QLabel()
-        icon.setPixmap(self.style()
-                       .standardIcon(QStyle.StandardPixmap.SP_DirIcon)
-                       .pixmap(64, 64))
+        icon.setPixmap(app_icon().pixmap(72, 72))
         icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.name_label = QLabel("No vault selected")

@@ -8,6 +8,7 @@ import sys
 
 from PySide6.QtWidgets import QApplication
 
+from .ui import app_icon
 from .ui.main_window import MainWindow
 
 
@@ -26,6 +27,8 @@ def main(argv=None) -> int:
     )
 
     app = QApplication(sys.argv[:1])
+    app.setStyle("Fusion")
+    app.setWindowIcon(app_icon())
     app.setApplicationName("CryptOwl DevKit")
     app.setOrganizationName("CryptOwl")
     window = MainWindow(start_dir=args.vault)

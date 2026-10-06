@@ -131,6 +131,10 @@ class SqlCipherDatabase:
             "ORDER BY name")
         return [r[0] for r in rows]
 
+    def row_count(self, table: str) -> int:
+        row = self.query_one(f'SELECT COUNT(*) FROM "{table}"')
+        return int(row[0]) if row else 0
+
     # -- internals ----------------------------------------------------------
 
     def _row(self, stmt) -> tuple:

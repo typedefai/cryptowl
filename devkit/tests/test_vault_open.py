@@ -53,6 +53,28 @@ def test_wrong_password_rejected():
         Vault.open(FIXTURE, b"not-the-password")
 
 
+def test_key_chain_exposes_derived_keys():
+    from cryptowl_devkit.vault.crypto import hmac_sha256
+
+    with Vault.open(FIXTURE, PASSWORD) as vault:
+        chain = {name: (value, formula) for name, value, formula in vault.key_chain()}
+
+    assert list(chain) == [
+        "Device Secret", "P", "TMK", "SMK", "SMK[0:32] (encryption key)",
+        "SMK[32:64] (MAC key)", "VaultKey", "FEK"]
+    secret = bytes.fromhex(
+        (Path(FIXTURE) / "device_secret").read_text(encoding="ascii").strip())
+    assert chain["Device Secret"][0] == secret
+    assert chain["P"][0] == hmac_sha256(secret, PASSWORD)
+    assert len(chain["TMK"][0]) == 32
+    assert len(chain["SMK"][0]) == 64
+    assert chain["SMK"][0][:32] == chain["SMK[0:32] (encryption key)"][0]
+    assert chain["SMK"][0][32:] == chain["SMK[32:64] (MAC key)"][0]
+    assert len(chain["VaultKey"][0]) == 32
+    assert len(chain["FEK"][0]) == 32
+    assert chain["VaultKey"][1] == "SQLCipher raw key of vault.db"
+
+
 def test_loaded_library_is_sqlcipher():
     """Guard that the loaded library is SQLCipher 4.x, not plain SQLite."""
     with Vault.open(FIXTURE, PASSWORD) as vault:

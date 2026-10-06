@@ -167,12 +167,18 @@ class Vault:
     """An opened vault (read-only in step 1)."""
 
     def __init__(self, path: str, meta: dict, config: dict,
-                 vault_key: bytes, db: SqlCipherDatabase):
+                 vault_key: bytes, db: SqlCipherDatabase,
+                 device_secret: bytes | None = None, p: bytes | None = None,
+                 tmk: bytes | None = None, smk: bytes | None = None):
         self.path = path
         self.meta = meta
         self.config = config
         self.vault_key = vault_key
         self.db = db
+        self.device_secret = device_secret
+        self.p = p
+        self.tmk = tmk
+        self.smk = smk
 
     # -- identity -----------------------------------------------------------
 
@@ -210,6 +216,31 @@ class Vault:
     @property
     def fek_fingerprint(self) -> str:
         return key_fingerprint(self.file_encryption_key)
+
+    def key_chain(self) -> list[tuple[str, bytes, str]]:
+        """Ordered derivation steps (name, bytes, formula) for debug views.
+
+        Exposes live key material — devkit only, never log it.
+        """
+        kdf = self.meta.get("kdf", {})
+        steps = [
+            ("Device Secret", self.device_secret, "<vault>/device_secret"),
+            ("P", self.p, "HMAC-SHA256(key=DeviceSecret, msg=MasterPassword)"),
+            ("TMK", self.tmk,
+             f"Argon2id(P, argon2Salt, m={kdf.get('m_kib')} KiB, "
+             f"t={kdf.get('t')}, p={kdf.get('p')}, 32)"),
+            ("SMK", self.smk,
+             "HKDF-SHA256(TMK, hkdfSalt, info=vaultId, L=64)"),
+            ("SMK[0:32] (encryption key)", self.smk[:32] if self.smk else None,
+             "AES-256-GCM key unwrapping vault_key:smk"),
+            ("SMK[32:64] (MAC key)", self.smk[32:64] if self.smk else None,
+             "config.sig and vault.meta mac"),
+            ("VaultKey", self.vault_key, "SQLCipher raw key of vault.db"),
+            ("FEK", self.file_encryption_key,
+             "HKDF-SHA256(VaultKey, salt='', info='file', L=32)"),
+        ]
+        return [(name, value, formula) for name, value, formula in steps
+                if value is not None]
 
     # -- lifecycle ----------------------------------------------------------
 
@@ -249,7 +280,7 @@ class Vault:
         secret = device_secret if device_secret is not None \
             else _read_device_secret(path)
         try:
-            _, smk = _derive_keys(secret, master_password, vault_id, meta)
+            p, tmk, smk = _derive_keys(secret, master_password, vault_id, meta)
         except (KeyError, TypeError, ValueError) as exc:
             raise CorruptVaultError(f"vault.meta key material invalid: {exc}") from exc
 
@@ -275,7 +306,8 @@ class Vault:
             db.close()
             raise
 
-        return Vault(path, meta, config, vault_key, db)
+        return Vault(path, meta, config, vault_key, db,
+                     device_secret=secret, p=p, tmk=tmk, smk=smk)
 
     # -- create -------------------------------------------------------------
 
@@ -320,7 +352,7 @@ class Vault:
             },
             "wrapped_keys": [],
         }
-        _, smk = _derive_keys(device_secret, master_password, vault_id, meta)
+        _, _, smk = _derive_keys(device_secret, master_password, vault_id, meta)
 
         # config.json + config.sig (written before vault.meta, per design order)
         config_bytes = _canonical_json({"name": name})
@@ -370,7 +402,7 @@ class Vault:
 
 def _derive_keys(device_secret: bytes, master_password: bytes,
                  vault_id: str, meta: dict):
-    """P -> TMK -> SMK; returns (tmk, smk). KDF params come from vault.meta."""
+    """P -> TMK -> SMK; returns (p, tmk, smk). KDF params come from vault.meta."""
     p = hmac_sha256(device_secret, master_password)
     argon2_salt = crockford32.decode(meta["salts"]["argon2"])
     hkdf_salt = crockford32.decode(meta["salts"]["hkdf"])
@@ -378,7 +410,7 @@ def _derive_keys(device_secret: bytes, master_password: bytes,
     tmk = argon2id_raw(p, argon2_salt, m_kib=kdf["m_kib"], t=kdf["t"],
                        p=kdf["p"], hash_len=32)
     smk = hkdf_sha256(tmk, hkdf_salt, vault_id.encode("utf-8"), 64)
-    return tmk, smk
+    return p, tmk, smk
 
 
 def _canonical_json(obj: dict) -> bytes:

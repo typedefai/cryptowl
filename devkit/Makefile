@@ -1,6 +1,8 @@
 # CryptOwl DevKit — native SQLCipher library.
 #
 #   make native   build native/libsqlcipher.*, or reuse an existing library
+#   make cli      build native/sqlcipher (the SQLCipher shell, static)
+#   make install  install libsqlcipher + sqlcipher into PREFIX (/usr/local)
 #   make clean    remove build output
 #
 # Source: official SQLCipher, pinned as a git submodule:
@@ -30,7 +32,9 @@ else
   $(error unsupported platform "$(UNAME_S)": build SQLCipher manually and set LIBSQLCIPHER)
 endif
 
+PREFIX ?= /usr/local
 LIB := $(NATIVE_DIR)/$(LIB_NAME)
+CLI := $(NATIVE_DIR)/sqlcipher
 AMALGAMATION := $(BUILD_DIR)/sqlite3.c
 
 SYSTEM_LIBS := \
@@ -51,7 +55,7 @@ CFLAGS := -O2 -DNDEBUG -fPIC \
   -DSQLITE_EXTRA_SHUTDOWN=sqlcipher_extra_shutdown \
   -I$(BUILD_DIR) -I$(SRC_DIR)/src
 
-.PHONY: native clean
+.PHONY: native cli install clean
 
 native:
 	@if [ -n "$(LIBSQLCIPHER)" ]; then \
@@ -80,6 +84,19 @@ $(LIB): $(AMALGAMATION)
 	@mkdir -p $(NATIVE_DIR)
 	$(CC) $(SHARED) $(CFLAGS) $(CRYPTO) -o $@ $(AMALGAMATION) $(LINK)
 	@echo "built $@"
+
+cli: $(CLI)
+
+$(CLI): $(AMALGAMATION) $(BUILD_DIR)/shell.c
+	@mkdir -p $(NATIVE_DIR)
+	$(CC) $(CFLAGS) $(CRYPTO) -o $@ $(BUILD_DIR)/shell.c $(AMALGAMATION) $(LINK)
+	@echo "built $@"
+
+install: $(LIB) $(CLI)
+	@mkdir -p "$(PREFIX)/lib" "$(PREFIX)/bin"
+	install -m 755 "$(LIB)" "$(PREFIX)/lib/"
+	install -m 755 "$(CLI)" "$(PREFIX)/bin/sqlcipher"
+	@echo "installed $(PREFIX)/lib/$(LIB_NAME) and $(PREFIX)/bin/sqlcipher"
 
 clean:
 	rm -rf $(BUILD_DIR) $(NATIVE_DIR)

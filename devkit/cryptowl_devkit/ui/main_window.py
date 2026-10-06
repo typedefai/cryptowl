@@ -19,9 +19,10 @@ from .. import __version__
 from ..recent import RecentVaults
 from ..vault import Vault, VaultError, key_fingerprint
 from .dialogs import CreateVaultDialog
-from .editors import KeyChainEditor, OverviewEditor, TableViewer, TextViewer
-from .navigator import (CONFIG, DEVICE_SECRET, KEYS, META, OVERVIEW, TABLE,
-                        NavigatorTree)
+from .editors import (KeyChainEditor, OverviewEditor, SqlCipherCommandEditor,
+                      TableViewer, TextViewer)
+from .navigator import (CONFIG, DEVICE_SECRET, KEYS, META, OVERVIEW, SQLCIPHER,
+                        TABLE, NavigatorTree)
 from .properties import PropertiesView
 from .unlock import UnlockPage
 
@@ -156,6 +157,10 @@ class MainWindow(QMainWindow):
         self.act_lock = self._action(
             "&Lock", sp.SP_DialogCloseButton, "Ctrl+L",
             self.lock, "Close the vault and wipe session keys")
+        self.act_sqlcipher = self._action(
+            "SQLCipher &command…", sp.SP_FileDialogContentsView, "Ctrl+K",
+            lambda: self.open_editor(SQLCIPHER, ""),
+            "Commands to open vault.db directly with the SQLCipher CLI")
         self.act_refresh = self._action(
             "&Refresh", sp.SP_BrowserReload, "F5",
             self._refresh_views, "Reload navigator and properties")
@@ -190,6 +195,8 @@ class MainWindow(QMainWindow):
         self.view_menu.addAction(self.act_output)
 
         tools_menu = self.menuBar().addMenu("&Tools")
+        tools_menu.addAction(self.act_sqlcipher)
+        tools_menu.addSeparator()
         tools_menu.addAction(self.act_refresh)
 
         help_menu = self.menuBar().addMenu("&Help")
@@ -325,7 +332,7 @@ class MainWindow(QMainWindow):
         logger.info("vault locked")
 
     def _set_locked_ui(self, locked: bool) -> None:
-        for action in (self.act_lock, self.act_refresh):
+        for action in (self.act_lock, self.act_refresh, self.act_sqlcipher):
             action.setEnabled(not locked)
         for action in (self.act_new, self.act_open):
             action.setEnabled(locked)
@@ -376,6 +383,8 @@ class MainWindow(QMainWindow):
             return OverviewEditor(vault)
         if kind == KEYS:
             return KeyChainEditor(vault)
+        if kind == SQLCIPHER:
+            return SqlCipherCommandEditor(vault)
         if kind == META:
             return TextViewer(_pretty_json(vault.meta))
         if kind == CONFIG:
@@ -392,7 +401,8 @@ class MainWindow(QMainWindow):
         return None
 
     def _title_for(self, kind: str, key: str) -> str:
-        return {OVERVIEW: "Overview", KEYS: "Key chain", META: "vault.meta",
+        return {OVERVIEW: "Overview", KEYS: "Key chain",
+                SQLCIPHER: "SQLCipher", META: "vault.meta",
                 CONFIG: "config.json", DEVICE_SECRET: "device_secret",
                 TABLE: key}.get(kind, key or kind)
 

@@ -3,11 +3,15 @@ from __future__ import annotations
 """Tab editors: overview, key chain, text/JSON viewer, table viewer."""
 
 import json
+import shutil
+from importlib.resources import files
+from pathlib import Path
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFontDatabase
-from PySide6.QtWidgets import (QAbstractItemView, QFormLayout, QHeaderView,
-                               QLabel, QPlainTextEdit, QTableWidget,
+from PySide6.QtWidgets import (QAbstractItemView, QApplication, QFormLayout,
+                               QHBoxLayout, QHeaderView, QLabel,
+                               QPlainTextEdit, QPushButton, QTableWidget,
                                QTableWidgetItem, QVBoxLayout, QWidget)
 
 from ..vault import Vault, key_fingerprint
@@ -105,6 +109,65 @@ class KeyChainEditor(QWidget):
         layout.addWidget(note)
         layout.addWidget(self.table)
         layout.setContentsMargins(12, 12, 12, 12)
+
+
+class SqlCipherCommandEditor(QWidget):
+    """Ready-to-run `sqlcipher` CLI commands for the raw vault key."""
+
+    def __init__(self, vault: Vault, parent=None):
+        super().__init__(parent)
+        note = QLabel("Raw-key SQLCipher access — treat the key as a secret.")
+        note.setStyleSheet("color: #9a6700;")
+        note.setWordWrap(True)
+
+        self.edit = QPlainTextEdit()
+        self.edit.setReadOnly(True)
+        self.edit.setFont(_mono())
+        self.edit.setLineWrapMode(QPlainTextEdit.LineWrapMode.NoWrap)
+        self.edit.setPlainText(_sqlcipher_commands(vault))
+
+        copy = QPushButton("Copy commands")
+        copy.clicked.connect(
+            lambda: QApplication.clipboard().setText(self.edit.toPlainText()))
+        buttons = QHBoxLayout()
+        buttons.addStretch(1)
+        buttons.addWidget(copy)
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(note)
+        layout.addWidget(self.edit, 1)
+        layout.addLayout(buttons)
+        layout.setContentsMargins(12, 12, 12, 12)
+
+
+def _sqlcipher_executable() -> str:
+    exe = shutil.which("sqlcipher")
+    if exe:
+        return exe
+    local = Path(str(files("cryptowl_devkit"))).parent / "native" / "sqlcipher"
+    return str(local) if local.is_file() else "sqlcipher"
+
+
+def _sqlcipher_commands(vault: Vault) -> str:
+    exe = _sqlcipher_executable()
+    db = vault.db_path
+    key = vault.vault_key.hex()
+    return f"""# Open vault.db directly with the SQLCipher CLI.
+# The key is the raw 32-byte VaultKey (the same key the app passes to SQLCipher).
+
+# 1) interactive
+{exe} "{db}"
+PRAGMA key = "x'{key}'";
+PRAGMA cipher_version;
+PRAGMA cipher_integrity_check;
+.tables
+
+# 2) one-shot
+{exe} "{db}" -cmd "PRAGMA key = \\"x'{key}'\\"" ".tables"
+
+# `make install` in devkit/ puts sqlcipher + libsqlcipher into /usr/local,
+# or use the local build at devkit/native/sqlcipher.
+"""
 
 
 class TextViewer(QWidget):

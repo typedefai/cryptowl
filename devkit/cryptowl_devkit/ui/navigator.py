@@ -9,6 +9,7 @@ from ..vault import Vault
 
 OVERVIEW = "overview"
 KEYS = "keys"
+SQLCIPHER = "sqlcipher"
 META = "meta"
 CONFIG = "config"
 DEVICE_SECRET = "device_secret"

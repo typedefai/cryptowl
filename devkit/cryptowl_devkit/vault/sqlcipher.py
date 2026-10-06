@@ -205,10 +205,10 @@ def _load_lib():
         path = ctypes.util.find_library("sqlcipher")
     if not path:
         raise ImportError(
-            "libsqlcipher not found. Run `make native` in the devkit folder "
-            "(builds the pinned SQLCipher submodule), install SQLCipher "
-            "(`brew install sqlcipher` / `port install sqlcipher`), or set "
-            "LIBSQLCIPHER to the library path.")
+            "libsqlcipher not found. Run `make native` (build only) or "
+            "`make install` (install into /usr/local) in the devkit folder, "
+            "install SQLCipher via Homebrew/MacPorts, or set LIBSQLCIPHER to "
+            "the library path.")
     lib = ctypes.cdll.LoadLibrary(path)
     for name, argtypes, restype in [
         ("sqlite3_open_v2", [ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p),

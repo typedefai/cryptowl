@@ -8,7 +8,7 @@ The vault key is passed as the RAW KEY expression `x'<hex>'` via
 would make SQLCipher treat it as a passphrase (PBKDF2), which "works" only for
 vaults created the same way and fails on vaults created elsewhere (AGENTS.md).
 
-Scope: open/key/query/exec/close. No parameter binding yet.
+Scope: open/key/query/exec/execute (bound params)/close.
 """
 
 import ctypes
@@ -31,6 +31,9 @@ SQLITE_BLOB = 4
 SQLITE_NULL = 5
 
 _STMT = ctypes.c_void_p
+
+# SQLite copies bound values immediately when the destructor is SQLITE_TRANSIENT.
+SQLITE_TRANSIENT = ctypes.c_void_p(-1)
 
 
 class SqlCipherError(Exception):
@@ -84,15 +87,54 @@ class SqlCipherDatabase:
                 _lib.sqlite3_free(err)
             raise SqlCipherError(msg)
 
-    # -- queries ------------------------------------------------------------
-
-    def query(self, sql: str) -> list[tuple]:
+    def execute(self, sql: str, params=()) -> None:
+        """Run a write statement with bound parameters (no SQL interpolation)."""
         stmt = _STMT()
         rc = _lib.sqlite3_prepare_v2(self._db, sql.encode("utf-8"), -1,
                                      ctypes.byref(stmt), None)
         if rc != SQLITE_OK:
             raise SqlCipherError(f"sqlite3_prepare_v2: {self.errmsg()}")
         try:
+            for index, value in enumerate(params, start=1):
+                self._bind(stmt, index, value)
+            while True:
+                step = _lib.sqlite3_step(stmt)
+                if step == SQLITE_DONE:
+                    break
+                if step != SQLITE_ROW:
+                    raise SqlCipherError(f"sqlite3_step: {self.errmsg()}")
+        finally:
+            _lib.sqlite3_finalize(stmt)
+
+    def _bind(self, stmt, index: int, value) -> None:
+        if value is None:
+            _lib.sqlite3_bind_null(stmt, index)
+        elif isinstance(value, bool):
+            _lib.sqlite3_bind_int64(stmt, index, 1 if value else 0)
+        elif isinstance(value, int):
+            _lib.sqlite3_bind_int64(stmt, index, value)
+        elif isinstance(value, float):
+            _lib.sqlite3_bind_double(stmt, index, value)
+        elif isinstance(value, (bytes, bytearray, memoryview)):
+            data = bytes(value)
+            _lib.sqlite3_bind_blob(stmt, index, ctypes.c_char_p(data),
+                                   len(data), SQLITE_TRANSIENT)
+        else:
+            data = str(value).encode("utf-8")
+            _lib.sqlite3_bind_text(stmt, index, ctypes.c_char_p(data),
+                                   len(data), SQLITE_TRANSIENT)
+
+    # -- queries ------------------------------------------------------------
+
+    def query(self, sql: str, params=()) -> list[tuple]:
+        stmt = _STMT()
+        rc = _lib.sqlite3_prepare_v2(self._db, sql.encode("utf-8"), -1,
+                                     ctypes.byref(stmt), None)
+        if rc != SQLITE_OK:
+            raise SqlCipherError(f"sqlite3_prepare_v2: {self.errmsg()}")
+        try:
+            for index, value in enumerate(params, start=1):
+                self._bind(stmt, index, value)
             rows = []
             while True:
                 step = _lib.sqlite3_step(stmt)
@@ -106,8 +148,8 @@ class SqlCipherDatabase:
         finally:
             _lib.sqlite3_finalize(stmt)
 
-    def query_one(self, sql: str) -> tuple | None:
-        rows = self.query(sql)
+    def query_one(self, sql: str, params=()) -> tuple | None:
+        rows = self.query(sql, params)
         return rows[0] if rows else None
 
     # -- introspection ------------------------------------------------------
@@ -219,6 +261,15 @@ def _load_lib():
                           ctypes.c_void_p, ctypes.POINTER(ctypes.c_char_p)],
          ctypes.c_int),
         ("sqlite3_free", [ctypes.c_void_p], None),
+        ("sqlite3_bind_null", [_STMT, ctypes.c_int], ctypes.c_int),
+        ("sqlite3_bind_int64", [_STMT, ctypes.c_int, ctypes.c_int64],
+         ctypes.c_int),
+        ("sqlite3_bind_double", [_STMT, ctypes.c_int, ctypes.c_double],
+         ctypes.c_int),
+        ("sqlite3_bind_text", [_STMT, ctypes.c_int, ctypes.c_char_p,
+                               ctypes.c_int, ctypes.c_void_p], ctypes.c_int),
+        ("sqlite3_bind_blob", [_STMT, ctypes.c_int, ctypes.c_char_p,
+                               ctypes.c_int, ctypes.c_void_p], ctypes.c_int),
         ("sqlite3_prepare_v2", [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int,
                                 ctypes.POINTER(_STMT), ctypes.c_void_p],
          ctypes.c_int),

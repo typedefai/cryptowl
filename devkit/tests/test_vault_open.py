@@ -17,11 +17,10 @@ from pathlib import Path
 
 import pytest
 
-from cryptowl_devkit.vault import (AndroidBoundError, NotAVaultError, Vault,
-                                   VaultError, VaultExistsError,
-                                   WrongPasswordError, expected_version,
+from cryptowl_devkit.vault import (META_VERSION, AndroidBoundError,
+                                   NotAVaultError, Vault, VaultError,
+                                   VaultExistsError, WrongPasswordError,
                                    inspect_folder, key_fingerprint)
-from cryptowl_devkit.vault.vault import MIGRATIONS
 
 FIXTURE = os.path.join(os.path.dirname(__file__), "fixtures", "personal")
 PASSWORD = b"devkit-fixture-password"
@@ -108,9 +107,9 @@ def test_create_and_reopen(tmp_path):
                       vault_id="personal", name="New Vault") as vault:
         assert vault.vault_id == "personal"
         assert vault.name == "New Vault"
-        assert set(vault.tables) == {"t_wrapped_key", "t_data_encrypt_key",
-                                     "t_encrypted_data", "t_file"}
-        assert vault.schema_version == expected_version() == 1
+        assert {"t_wrapped_key", "t_data_encrypt_key", "t_encrypted_data",
+                "t_item", "t_file", "t_item_version"} <= set(vault.tables)
+        assert vault.format_version == META_VERSION == 3
 
     for name in ("vault.meta", "vault.db", "config.json", "config.sig",
                  "device_secret"):
@@ -145,17 +144,11 @@ def test_create_validates_id_and_password(tmp_path):
 
 # -- schema cross-checks ----------------------------------------------------
 
-def test_schema_files_match_android_migrations():
-    """Vendored scripts must stay byte-identical to the canonical chain."""
+def test_schema_matches_canonical_copy():
+    """The devkit schema must stay byte-identical to docs/schema.sql."""
     repo = Path(__file__).resolve().parents[2]
-    canonical = repo / "docs" / "migrations"
-    android_assets = repo / "app" / "src" / "main" / "assets" / "migrations"
-    assert (canonical / MIGRATIONS[0][1]).is_file(), \
-        "canonical migration chain (docs/migrations) not found"
-    for _version, filename in MIGRATIONS:
-        ours = resource_files("cryptowl_devkit.vault") \
-            .joinpath("migrations", filename).read_bytes()
-        for mirror in (canonical / filename, android_assets / filename):
-            if mirror.is_file():
-                assert ours == mirror.read_bytes(), \
-                    f"schema drift vs {mirror.relative_to(repo)}"
+    canonical = repo / "docs" / "schema.sql"
+    assert canonical.is_file(), "canonical docs/schema.sql not found"
+    ours = resource_files("cryptowl_devkit.vault") \
+        .joinpath("schema.sql").read_bytes()
+    assert ours == canonical.read_bytes(), "schema drift vs docs/schema.sql"

@@ -42,7 +42,7 @@ class OverviewEditor(QWidget):
         rows = [
             ("Vault id", vault.vault_id),
             ("Path", vault.path),
-            ("Schema version", str(vault.schema_version)),
+            ("Format version", str(vault.format_version)),
             ("Tables", ", ".join(vault.tables)),
             ("Metadata version", str(vault.meta.get("version", ""))),
             ("Config", json.dumps(vault.config, ensure_ascii=False,

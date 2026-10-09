@@ -30,7 +30,7 @@ from .crypto import (ARGON2_M_KIB, aes_gcm_decrypt, aes_gcm_encrypt,
                      argon2id_raw, hkdf_sha256, hmac_sha256)
 from .sqlcipher import SqlCipherDatabase
 
-META_VERSION = 2
+META_VERSION = 3
 SALT_LEN = 32
 DEVICE_SECRET_LEN = 32
 WRAPPED_KEY_ID = "vault_key:smk"
@@ -197,8 +197,9 @@ class Vault:
     # -- schema / keys ------------------------------------------------------
 
     @property
-    def schema_version(self) -> int:
-        return self.db.user_version()
+    def format_version(self) -> int:
+        """vault.meta format version (3 = unified item model)."""
+        return int(self.meta.get("version", 0))
 
     @property
     def tables(self) -> list[str]:
@@ -296,7 +297,7 @@ class Vault:
         db_path = os.path.join(path, "vault.db")
         if not os.path.isfile(db_path):
             raise CorruptVaultError(f"vault database missing: {db_path}")
-        db = SqlCipherDatabase(db_path)
+        db = SqlCipherDatabase(db_path, readonly=False)
         try:
             db.key(vault_key)
             if not db.verify_key():
@@ -314,12 +315,11 @@ class Vault:
     @staticmethod
     def create(path: str, master_password: bytes, vault_id: str | None = None,
                name: str | None = None) -> "Vault":
-        """Create a new desktop-bound vault, byte-exact with vaultlib.
+        """Create a new desktop-bound vault (format v3, unified item model).
 
         Writes `device_secret`, config.json + config.sig, vault.meta with the
-        wrapped VaultKey, and vault.db with the SQLCipher raw key. Schema comes
-        from the vendored migration scripts (currently `v1__init.sql`,
-        user_version 1); Android's SchemaApplier applies any newer ones on open.
+        wrapped VaultKey, and vault.db with the SQLCipher raw key and the
+        canonical idempotent schema (`schema.sql`).
         """
         path = os.path.abspath(os.path.expanduser(path))
         if not master_password:
@@ -384,13 +384,13 @@ class Vault:
         }
         _atomic_write(os.path.join(path, "vault.meta"), _canonical_json(meta))
 
-        # create vault.db with the raw key + vendored schema migrations
+        # create vault.db with the raw key + canonical schema
         db = SqlCipherDatabase(os.path.join(path, "vault.db"),
                                raw_key=vault_key, readonly=False, create=True)
         try:
             if not db.verify_key():
                 raise CorruptVaultError("vault.db raw-key verification failed")
-            _apply_migrations(db)
+            ensure_schema(db)
         finally:
             db.close()
 
@@ -513,34 +513,22 @@ def _load_and_verify_config(path: str, mac_key: bytes) -> dict:
         raise CorruptVaultError(f"config.json invalid: {exc}") from exc
 
 
-# -- schema migrations ------------------------------------------------------
+# -- schema ------------------------------------------------------------------
 #
-# Vendored copies of docs/migrations/*.sql, byte-for-byte mirrors of the
-# Android app's assets/migrations/. Applied scripts are immutable: add a new
-# vN__<desc>.sql on all three sides instead of editing an existing one. Keep
-# them comment-free — SchemaApplier splits on ';' before executing.
+# Canonical single-file schema (idempotent), byte-mirrored from docs/schema.sql.
+# No versioned migrations, no PRAGMA user_version: schema changes edit this
+# file in place on all sides. It is executed at vault creation and ensured
+# (idempotent) by feature repositories on first use.
 
-MIGRATIONS = [
-    (1, "v1__init.sql"),
-]
+SCHEMA_FILE = "schema.sql"
 
 
-def expected_version() -> int:
-    return MIGRATIONS[-1][0] if MIGRATIONS else 0
-
-
-def _read_migration(filename: str) -> str:
+def _read_schema() -> str:
     return (_resource_files("cryptowl_devkit.vault")
-            .joinpath("migrations", filename)
+            .joinpath(SCHEMA_FILE)
             .read_text(encoding="utf-8"))
 
 
-def _apply_migrations(db: SqlCipherDatabase) -> int:
-    """Applies every migration newer than PRAGMA user_version; returns it."""
-    current = db.user_version()
-    for version, filename in MIGRATIONS:
-        if version > current:
-            db.exec_(_read_migration(filename))
-            db.exec_(f"PRAGMA user_version = {version}")
-            current = version
-    return current
+def ensure_schema(db: SqlCipherDatabase) -> None:
+    """Ensure every table of the canonical schema exists (idempotent)."""
+    db.exec_(_read_schema())

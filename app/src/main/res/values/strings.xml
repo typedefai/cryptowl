@@ -1,0 +1,261 @@
+<resources>
+    <string name="app_name">密鸮</string>
+
+    <!-- Intro / onboarding pager -->
+    <string name="intro_skip">Skip</string>
+    <string name="intro_next">Next</string>
+    <string name="intro_get_started">Get started</string>
+    <string name="intro_slide_encryption_desc">Your vault lives only on this device. Everything is encrypted at rest with Argon2id and AES-256-GCM — no plaintext ever touches the disk.</string>
+    <string name="intro_slide_tiers_desc">Notes are readable after unlock; passwords and top-secret items need an extra fingerprint (and a second password) per access.</string>
+    <string name="intro_slide_biometric_desc">Optional fingerprint unlock to open the vault fast — your master password still protects everything underneath.</string>
+    <string name="intro_slide_media_desc">Photos, videos and attachments are encrypted with the same keys as their records — captured in-app, never stored in the clear.</string>
+
+    <!-- Master password setup -->
+    <string name="password_title">Create your master password</string>
+    <string name="password_subtitle">This password encrypts your vault on this device. It cannot be recovered — never forget it.</string>
+    <string name="password_label">Master password</string>
+    <string name="password_min_length">At least %1$d characters</string>
+    <string name="password_confirm_label">Confirm password</string>
+    <string name="password_mismatch">Passwords do not match</string>
+    <string name="password_show">Show password</string>
+    <string name="password_hide">Hide password</string>
+    <string name="password_create">Create vault</string>
+
+    <!-- Biometric setup -->
+    <string name="biometric_title">Unlock with fingerprint?</string>
+    <string name="biometric_description">You can open your vault with your fingerprint and keep your master password for cold starts. This can be changed later.</string>
+    <string name="biometric_enable">Enable fingerprint unlock</string>
+    <string name="biometric_skip">Skip for now</string>
+    <string name="biometric_prompt_title">Unlock with fingerprint</string>
+    <string name="biometric_prompt_subtitle">Enable fingerprint unlock for this vault</string>
+
+    <!-- Unlock -->
+    <string name="unlock_title">Unlock your vault</string>
+    <string name="unlock_action">Unlock</string>
+
+    <!-- Home / locked vault -->
+    <string name="home_vault_locked">Vault locked</string>
+    <string name="home_locked_desc">Everything is encrypted on this device. Unlock to browse your moments.</string>
+    <string name="home_unlock">Unlock vault</string>
+
+    <!-- Moments timeline -->
+    <string name="moments_title">Moments</string>
+    <string name="moments_lock">Lock vault</string>
+    <string name="moments_chat">AI chat</string>
+    <string name="moments_empty">No moments yet</string>
+    <string name="moments_empty_hint">Import your WeChat Moments archive with the desktop tool (wechat_sns_export/migrate_moments.py), copy the vault folder to this device, then use "Restore from backup" to load it.</string>
+    <string name="moments_unknown_author">Unknown</string>
+
+    <!-- Chat -->
+    <string name="chat_agent_name">AI</string>
+    <string name="chat_back">Back</string>
+    <string name="chat_initializing_title">Initializing model</string>
+    <string name="chat_initializing_content">This may take a while on first launch. Please keep the app open.</string>
+    <string name="chat_error_title">Model error</string>
+    <string name="chat_system_prompt">System prompt</string>
+    <string name="chat_system_prompt_placeholder">Enter system prompt…</string>
+    <string name="chat_system_prompt_updated">System prompt updated</string>
+    <string name="chat_restore_default">Restore default</string>
+    <string name="chat_show_thinking">Show thinking</string>
+    <string name="chat_hide_thinking">Hide thinking</string>
+    <string name="chat_copy">Copy</string>
+    <string name="chat_scroll_to_bottom">Scroll to bottom</string>
+    <string name="chat_new_conversation">New conversation</string>
+    <string name="chat_parameters">Parameters</string>
+    <string name="chat_copied">Copied</string>
+    <string name="chat_max_tokens">Max tokens (2000-32000)</string>
+    <string name="chat_top_k">Top-K (1-100)</string>
+    <string name="chat_top_p">Top-P (0-1)</string>
+    <string name="chat_temperature">Temperature (0-2)</string>
+    <string name="chat_accelerator">Accelerator</string>
+    <string name="chat_enable_thinking">Enable thinking</string>
+    <string name="chat_enable_speculative">Enable speculative decoding</string>
+    <string name="chat_apply">Apply</string>
+    <string name="chat_cancel">Cancel</string>
+    <string name="chat_you">You</string>
+    <string name="chat_run_again">Run again</string>
+    <string name="chat_type_prompt">Type prompt…</string>
+    <string name="chat_add_content">Add content</string>
+    <string name="chat_take_picture">Take a picture</string>
+    <string name="chat_pick_image">Pick an image from album</string>
+    <string name="chat_stop">Stop</string>
+    <string name="chat_send">Send</string>
+
+    <!-- Restore / backup (SAF) -->
+    <string name="restore_intro">Restore from backup</string>
+    <string name="restore_title">Restore a vault</string>
+    <string name="restore_desc">Pick the vault folder you copied to this device (containing vault.meta, vault.db and the attachments/ and thumbnails/ folders). The current vault, if any, will be replaced.</string>
+    <string name="restore_pick_folder">Choose vault folder</string>
+    <string name="restore_listing">Reading folder…</string>
+    <string name="restore_progress">%1$s / %2$s copied</string>
+    <string name="restore_back">Back</string>
+    <string name="home_backup">Back up vault</string>
+    <string name="home_restore">Restore from backup</string>
+    <string name="error_restore_failed">Restore failed</string>
+    <string name="error_backup_failed">Backup failed</string>
+
+    <!-- Moments media viewer -->
+    <string name="viewer_close">Close</string>
+    <string name="viewer_video_unsupported">Video playback is not supported yet</string>
+
+    <!-- Errors -->
+    <string name="error_create_vault_failed">Failed to create the vault</string>
+    <string name="error_biometric_password_lost">Master password no longer available</string>
+    <string name="error_biometric_not_enrolled">No strong biometrics enrolled on this device</string>
+    <string name="error_biometric_setup_failed">Fingerprint setup failed</string>
+    <string name="error_biometric_unavailable">Fingerprint unlock isn\'t available anymore — unlock with your master password, then re-enable it in Settings.</string>
+    <string name="error_unlock_failed">Failed to unlock the vault</string>
+
+    <!-- Language -->
+    <string name="language_option">Language</string>
+    <string name="language_system">Follow system</string>
+    <string name="language_en" translatable="false">English</string>
+    <string name="language_zh_cn" translatable="false">简体中文</string>
+    <string name="language_zh_tw" translatable="false">繁體中文</string>
+
+    <!-- Main navigation -->
+    <string name="nav_moments">Moments</string>
+    <string name="nav_vault">Vault</string>
+    <string name="nav_assistant">Assistant</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Lock screen -->
+    <string name="unlock_subtitle">Everything is encrypted on this device.</string>
+    <string name="unlock_biometric_title">Unlock your vault</string>
+    <string name="unlock_biometric_subtitle">Confirm your fingerprint to open the vault</string>
+    <string name="unlock_biometric_action">Unlock with fingerprint</string>
+
+    <!-- Vault hub -->
+    <string name="vault_title">Vault</string>
+    <string name="vault_subtitle">Your protected items, grouped by security tier.</string>
+    <string name="vault_notes">Notes</string>
+    <string name="vault_notes_subtitle">Private notes and diary entries</string>
+    <string name="vault_passwords">Passwords</string>
+    <string name="vault_passwords_subtitle">Logins and credit cards — fingerprint per access</string>
+    <string name="vault_top_secret">Top secret</string>
+    <string name="vault_top_secret_subtitle">Sensitive documents — fingerprint + second password</string>
+    <string name="vault_media">Photos &amp; videos</string>
+    <string name="vault_media_subtitle">Encrypted attachments kept inside the vault</string>
+
+    <!-- Coming soon -->
+    <string name="coming_soon">Coming soon</string>
+    <string name="coming_soon_hint">The encrypted storage and tier model are in place; this screen will be built next.</string>
+
+    <!-- Settings -->
+    <string name="settings_section_security">Security</string>
+    <string name="settings_lock_now">Lock vault</string>
+    <string name="settings_lock_now_subtitle">Close the vault and wipe session keys</string>
+    <string name="settings_biometric">Fingerprint unlock</string>
+    <string name="settings_biometric_on">Enabled for this vault</string>
+    <string name="settings_biometric_off">Not set up</string>
+    <string name="settings_status_on">On</string>
+    <string name="settings_status_off">Off</string>
+    <string name="settings_section_data">Backup &amp; restore</string>
+    <string name="settings_backup_running">Backing up…</string>
+    <string name="settings_backup_subtitle">Copy the encrypted vault to a folder</string>
+    <string name="settings_restore_subtitle">Replace this vault from a backup folder</string>
+    <string name="settings_section_general">General</string>
+    <string name="settings_language_subtitle">App display language</string>
+    <string name="settings_about">About Cryptowl</string>
+    <string name="settings_about_subtitle">Local-first encrypted vault</string>
+    <string name="settings_change_password">Change master password</string>
+    <string name="settings_change_password_subtitle">Rewrap the vault key with a new password</string>
+    <string name="password_current_label">Current password</string>
+    <string name="password_new_label">New password</string>
+    <string name="password_change_success">Master password changed. Use the new password on the next cold start.</string>
+    <string name="error_password_change_failed">Failed to change the master password</string>
+    <string name="settings_autolock">Auto-lock</string>
+    <string name="settings_autolock_subtitle">Lock the vault after leaving the app</string>
+    <string name="autolock_immediate">Immediately</string>
+    <string name="autolock_1m">After 1 minute</string>
+    <string name="autolock_5m">After 5 minutes</string>
+    <string name="autolock_30m">After 30 minutes</string>
+    <string name="settings_flag_secure">Block screenshots</string>
+    <string name="settings_flag_secure_subtitle">Prevent screenshots and screen recording</string>
+    <string name="settings_biometric_enable_title">Enable fingerprint unlock</string>
+    <string name="settings_biometric_enable_desc">Confirm your master password to wrap the vault key with a fingerprint-protected key stored in the device keystore.</string>
+    <string name="settings_biometric_enable_subtitle">Confirm your fingerprint to enable unlock</string>
+    <string name="settings_biometric_disable_title">Disable fingerprint unlock?</string>
+    <string name="settings_biometric_disable_desc">The fingerprint-protected copy of your vault key will be destroyed. You can re-enable it later with your master password.</string>
+    <string name="settings_biometric_disable_confirm">Disable</string>
+
+    <!-- Generic actions -->
+    <string name="action_enable">Enable</string>
+    <string name="action_cancel">Cancel</string>
+
+    <!-- Passwords (Secret tier) -->
+    <string name="passwords_title">Passwords</string>
+    <string name="passwords_empty">No passwords yet</string>
+    <string name="passwords_empty_hint">Add a login to keep it encrypted in the vault. Each entry needs your fingerprint to open.</string>
+    <string name="passwords_requires_fingerprint">Enable fingerprint unlock in Settings to store passwords — Secret-tier items are protected by a fingerprint-derived key.</string>
+    <string name="passwords_error_fingerprint">Fingerprint authentication failed</string>
+    <string name="passwords_error_operation">The operation failed</string>
+    <string name="passwords_prompt_title">Confirm fingerprint</string>
+    <string name="passwords_prompt_subtitle">Authenticate to access Secret-tier passwords</string>
+    <string name="passwords_add">Add password</string>
+    <string name="passwords_detail_title">Password</string>
+    <string name="passwords_edit_title">Edit password</string>
+    <string name="passwords_new_title">New password</string>
+    <string name="passwords_untitled">Untitled</string>
+    <string name="passwords_unlocking">Waiting for fingerprint…</string>
+    <string name="passwords_retry">Try again</string>
+    <string name="passwords_field_title">Title</string>
+    <string name="passwords_field_username">Username</string>
+    <string name="passwords_field_password">Password</string>
+    <string name="passwords_field_url">URL</string>
+    <string name="passwords_field_notes">Notes</string>
+    <string name="passwords_title_required">Title is required</string>
+    <string name="passwords_save">Save</string>
+    <string name="passwords_delete">Delete</string>
+    <string name="passwords_delete_title">Delete this password?</string>
+    <string name="passwords_delete_desc">The entry will be removed from the vault.</string>
+    <string name="passwords_show">Show password</string>
+    <string name="passwords_hide">Hide password</string>
+
+    <!-- Notes (Confidential tier) -->
+    <string name="notes_title">Notes</string>
+    <string name="notes_empty">No notes yet</string>
+    <string name="notes_empty_hint">Write private notes with markdown. They are encrypted inside the vault and readable right after unlock.</string>
+    <string name="notes_add">Add note</string>
+    <string name="notes_untitled">Untitled</string>
+    <string name="notes_pinned">Pinned</string>
+    <string name="notes_pin">Pin</string>
+    <string name="notes_unpin">Unpin</string>
+    <string name="notes_new_title">New note</string>
+    <string name="notes_edit_title">Edit note</string>
+    <string name="notes_field_title">Title</string>
+    <string name="notes_field_content">Content</string>
+    <string name="notes_preview">Preview</string>
+    <string name="notes_edit_content">Edit content</string>
+    <string name="notes_markdown_hint">Markdown is supported.</string>
+    <string name="notes_delete">Delete</string>
+    <string name="notes_delete_title">Delete this note?</string>
+    <string name="notes_delete_desc">The note will be removed from the vault.</string>
+    <string name="notes_error_operation">The operation failed</string>
+
+    <!-- Media vault (Confidential tier) -->
+    <string name="media_title">Photos &amp; videos</string>
+    <string name="media_empty">No media yet</string>
+    <string name="media_empty_hint">Import photos and videos; each file is encrypted with the vault key before it touches the disk.</string>
+    <string name="media_import">Import media</string>
+    <string name="media_delete">Delete</string>
+    <string name="media_delete_title">Delete this item?</string>
+    <string name="media_delete_desc">The encrypted file will be removed from the vault.</string>
+    <string name="media_error">The media operation failed</string>
+
+    <!-- Top secret (per-access two-factor) -->
+    <string name="top_secret_setup">Set up secondary password</string>
+    <string name="top_secret_setup_desc">Choose a second password, separate from your master password. Every Top-Secret access requires a fingerprint and this password.</string>
+    <string name="top_secret_empty">No top-secret items yet</string>
+    <string name="top_secret_empty_hint">Items here are encrypted with their own key and need a fingerprint plus your secondary password every time.</string>
+    <string name="top_secret_add">Add top-secret note</string>
+    <string name="top_secret_new_title">New top-secret note</string>
+    <string name="top_secret_edit_title">Edit top-secret note</string>
+    <string name="top_secret_password_label">Secondary password</string>
+    <string name="top_secret_prompt_title">Confirm fingerprint</string>
+    <string name="top_secret_prompt_subtitle">First factor: fingerprint</string>
+    <string name="top_secret_verify_title">Secondary password</string>
+    <string name="top_secret_verify_desc">Second factor: enter your secondary password to decrypt this item.</string>
+    <string name="top_secret_error">The Top-Secret operation failed</string>
+    <string name="about_version">Version %1$s</string>
+</resources>

@@ -1,0 +1,303 @@
+# Unified Item Model — vault format v3
+
+The devkit is the **reference implementation**; the Android app re-implements
+this spec. Format v3 starts from scratch: it replaces the per-feature tables
+(`t_note`, `t_password`, `t_moment`, `t_file` + external attachments) with one
+unified item model, a plugin type system, embedded file storage, and built-in
+version history.
+
+## Goals
+
+1. **One data structure** — all user data is an *item*; types (note, env,
+   password, photo, …) are plugins over the same table.
+2. **One database file** — small files (photos, documents) are embedded in
+   `vault.db`; external files only past a size threshold.
+3. **One UI** — navigator/detail/menus are generated from the type registry.
+4. **History** — every save is an immutable version; text types get diffs
+   (the `.env.prod` case).
+
+## Non-goals
+
+- Changing the key hierarchy or bootstrap files (see *What stays*).
+- Branching/merging (git mechanics). History is linear per item.
+
+## What stays (format v2 core)
+
+- Key chain: `P = HMAC(DeviceSecret, password)` → TMK (Argon2id) → SMK →
+  wrapped VaultKey (SQLCipher raw key). FEK = `HKDF(VaultKey, info="file")`.
+- Bootstrap files stay **outside** the DB — chicken-and-egg: `vault.meta`
+  (salts, wrapped key) and `config.json`/`config.sig` are needed before the
+  DB key exists. A vault folder is 4 small files + `vault.db` + optional
+  `attachments/`.
+- Tier semantics: **C** = SQLCipher is the boundary; **S/T** = per-item DEK
+  (`t_encrypted_data` + `t_data_encrypt_key`), unwrapped per access.
+- Soft delete (`deleted_at`), `secure_delete = ON`, ms-integer timestamps,
+  TEXT uuid ids.
+
+`vault.meta` `version` becomes **3**; readers refuse `version > 3`.
+
+## Schema (single canonical `schema.sql`)
+
+**The schema is fixed at vault creation** — no versioned migrations, no
+`PRAGMA user_version`, no ALTER afterwards. One canonical file
+(`CREATE … IF NOT EXISTS`), `docs/schema.sql`, byte-mirrored in the devkit
+(and later the Android assets), is executed once by `Vault.create`;
+repositories only *verify* the shape and refuse vaults created with an older
+schema with a clear "recreate the vault" message (historical data is not
+carried over).
+
+```sql
+CREATE TABLE t_item (
+    id                TEXT    NOT NULL PRIMARY KEY,
+    type              TEXT    NOT NULL,              -- plugin type id ('folder' = container)
+    title             TEXT    NOT NULL DEFAULT '',
+    classification    CHAR(1) NOT NULL DEFAULT 'C'
+                      CHECK (classification IN ('C', 'S', 'T')),
+    parent_id         TEXT    REFERENCES t_item (id),  -- NULL = root; tree of items
+    pinned            INTEGER NOT NULL DEFAULT 0,    -- pinned folders appear in the sidebar
+    content           TEXT,                           -- C-tier payload (SQLCipher boundary)
+    encrypted_data_id TEXT    REFERENCES t_encrypted_data (id),  -- S/T payload
+    meta              TEXT,                           -- JSON, L1: never secrets
+    created_at        INTEGER NOT NULL,
+    updated_at        INTEGER NOT NULL,
+    deleted_at        INTEGER
+);
+CREATE INDEX index_t_item_list ON t_item (type, deleted_at, pinned DESC, updated_at DESC);
+CREATE INDEX index_t_item_parent ON t_item (parent_id, deleted_at);
+
+CREATE TABLE t_file (
+    id            TEXT    NOT NULL PRIMARY KEY,
+    item_id       TEXT    NOT NULL REFERENCES t_item (id) ON DELETE CASCADE,
+    name          TEXT,                                 -- original filename
+    mime_type     TEXT,
+    size_bytes    INTEGER NOT NULL,                      -- plaintext size
+    storage       TEXT    NOT NULL DEFAULT 'embedded'
+                  CHECK (storage IN ('embedded', 'external')),
+    content       BLOB,                                  -- embedded envelope (below)
+    thumbnail     BLOB,                                  -- always embedded, same key
+    external_name TEXT,                                  -- external: attachments/<id>
+    created_at    INTEGER NOT NULL,
+    updated_at    INTEGER NOT NULL,
+    deleted_at    INTEGER
+);
+CREATE INDEX index_t_file_item ON t_file (item_id);
+
+CREATE TABLE t_item_version (
+    id                TEXT    NOT NULL PRIMARY KEY,
+    item_id           TEXT    NOT NULL REFERENCES t_item (id) ON DELETE CASCADE,
+    seq               INTEGER NOT NULL,                  -- 1..N per item, gaps allowed
+    title             TEXT,
+    content           TEXT,                              -- snapshot of the C payload
+    encrypted_data_id TEXT    REFERENCES t_encrypted_data (id),  -- S/T snapshot
+    meta              TEXT,
+    message           TEXT,                              -- optional commit message (L1, like title)
+    fingerprint       TEXT    NOT NULL,                  -- HMAC (below)
+    created_at        INTEGER NOT NULL,
+    UNIQUE (item_id, seq)
+);
+CREATE INDEX index_t_item_version_item ON t_item_version (item_id, seq DESC);
+```
+
+`t_wrapped_key`, `t_data_encrypt_key`, `t_encrypted_data` (tier plumbing) are
+kept from the v1 core.
+
+## Payload routing (tier security is preserved)
+
+- **C tier** (`plain` notes by default, `env`, C-tier `photo`): payload in
+  `t_item.content` (plaintext inside SQLCipher) — fast, no per-item crypto.
+- **S/T tier** (`password`, an S-tier note, …): payload is a per-item DEK row
+  in `t_encrypted_data` referenced by `encrypted_data_id`; the DEK is wrapped
+  by the KEK. On Android the KEK is BioKey-wrapped (per-access prompt); on the
+  devkit a **dev binding** wraps the KEK with the SMK (`t_wrapped_key`
+  role=`kek`, wrapper=`smk`) — documented dev-only convenience, since desktops
+  have no fingerprint gate. The desktop app treats this as a password gate: by
+  default the unlock dialog remembers the KEK in memory until lock. Uncheck
+  **Remember Secret access** to re-enter the master password for each S
+  reveal/save and use the KEK only for that access. It never remembers the
+  master password.
+- Notes default to **C — Confidential** and may be escalated to
+  **S — Secret**. An S note keeps `t_item.content` empty and stores its text
+  in the encrypted-data payload; switching levels rewrites the item and adds
+  a version row.
+- **T tier** additionally wraps the TopSecretKEK with the TS-KEK =
+  `Argon2id(secondary password, secondarySalt)`; `secondarySalt` lives in
+  `vault.meta.salts` (the meta MAC is re-signed on setup). No secondary
+  password → no TopSecretKEK → T payloads report **locked** (item metadata is
+  readable, content is not). Android requires fingerprint + secondary password
+  per access; the devkit prompts the secondary password on open/save/restore.
+- **Versions never leak tiers**: `t_item_version.classification` records the
+  tier and S/T snapshots store `encrypted_data_id` (never plaintext); purged
+  versions' payload rows are garbage-collected.
+- `meta` is non-secret, L1 metadata (URL, username, dimensions, environment
+  name). Anything sensitive goes in the payload.
+
+## File storage: embedded by default
+
+- **Embedded files** (`size_bytes ≤ embed_max_bytes`, default **512 KiB**
+  from `config.json` under `files.embed_max_bytes`):
+  `envelope = nonce(12) || ciphertext || tag(16)`, AES-256-GCM,
+  key = FEK (C tier) or the item's DEK (S/T), AAD = file id.
+  Stored in `t_file.content`.
+- **External files** (larger): CWO1 chunked envelope in
+  `attachments/<file_id>`, `external_name` set:
+  ```text
+  header 22 B = "CWO1" | u16 version(1) | u32 chunk_size(65536)
+                | u64 chunk_count | iv_prefix(4)
+  record N   = AES-256-GCM(key, chunk N,
+                           nonce = uint64_be(N) || iv_prefix,
+                           AAD = file_id) || tag(16)
+  ```
+  `t_file.size_bytes` is authoritative; readers validate the header against
+  it and decrypt only requested chunks. The final chunk may be shorter.
+  Storage choice is made once at write time; readers branch on `storage`.
+- Thumbnails are always embedded (`t_file.thumbnail`), same key as the
+  original, with AAD = `"<file_id>:thumb"`.
+- Backup/transfer = copy 4 files + `vault.db` (+ `attachments/` only if
+  large media exists).
+- Housekeeping: after mass deletes run `PRAGMA secure_delete`-verified
+  `VACUUM` to reclaim blob pages.
+
+## Media drive (native virtual file system)
+
+- The desktop client can expose C-tier photo/video files as a **read-only**
+  native drive while the vault is unlocked.
+- Linux and macOS use FUSE 3/macFUSE (optional build dependency); Windows
+  WinFsp support is pending. The mount source is `VirtualMediaFs`, which
+  resolves `/Photos/...` and `/Videos/...` to the same encrypted file readers
+  used by the in-app viewers.
+- Mount/unmount is explicit; locking the vault always unmounts. No plaintext
+  media temp files are written. S/T media stays in the in-app viewers until
+  per-item drive unlock is designed.
+- Unmount force-detaches the read-only volume (macOS `MNT_FORCE`, Linux
+  `MNT_DETACH`) before stopping the request loop, so Finder/Explorer holding
+  directory or file handles cannot deadlock the UI. If detaching fails, the
+  vault stays locked in the UI and an error is shown instead of destroying a
+  live session.
+
+## Folders (Explorer-style)
+
+- A folder is `t_item` with `type = 'folder'` and no payload; the hierarchy is
+  `parent_id` (NULL = root). No second table, uniform pin/history/rename.
+- Moving a folder into its own descendant is rejected (walk ancestors).
+- **Cascade soft delete**: deleting a folder stamps `deleted_at` on the whole
+  subtree with one shared timestamp (the batch id); restoring would restore
+  exactly that batch (`WHERE deleted_at = <stamp>`). Moves/renames are not
+  versioned; folder title changes are (same fingerprint rule as items).
+- Sidebar: `Pinned` (pinned folders), `All Items` (the root tree), `Types`
+  (virtual filters: Plain, Password, Photo, Video). Type stays an attribute,
+  not a location.
+- Smart queries: children of a folder (folders first, then pinned, then name),
+  flat by-type lists, pinned folders, title/content search (content only for
+  C-tier rows; S/T payloads cannot be searched without unlocking).
+
+## History (git UX, not git mechanics)
+
+- **On every save**: compute
+  `fingerprint = HMAC-SHA256(HFK, title \0 classification \0 payload)` where
+  `HFK = HKDF-SHA256(VaultKey, salt='', info='fingerprint', 32)`. If it equals
+  the latest version's fingerprint, no version row is written.
+  (HMAC, not SHA-256: raw digests of `.env` contents would allow dictionary
+  attacks against captured vaults.)
+- **Optional commit message** (MediaWiki-style edit summary): a save may carry
+  a short message; it is stored on the version row and shown in the history
+  list. It is *not* part of the fingerprint, and it is L1 data (inside
+  SQLCipher, like `title`) — never put secrets in it. Unchanged saves write no
+  version row, so a message alone records nothing.
+- Versions are **immutable**; restoring writes the old snapshot as a new
+  `seq` (audit trail stays linear). The schema reserves a message for
+  `restored from seq N` and user edit summaries; message entry/display is not
+  implemented in the desktop history UI yet.
+- The history UI lists version number, time, tier, and title. Comparing a
+  version with the current item decrypts only those two payloads; S/T
+  snapshots require their tier-specific authorization.
+- **Tier changes are snapshots**: each version keeps its original
+  classification. Restoring a version restores that classification as well;
+  the UI shows the old → new tier and requires authorization for both the
+  current and target tiers when either is S/T. The restore itself is a new
+  version, never a rewrite.
+- Text types diff line-by-line at the UI layer; password JSON payloads are
+  pretty-printed first. Binary types show "unchanged/changed" (photos:
+  thumbnail pairs, later).
+- Retention: keep last `history_keep` versions per item (default **100**, from
+  `config.json`); older rows purged right after append. Purged rows rely on
+  `secure_delete = ON`. History follows the item's tier: S/T version payloads
+  stay DEK-encrypted.
+
+## Type registry (plugins)
+
+Planned plugin set (built-in types):
+
+| type | tier | payload | files | diff | notes |
+| --- | --- | --- | --- | --- | --- |
+| `plain` | C (S optional) | text; C in `content`, S encrypted | – | text | **default**; anything textual — `.env.prod`, config snippets, notes |
+| `password` | S | encrypted JSON (username/url/secret/notes) | – | field-level (later) | devkit dev binding: KEK wrapped by SMK |
+| `photo` | C (T later) | – | 1 file + thumbnail | binary (thumbnails) | embedded under threshold, external chunked above |
+| `video` | C (T later) | – | 1 file + poster frame | binary | external chunked for random access; embedded only when under threshold |
+
+Implementation order: **plain → password → photo → video** (plain first because
+it exercises the whole core: items, versioning, messages, UI registry).
+
+The devkit registry entry provides: `type_id`, display name + icon, default
+classification, `supports_files`, an editor widget factory, and `diffable`.
+Core CRUD (`ItemRepository`) is generic and type-agnostic:
+`list(type) / get / create / update (auto-version) / set_pinned / soft_delete /
+versions / restore / files`. New types ship as a plugin module — no schema
+change unless they need new columns.
+
+## UI (Windows 10+ Explorer style, generated from the registry)
+
+Before a vault is unlocked, the **vault home** uses a Cryptomator-style layout:
+vault list on the left, selected-vault details and lock/unlock controls on the
+right. Vault items are large (32 px icon, 56 px rows) because most users have
+only a few vaults. The open action accepts only folders containing
+`vault.meta`; arbitrary folders are rejected. The home uses a small Vista-style
+folder icon drawn in code. The current in-vault workspace follows a
+KeePass-style shell (menu + toolbar, tabs, group tree, details/icons, info
+pane) with real SQLCipher-backed password CRUD and confidential/secret notes;
+the Explorer-style browser below remains the target registry-driven UI.
+
+Single-window browser; no dock/tab workspace:
+
+- **Ribbon tabs** on top (like Word/Excel): **File** (New/Open vault, Recent,
+  Lock, Exit), **Home** (New ▾, Rename, Pin, Delete, History, Refresh),
+  **Manage** (Overview, Key chain, SQLCipher command, vault.meta/config/
+  device_secret, About).
+- **Address bar**: Back arrow (go to parent folder), an editable path input
+  (`/`, `/folder/item.txt`, or `@Plain` for a type view; Enter navigates/opens,
+  Esc restores), a **name filter** (filters the current path in place — no
+  whole-vault search), and the icons/list/details view switch. Item paths use
+  the type's extension (plain → `.txt`).
+- **Sidebar** (left): one icon tree rooted at **This vault** — pinned folder
+  shortcuts, type filters (Plain, Password, Photo, Video), then the folder
+  tree.
+- **Content pane** (right): children of the current selection with the three
+  view modes; folders first; double-click enters a folder, opens an item.
+- **Editors are separate popup windows**, one per open item (non-modal), with
+  title + plugin body + optional commit message + Save/Delete/Pin/History.
+- Keyboard: Alt+Up back, Ctrl+F filter, F2 rename, Del delete, Ctrl+H history.
+- Icons: Microsoft Fluent UI System Icons (MIT, `assets/icons/`, license
+  included), folders tinted Explorer-yellow — Windows 11 look (the exact
+  Explorer artwork is proprietary).
+- Properties: item metadata + type info.
+
+## Implementation plan (devkit first)
+
+1. **P1 core**: drop vendored v1–v4; canonical `docs/schema.sql` + devkit
+   mirror; `vault.meta` v3; `ItemRepository` (+ versioning, fingerprints,
+   commit messages, retention) with tests. *(done)*
+2. **P2 plain plugin**: type registry; generic detail page; `plain` editor
+   (title + text + optional commit message). *(done as tabs; superseded by P2b)*
+2b. **P2b folders + browser**: `parent_id` + cascade batches + tree ops;
+   Explorer-style single window (sidebar / content / popup editors) replacing
+   the tab/dock workspace. Added columns are reconciled in place.
+3. **P3 history UI**: version list with messages, text diff, restore,
+   retention config.
+4. **P4 password plugin**: DEK/KEK path with dev SMK wrap (S tier).
+5. **P5 photo plugin**: envelope codec, embedded/external storage + thumbnails.
+   *(implemented for C-tier import/view; video poster frames pending)*
+6. **P6 video plugin**: chunked envelope, external storage, streaming.
+   *(implemented for C-tier import/playback; native media drive is FUSE on
+   Linux/macOS; WinFsp pending)*
+
+Android re-bases on this file after P1–P2 stabilize; its `SchemaApplier`
+becomes the same idempotent `schema.sql` ensure.

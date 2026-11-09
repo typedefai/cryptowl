@@ -1,202 +1,56 @@
-# Cryptowl
+# CryptOwl Android
 
-A local-first encrypted vault Flutter application for storing sensitive information (passwords, notes, photos). All data is encrypted on the local device using strong cryptography.
+Local-first encrypted vault for Android — notes, passwords, photos and videos,
+with **no plaintext data at rest**. This is the native Android client (Kotlin +
+Jetpack Compose, minSdk 36) implementing **vault format v3**, the same format as
+the C++/Qt desktop reference client.
 
-## Features
+The format specification is frozen in [`docs/`](docs/) and mirrored byte-for-byte
+from the desktop repository:
 
-- **3-level encryption**: Confidential, Secret, and Top Secret tiers with different security properties
-- **Strong KDF**: Argon2id (OWASP recommended parameters: m=19456, t=2, p=1)
-- **Authenticated encryption**: AES-256-GCM and XChaCha20-Poly1305
-- **Per-entry encryption**: Each item gets its own data encryption key (DEK)
-- **Chinese full-text search**: Jieba tokenizer for FTS5 indexing
-- **Rich text notes**: Fleather editor (Quill delta format)
-- **Media storage**: Photos and videos stored as encrypted individual files
-- **Cross-platform**: Android, iOS, macOS, Linux, Windows
+| File | Contents |
+| --- | --- |
+| [docs/items.md](docs/items.md) | **Vault format v3** — unified item model, canonical schema, history, type registry |
+| [docs/design.md](docs/design.md) | Key hierarchy, tiers (C/S/T), `vault.meta`, backup, memory protection |
+| [docs/schema.sql](docs/schema.sql) | Canonical schema — executed once at vault creation, no migrations |
+| [docs/encryption.svg](docs/encryption.svg) | Key hierarchy diagram |
 
-## Encryption Levels
+## Why v3
 
-Cryptowl classifies items into three security tiers. Each tier has different encryption and authentication requirements.
+`t_item` is the single data structure: every note, password, photo and folder is
+an item with a plugin type. Changes are versioned (`t_item_version`), small
+files are embedded in `vault.db`, large ones live in `attachments/` as CWO1
+chunked envelopes. The schema is fixed at vault creation — no migrations, no
+`user_version`.
 
-### Confidential (C)
-
-| Property | Value |
-|----------|-------|
-| Encryption | SQLCipher database encryption only |
-| Auth to view | Login (master password) |
-| Key | Symmetric key (derived from master password) |
-
-Confidential items are readable immediately after login. The database-level encryption protects data at rest, but once the app is unlocked, all Confidential items are accessible without additional prompts.
-
-**Use for:** Low-sensitivity data that needs fast access and searchability.
-
-### Secret (S)
-
-| Property | Value |
-|----------|-------|
-| Encryption | SQLCipher + per-entry DEK (AES-256-GCM) |
-| Auth to view | Biometric or PIN per item |
-| Key | Per-entry DEK, encrypted by a KEK derived on-demand |
-
-Secret items show metadata (title, date) in lists, but the content is encrypted with a per-entry DEK. Viewing the content requires biometric authentication or a PIN. The KEK is derived on-demand and never stored in memory — it is discarded after use.
-
-**Use for:** Passwords, sensitive notes, anything you want gated behind explicit user action.
-
-### Top Secret (T)
-
-| Property | Value |
-|----------|-------|
-| Encryption | SQLCipher + per-entry DEK (XChaCha20-Poly1305) |
-| Auth to view | Secondary password (separate from master password) |
-| Key | Per-entry DEK, encrypted by a KEK derived from the secondary password |
-
-Top Secret items use a completely separate key hierarchy. The secondary password is set independently from the master password and derives its own key. Even if the master password is compromised, Top Secret items remain encrypted.
-
-The secondary password is entered when first accessing a Top Secret item in a session. It can optionally be cached for the duration of the session.
-
-**Use for:** Critical secrets — recovery keys, master credentials, anything that must survive a master password compromise.
-
-## Threat Model
-
-### What each level protects against
-
-| Threat | Confidential | Secret | Top Secret |
-|--------|----------|-----------|-------|
-| Device off, data at rest | ✅ SQLCipher | ✅ SQLCipher + DEK | ✅ SQLCipher + DEK |
-| App locked / backgrounded | ✅ Protected | ✅ Protected | ✅ Protected |
-| App unlocked, phone unattended | ❌ All readable | ✅ Needs biometric | ✅ Needs secondary pw |
-| Master password compromised | ❌ All readable | ❌ KEK derivable | ✅ Separate key hierarchy |
-| Memory dump / debugger attach | ❌ Key in memory | ✅ KEK not stored | ✅ KEK not stored |
-| Database file stolen | ✅ SQLCipher | ✅ SQLCipher + DEK | ✅ SQLCipher + DEK |
-| Partial DB leak (e.g. SQL injection) | ❌ Plaintext | ✅ DEK encrypted | ✅ DEK encrypted |
-
-### What no level protects against
-
-- **Compromised device** — if the OS itself is compromised (malware, rooted/jailbroken), all bets are off
-- **Screen capture** — if the user is viewing content, screenshots or screen recording can capture it
-- **Clipboard** — copied passwords are accessible to other apps until overwritten
-- **Backup extraction** — cloud backups may include app data depending on platform settings
-
-## Item Types
-
-### Passwords
-
-| Level | Storage | Behavior |
-|-------|---------|----------|
-| Confidential | DB (plaintext attributes) | Username, URL visible in list; password visible on tap |
-| Secret | DB (encrypted DEK) | Only title visible in list; biometric to view password |
-| Top Secret | DB (encrypted DEK, secondary KEK) | Only title visible in list; secondary password to view |
-
-Passwords always use per-entry DEK encryption at Secret and Top Secret levels. Each password entry has its own DEK, so compromising one entry does not expose others. Attributes (username, URL, remark) follow the same classification as the password itself.
-
-### Notes
-
-| Level | Storage | Behavior |
-|-------|---------|----------|
-| Confidential | DB (plaintext content + FTS5 index) | Full content readable after login; searchable via Jieba |
-| Secret | DB (encrypted DEK) | Title visible; biometric to view content; NOT searchable |
-| Top Secret | DB (encrypted DEK, secondary KEK) | Title visible; secondary password to view content; NOT searchable |
-
-Confidential notes are stored in plaintext within the SQLCipher-encrypted database, enabling full-text search via the Jieba tokenizer. Secret and Top Secret notes sacrifice searchability for encryption — the content is encrypted with a per-entry DEK and cannot be indexed.
-
-**Note history** follows the same classification as the note. Previous versions are encrypted at the same level.
-
-### Photos and Videos
-
-| Level | Storage | Behavior |
-|-------|---------|----------|
-| Confidential | Individual encrypted files | Thumbnail visible; full-size viewable after login |
-| Secret | Individual encrypted files | Thumbnail visible; biometric to view full-size |
-| Top Secret | Individual encrypted files | Thumbnail visible; secondary password to view |
-
-Media files are stored as individual encrypted files on disk (not in the database). The database stores metadata (filename, classification, timestamps) and a reference to the encrypted file. Each file is encrypted with its own DEK, following the same key hierarchy as other item types.
-
-File encryption:
-```
-Original file → AES-256-GCM (or XChaCha20-Poly1305 for Top Secret) with per-file DEK
-              → encrypted file stored in app's documents directory
-              → DEK encrypted by KEK, stored in database
-```
-
-This approach keeps the database small and allows efficient storage of large media files while maintaining the same 3-level security model.
-
-## Key Hierarchy
-
-```
-Master password
-  + Secret key (stored in .secrets/, CrockfordBase32 encoded)
-  → HMAC-SHA256
-  → Argon2id (m=19456, t=2, p=1)
-  → HKDF (64 bytes)
-      ├─ First 32 bytes: symmetric key
-      │   ├─ SQLCipher database key (first 32 bytes)
-      │   └─ Secret KEK → encrypts DEKs for Secret items
-      └─ Last 32 bytes: HMAC key for config integrity
-
-Secondary password
-  + Secret salt (stored in config)
-  → Argon2id (m=19456, t=2, p=1)
-  → Top Secret KEK → encrypts DEKs for Top Secret items
-```
-
-The symmetric key is encrypted with AES-256-GCM and stored in the config file. The config file itself is integrity-verified with HMAC-SHA256.
-
-## Architecture
-
-```
-lib/src/
-  crypto/        → Pure Dart + FFI: Argon2, AEAD, HKDF, HMAC, ProtectedValue
-  database/      → Drift ORM with .drift schema files, encrypted via SQLCipher
-  domain/        → Data models: Password, Note, Category, Session
-  repositories/  → Data access layer over Drift
-  service/       → Business logic: KDF, config, encryption, file services
-  providers/     → Riverpod state management
-  pages/         → UI screens with GoRouter navigation
-  components/    → Reusable widgets
-  localization/  → English + Chinese translations
-```
-
-## Getting Started
+## Build
 
 ```bash
-# Clone with submodules
-git clone --recurse-submodules git@github.com:typedefai/cryptowl.git
-cd cryptowl
-
-# Install dependencies
-flutter pub get
-
-# Run
-flutter run -d macos    # or -d android, -d ios, -d linux, -d windows
-
-# Run tests
-flutter test
-
-# Code generation (Drift, Freezed, JSON serializable)
-dart run build_runner build --delete-conflicting-outputs
+./gradlew :app:assembleDebug
 ```
 
-## Native Dependencies
+Requires JDK 17+, Android SDK 37, NDK 29. The first build also compiles the
+vendored Argon2 and SQLCipher 5 native libraries (see `app/src/main/cpp/`).
 
-The project uses two local FFI plugins (in `deps/`):
+## Test
 
-- **native_argon2** — Argon2 C library for key derivation
-- **native_sqlcipher** — SQLCipher encrypted SQLite (with Jieba FTS5 tokenizer)
+```bash
+./gradlew :app:testDebugUnitTest          # JVM: crypto, JSON canonicalization
+./gradlew :app:connectedDebugAndroidTest  # device/emulator: JNI + SQLCipher + vault
+```
 
-These are compiled automatically by Flutter's build system via CMake (Android/Linux/Windows) and Swift Package Manager (macOS/iOS).
+Instrumented tests are the real suite: Argon2 JNI, SQLCipher, Keystore and the
+BiometricPrompt-backed paths cannot run on the JVM.
 
-## CI/CD
+## Compatibility
 
-GitHub Actions builds and tests on all platforms:
+Vaults are byte-compatible with [`cryptowl-desktop`](../cryptowl-desktop):
 
-| Platform | Runner | Artifact |
-|----------|--------|----------|
-| Tests | ubuntu-latest | — |
-| Android | ubuntu-latest | APK |
-| iOS | macos-latest | — |
-| macOS | macos-latest | .app |
-| Linux | ubuntu-latest | bundle |
-| Windows | windows-latest | exe |
+- `vault.meta` v3 (canonical sorted-key JSON, MAC = HMAC-SHA256 with SMK[32:64])
+- `config.json` / `config.sig` (Crockford Base32 HMAC)
+- SQLCipher 5 database, raw key expression `x'<hex>'`
+- CWO1 file envelopes for external media
+- Fixed `docs/schema.sql` shape (verified on open, never migrated)
 
-## License
-
-See [LICENSE](LICENSE) for details.
+A desktop-created vault is re-bound to the Android Keystore on first unlock
+(see `docs/design.md`, "Android re-bind on import").

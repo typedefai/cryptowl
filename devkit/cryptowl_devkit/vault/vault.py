@@ -60,6 +60,10 @@ class VaultExistsError(VaultError):
     """Refusing to create a vault over existing vault files."""
 
 
+class SchemaMismatchError(VaultError):
+    """The vault DB was created with an older schema; recreate the vault."""
+
+
 class CorruptVaultError(VaultError):
     """vault.meta/config/database is missing, malformed, or tampered with."""
 
@@ -217,6 +221,33 @@ class Vault:
     @property
     def fek_fingerprint(self) -> str:
         return key_fingerprint(self.file_encryption_key)
+
+    # -- metadata / secondary password --------------------------------------
+
+    @property
+    def secondary_salt(self) -> bytes | None:
+        value = self.meta.get("salts", {}).get("secondary")
+        return crockford32.decode(value) if value else None
+
+    def save_meta(self) -> None:
+        """Re-sign (SMK[32:64]) and atomically write vault.meta."""
+        if self.smk is None:
+            raise VaultError("session keys are not available")
+        self.meta["updated_at"] = _now_ms()
+        self.meta["mac"] = {
+            "algorithm": "HMAC-SHA256",
+            "value": crockford32.encode(
+                hmac_sha256(self.smk[32:64],
+                            _canonical_json(_meta_without_mac(self.meta)))),
+        }
+        _atomic_write(os.path.join(self.path, "vault.meta"),
+                      _canonical_json(self.meta))
+
+    def set_secondary_salt(self, salt: bytes) -> None:
+        """Register the secondary-password salt in vault.meta (T tier)."""
+        self.meta.setdefault("salts", {})["secondary"] = \
+            crockford32.encode(salt)
+        self.save_meta()
 
     def key_chain(self) -> list[tuple[str, bytes, str]]:
         """Ordered derivation steps (name, bytes, formula) for debug views.
@@ -390,7 +421,8 @@ class Vault:
         try:
             if not db.verify_key():
                 raise CorruptVaultError("vault.db raw-key verification failed")
-            ensure_schema(db)
+            apply_schema(db)
+            verify_schema(db)
         finally:
             db.close()
 
@@ -516,11 +548,18 @@ def _load_and_verify_config(path: str, mac_key: bytes) -> dict:
 # -- schema ------------------------------------------------------------------
 #
 # Canonical single-file schema (idempotent), byte-mirrored from docs/schema.sql.
-# No versioned migrations, no PRAGMA user_version: schema changes edit this
-# file in place on all sides. It is executed at vault creation and ensured
-# (idempotent) by feature repositories on first use.
+# No versioned migrations, no PRAGMA user_version, and NO schema changes after
+# creation: `schema.sql` is executed at vault creation only, and repositories
+# verify (never alter) the shape. A vault created with an older schema fails
+# with a clear message — recreate it (historical data is not carried over).
 
 SCHEMA_FILE = "schema.sql"
+
+# Columns required by this build; used for verification only.
+REQUIRED_COLUMNS = {
+    "t_item": ("parent_id",),
+    "t_item_version": ("classification",),
+}
 
 
 def _read_schema() -> str:
@@ -529,6 +568,26 @@ def _read_schema() -> str:
             .read_text(encoding="utf-8"))
 
 
-def ensure_schema(db: SqlCipherDatabase) -> None:
-    """Ensure every table of the canonical schema exists (idempotent)."""
+def apply_schema(db: SqlCipherDatabase) -> None:
+    """Execute the canonical schema — vault creation only."""
     db.exec_(_read_schema())
+
+
+def verify_schema(db: SqlCipherDatabase) -> None:
+    """Refuse DBs that don't match the canonical schema (no writes)."""
+    for table, columns in REQUIRED_COLUMNS.items():
+        exists = db.query_one(
+            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+            (table,)) is not None
+        if not exists:
+            raise SchemaMismatchError(
+                f"vault has no {table} table; schemas are fixed at vault "
+                "creation — recreate the vault")
+        existing = {row[1] for row in
+                    db.query(f'PRAGMA table_info("{table}")')}
+        missing = [name for name in columns if name not in existing]
+        if missing:
+            raise SchemaMismatchError(
+                f"vault predates this build ({table} lacks "
+                f"{', '.join(missing)}); schemas are fixed at vault creation "
+                "— recreate the vault")

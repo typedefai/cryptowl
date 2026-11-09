@@ -74,6 +74,8 @@ CREATE TABLE IF NOT EXISTS t_item_version (
     id                TEXT    NOT NULL PRIMARY KEY,
     item_id           TEXT    NOT NULL REFERENCES t_item (id) ON DELETE CASCADE,
     seq               INTEGER NOT NULL,
+    classification    CHAR(1) NOT NULL DEFAULT 'C'
+                      CHECK (classification IN ('C', 'S', 'T')),
     title             TEXT,
     content           TEXT,
     encrypted_data_id TEXT    REFERENCES t_encrypted_data (id),

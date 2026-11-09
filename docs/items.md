@@ -38,11 +38,13 @@ version history.
 
 ## Schema (single canonical `schema.sql`)
 
-No versioned migrations, no `PRAGMA user_version`: one idempotent file
-(`CREATE … IF NOT EXISTS`), canonical at `docs/schema.sql`, byte-mirrored in
-the devkit (and later the Android assets); schema changes edit this file in
-place on all sides. It is executed at vault creation and ensured (idempotent)
-when a repository first touches the DB.
+**The schema is fixed at vault creation** — no versioned migrations, no
+`PRAGMA user_version`, no ALTER afterwards. One canonical file
+(`CREATE … IF NOT EXISTS`), `docs/schema.sql`, byte-mirrored in the devkit
+(and later the Android assets), is executed once by `Vault.create`;
+repositories only *verify* the shape and refuse vaults created with an older
+schema with a clear "recreate the vault" message (historical data is not
+carried over).
 
 ```sql
 CREATE TABLE t_item (
@@ -109,6 +111,15 @@ kept from the v1 core.
   devkit a **dev binding** wraps the KEK with the SMK (`t_wrapped_key`
   role=`kek`, wrapper=`smk`) — documented dev-only convenience, since desktops
   have no fingerprint gate.
+- **T tier** additionally wraps the TopSecretKEK with the TS-KEK =
+  `Argon2id(secondary password, secondarySalt)`; `secondarySalt` lives in
+  `vault.meta.salts` (the meta MAC is re-signed on setup). No secondary
+  password → no TopSecretKEK → T payloads report **locked** (item metadata is
+  readable, content is not). Android requires fingerprint + secondary password
+  per access; the devkit prompts the secondary password on open/save/restore.
+- **Versions never leak tiers**: `t_item_version.classification` records the
+  tier and S/T snapshots store `encrypted_data_id` (never plaintext); purged
+  versions' payload rows are garbage-collected.
 - `meta` is non-secret, L1 metadata (URL, username, dimensions, environment
   name). Anything sensitive goes in the payload.
 
@@ -223,7 +234,7 @@ Single-window browser; no dock/tab workspace:
    (title + text + optional commit message). *(done as tabs; superseded by P2b)*
 2b. **P2b folders + browser**: `parent_id` + cascade batches + tree ops;
    Explorer-style single window (sidebar / content / popup editors) replacing
-   the tab/dock workspace. Schema edits recreate dev vaults (no migrations).
+   the tab/dock workspace. Added columns are reconciled in place.
 3. **P3 history UI**: version list with messages, text diff, restore,
    retention config.
 4. **P4 password plugin**: DEK/KEK path with dev SMK wrap (S tier).

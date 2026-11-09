@@ -7,7 +7,8 @@ import shutil
 
 import pytest
 
-from cryptowl_devkit.vault import ItemDraft, ItemRepository, Vault
+from cryptowl_devkit.vault import (ItemDraft, ItemRepository,
+                                   SchemaMismatchError, Vault)
 
 FIXTURE = os.path.join(os.path.dirname(__file__), "fixtures", "personal")
 PASSWORD = b"devkit-fixture-password"
@@ -22,12 +23,26 @@ def _open_vault(tmp_path, fresh: bool = False) -> Vault:
     return Vault.open(str(path), PASSWORD)
 
 
-def test_repository_ensures_item_schema(tmp_path):
+def test_schema_is_fixed_at_creation(tmp_path):
     with _open_vault(tmp_path, fresh=True) as vault:
-        vault.db.exec_("DROP TABLE t_item_version")
-        assert "t_item_version" not in vault.tables
-        ItemRepository(vault)
         assert {"t_item", "t_item_version", "t_file"} <= set(vault.tables)
+        repo = ItemRepository(vault)  # verification only, no writes
+
+        # an old-shaped table is refused and left untouched, never altered
+        vault.db.exec_("DROP TABLE t_item_version")
+        vault.db.exec_(
+            """CREATE TABLE t_item_version (
+                   id TEXT NOT NULL PRIMARY KEY, item_id TEXT NOT NULL,
+                   seq INTEGER NOT NULL, title TEXT, content TEXT,
+                   encrypted_data_id TEXT, meta TEXT, message TEXT,
+                   fingerprint TEXT NOT NULL, created_at INTEGER NOT NULL,
+                   UNIQUE (item_id, seq))""")
+        with pytest.raises(SchemaMismatchError):
+            ItemRepository(vault)
+        columns = {r[1] for r in
+                   vault.db.query('PRAGMA table_info("t_item_version")')}
+        assert "classification" not in columns
+        assert repo.get  # keep repo referenced
 
 
 def test_plain_item_crud_round_trip(tmp_path):

@@ -26,12 +26,13 @@ from ..vault import Vault
 from ..vault.schema import expected_version
 from .dialogs import ChangePasswordDialog, CreateVaultDialog, OpenVaultDialog
 from .editors.console import CryptoLab, SqlConsole
+from .editors.keychain import KeyChainEditor
 from .editors.overview import KeysEditor, OverviewEditor
 from .editors.table import TableEditor
 from .editors.viewers import FilesEditor, MetaViewer
 from .media_tab import MediaTab
-from .navigator import (FEATURE, FILES, KEYS, LAB, META, OVERVIEW, SQL,
-                        TABLE, NavigatorTree)
+from .navigator import (FEATURE, FILES, KEYS, KEYCHAIN, LAB, META, OVERVIEW,
+                        SQL, TABLE, NavigatorTree)
 from .notes_tab import NotesTab
 from .readonly_tabs import MomentsTab, PasswordsTab
 from .recent import RecentVaults
@@ -200,6 +201,10 @@ class MainWindow(QMainWindow):
         self.act_lab = self._action("Crypto &lab", sp.SP_MessageBoxWarning,
                                     lambda: self.open_editor(LAB, "lab"),
                                     "Dev-only key/payload experiments")
+        self.act_keychain = self._action(
+            "Key chain &diagram", sp.SP_FileDialogInfoView,
+            lambda: self.open_editor(KEYCHAIN, "keychain"),
+            "Interactive key-derivation diagram with per-node attributes")
         self.act_overview = self._action("&Overview", sp.SP_ComputerIcon,
                                          lambda: self.open_editor(OVERVIEW, "overview"))
         self.act_about = self._action("&About", sp.SP_MessageBoxInformation, self.about)
@@ -248,6 +253,7 @@ class MainWindow(QMainWindow):
         tools_menu = self.menuBar().addMenu("&Tools")
         tools_menu.addAction(self.act_sql)
         tools_menu.addAction(self.act_lab)
+        tools_menu.addAction(self.act_keychain)
         tools_menu.addAction(self.act_overview)
         tools_menu.addSeparator()
         tools_menu.addAction(self.act_change_password)
@@ -365,6 +371,8 @@ class MainWindow(QMainWindow):
             return SqlConsole(vault, on_open=self._nav_open)
         if kind == LAB:
             return CryptoLab(vault)
+        if kind == KEYCHAIN:
+            return KeyChainEditor(vault, on_notify=self._refresh_properties)
         if kind == FEATURE:
             if key == "notes":
                 return NotesTab(vault)
@@ -385,7 +393,8 @@ class MainWindow(QMainWindow):
         if kind == FILES:
             return f"{key}/"
         return {OVERVIEW: "Overview", KEYS: "Keys & chain", SQL: "SQL console",
-                LAB: "Crypto lab", FEATURE: (key or "feature").capitalize(),
+                LAB: "Crypto lab", KEYCHAIN: "Key chain",
+                FEATURE: (key or "feature").capitalize(),
                 }.get(kind, key or kind)
 
     def _close_editor(self, index: int):
@@ -469,6 +478,7 @@ class MainWindow(QMainWindow):
         self.act_refresh.setEnabled(not locked)
         self.act_sql.setEnabled(not locked)
         self.act_lab.setEnabled(not locked)
+        self.act_keychain.setEnabled(not locked)
         self.act_overview.setEnabled(not locked)
         for dock in (self.navigator_dock, self.properties_dock,
                      self.value_dock, self.output_dock):

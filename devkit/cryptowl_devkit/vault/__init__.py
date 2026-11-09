@@ -1,15 +1,22 @@
 from .items import (FOLDER_TYPE, HISTORY_KEEP, FolderInfo, Item, ItemDraft,
                     ItemRepository, ItemSummary, ItemVersion)
+from .tiers import (BadSecondaryPassword, SecondaryPasswordError,
+                    SecondaryPasswordNotSet, TierCrypto)
 from .vault import (META_VERSION, AndroidBoundError, CorruptVaultError,
-                    NotAVaultError, Vault, VaultError, VaultExistsError,
-                    VaultFolderStatus, WrongPasswordError, inspect_folder,
-                    key_fingerprint)
+                    NotAVaultError, SchemaMismatchError, Vault, VaultError,
+                    VaultExistsError, VaultFolderStatus, WrongPasswordError,
+                    inspect_folder, key_fingerprint)
 
 __all__ = [
     "FOLDER_TYPE",
     "HISTORY_KEEP",
+    "BadSecondaryPassword",
     "FolderInfo",
     "META_VERSION",
+    "SchemaMismatchError",
+    "SecondaryPasswordError",
+    "SecondaryPasswordNotSet",
+    "TierCrypto",
     "AndroidBoundError",
     "CorruptVaultError",
     "Item",

@@ -17,8 +17,8 @@ from PySide6.QtWidgets import (QInputDialog, QLabel, QLineEdit, QMainWindow,
 
 from .. import __version__
 from ..recent import RecentVaults
-from ..vault import (FOLDER_TYPE, ItemDraft, ItemRepository, Vault,
-                     VaultError, key_fingerprint)
+from ..vault import (FOLDER_TYPE, ItemDraft, ItemRepository,
+                     SchemaMismatchError, Vault, VaultError, key_fingerprint)
 from ..vault.sqlcipher import SqlCipherError
 from . import icons
 from .browser import DETAILS, ICONS, LIST, ContentView
@@ -400,15 +400,22 @@ class MainWindow(QMainWindow):
 
     def _adopt_vault(self, vault: Vault) -> bool:
         try:
-            repo = ItemRepository(vault)  # ensures the item schema
-        except SqlCipherError as exc:
-            logger.exception("schema mismatch for %s", vault.path)
+            repo = ItemRepository(vault)  # verifies the item schema
+        except SchemaMismatchError as exc:
+            logger.warning("schema mismatch for %s: %s", vault.path, exc)
             vault.close()
             QMessageBox.critical(
                 self, "Vault",
-                "This vault uses an older schema and cannot be opened by this "
-                "build. Schema changes recreate vaults (no migrations), so "
-                f"create a new vault instead.\n\nDetails: {exc}")
+                f"{exc}.\n\nSchemas are fixed at vault creation — create a "
+                "new vault to continue (historical data is not carried over).")
+            return False
+        except SqlCipherError as exc:
+            logger.exception("schema check failed for %s", vault.path)
+            vault.close()
+            QMessageBox.critical(
+                self, "Vault",
+                "This vault cannot be opened by this build; recreate it.\n\n"
+                f"Details: {exc}")
             return False
         except Exception as exc:  # noqa: BLE001 - native errors can be Error
             logger.exception("failed to prepare the workspace for %s",

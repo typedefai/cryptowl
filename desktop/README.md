@@ -120,6 +120,13 @@ DBeaver-style shell, styled after **Visual Studio 2010**:
 - **Value panel** (bottom dock): selected cell as Text / Hex dump / Base32 /
   JSON / Image, with CWO1 header summary and a decrypt-with-FEK preview +
   export for t_file rows.
+- **Key chain diagram**: the whole derivation (P → TMK → SMK → VaultKey →
+  SQLCipher / MAC key → config.sig, FEK → CWO1 files, BioKey copies →
+  KEK / TS-KEK → TopSecretKEK) as an interactive node graph — click any node
+  to see its attributes (fingerprints by default, raw hex behind a dev
+  reveal). Typing the master password and clicking **Derive chain** computes
+  P/TMK/SMK live and verifies the `vault_key:smk` unwrap against the session
+  VaultKey (✓/✗).
 - **Properties** (right dock): context info for the active editor.
 - **Output** (bottom dock): the `cwl:` logs.
 - **SQL console**: arbitrary SQL with results grid, timing, history, snippets;

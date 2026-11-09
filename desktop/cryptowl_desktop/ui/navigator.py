@@ -17,6 +17,7 @@ from ..vault import catalog, files as filesv
 OVERVIEW = "overview"
 META = "meta"
 TABLE = "table"
+KEYCHAIN = "keychain"
 KEYS = "keys"
 FILES = "files"
 FEATURE = "feature"
@@ -118,6 +119,7 @@ class NavigatorTree(QTreeWidget):
         tools.setIcon(0, style.standardIcon(sp.SP_FileDialogContentsView))
         root.addChild(tools)
         child(tools, "SQL console", SQL, icon=sp.SP_FileDialogContentsView)
+        child(tools, "Key chain diagram", KEYCHAIN, icon=sp.SP_FileDialogInfoView)
         child(tools, "Crypto lab (dev)", LAB, icon=sp.SP_MessageBoxWarning)
         self.resizeColumnToContents(0)
 

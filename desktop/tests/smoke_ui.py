@@ -13,8 +13,8 @@ from PyQt6.QtGui import QImage  # noqa: E402
 from PyQt6.QtWidgets import QApplication  # noqa: E402
 
 from cryptowl_desktop.ui.main_window import MainWindow  # noqa: E402
-from cryptowl_desktop.ui.navigator import (FEATURE, FILES, LAB, OVERVIEW, SQL,
-                                           TABLE)
+from cryptowl_desktop.ui.navigator import (FEATURE, FILES, KEYCHAIN, LAB,
+                                           OVERVIEW, SQL, TABLE)
 from cryptowl_desktop.vault import Vault  # noqa: E402
 
 
@@ -33,10 +33,11 @@ def main() -> int:
         for kind, key in ((TABLE, "t_note"), (TABLE, "t_password"),
                           (FILES, "attachments"), (FILES, "thumbnails"),
                           (SQL, "sql"), (LAB, "lab"), (OVERVIEW, "overview"),
+                          (KEYCHAIN, "keychain"),
                           (FEATURE, "notes"), (FEATURE, "media"),
                           (FEATURE, "moments"), (FEATURE, "passwords")):
             window.open_editor(kind, key)
-        assert window.editors.count() == 11, window.editors.count()
+        assert window.editors.count() == 12, window.editors.count()
 
         # table editor: model, filter, sort, FK nav
         notes_editor = window._editors["table:t_note"]
@@ -71,6 +72,19 @@ def main() -> int:
         media._import_one(png)
         media.refresh()
         assert media.list_widget.count() == 1, media.list_widget.count()
+
+        # key chain: node attributes + live derivation verifies the unwrap
+        keychain = window._editors["keychain:keychain"]
+        keychain._select(keychain._nodes["VaultKey"])
+        rows = keychain.properties()
+        assert len(rows) >= 4, rows
+        keychain.password_edit.setText("smoke-test-password")
+        keychain._derive()
+        assert "✓" in keychain._derived["vault_key_check"], \
+            keychain._derived["vault_key_check"]
+        keychain.password_edit.setText("wrong-password")
+        keychain._derive()
+        assert "✗" in keychain._derived["vault_key_check"]
 
         # value panel: inspect a cell of t_file via hook
         window._value_selected("t_file", "storage_name", {"id": "x", "storage_name": "x.cwo"})

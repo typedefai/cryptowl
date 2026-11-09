@@ -6,192 +6,143 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.media.MediaMetadataRetriever
 import android.net.Uri
-import com.typedefai.cryptowl.crypto.CryptoLog
 import androidx.exifinterface.media.ExifInterface
-import com.typedefai.cryptowl.crypto.AesGcm
-import com.typedefai.cryptowl.crypto.RandomUtil
+import com.typedefai.cryptowl.crypto.CryptoLog
+import com.typedefai.cryptowl.model.Classification
+import com.typedefai.cryptowl.model.ItemSummary
+import com.typedefai.cryptowl.model.NewItem
 import java.io.File
-import java.io.FileOutputStream
 import kotlin.math.max
 import kotlin.math.roundToInt
 
+/** A media item paired with its `t_file` row. */
+data class MediaEntry(val item: ItemSummary, val file: FileRecord)
+
 /**
- * Confidential-tier media vault: import photos/videos into the vault as
- * whole-file (images) / chunked (videos) CWO1 blobs encrypted with the
- * session FEK — the same key material as the database, per docs/design.md.
- * Everything is written straight to `attachments/` + `thumbnails/`; the
- * plaintext never touches disk.
+ * Confidential-tier media (docs/items.md type registry: `photo`, `video`).
+ *
+ * Every photo/video is a `t_item` (C tier) plus one `t_file` row. Files use
+ * the FEK: embedded whole-file envelopes under the threshold, CWO1 chunked
+ * envelopes in `attachments/` above it. Thumbnails are embedded in
+ * `t_file.thumbnail`. Plaintext media never touches disk.
  */
 class MediaService(
     private val context: Context,
     private val session: VaultSession,
-    private val repo: MediaRepository = MediaRepository(session.db),
 ) {
 
-    fun list(limit: Int = PAGE_SIZE, offset: Int = 0): MediaPage = repo.page(limit, offset)
+    private val items = ItemRepository(session.db, session.hfk)
+    private val files = ItemFileRepository(
+        db = session.db,
+        attachmentsDir = File(VaultStore.vaultDir(context, session.vaultId), "attachments"),
+        fek = session.fek,
+        embedMaxBytes = session.embedMaxBytes,
+    )
 
-    fun item(id: String): MediaItem? = repo.get(id)
+    fun list(): List<MediaEntry> =
+        items.list()
+            .filter { it.type == "photo" || it.type == "video" }
+            .mapNotNull { summary ->
+                files.listForItem(summary.id).firstOrNull()?.let { MediaEntry(summary, it) }
+            }
 
-    /** Encrypts an in-memory image (capture/import), with a downscaled thumbnail. */
-    fun importImage(bytes: ByteArray, originalName: String?, mimeType: String?): MediaItem {
-        val id = RandomUtil.generateUUID()
-        CryptoLog.d(C, "importImage: id=$id name='$originalName' mime=$mimeType plain=${bytes.size}B fek(${CryptoLog.key(session.fek)}) aad=$id")
-        val aad = id.toByteArray(Charsets.UTF_8)
-        val encrypted = Cwo1.encryptWholeFile(session.fek, aad, bytes)
-        writeAttachment(id, encrypted)
+    /** Imports an in-memory image (photo picker / capture). */
+    fun importImage(bytes: ByteArray, name: String, mimeType: String?): String {
+        val itemId = items.create(
+            NewItem(
+                type = "photo",
+                classification = Classification.C,
+                title = name,
+                meta = mimeType ?: "",
+            ),
+        )
+        try {
+            files.importBytes(
+                itemId = itemId,
+                name = name,
+                mimeType = mimeType,
+                bytes = bytes,
+                thumbnailPlaintext = makeThumbnail(bytes),
+            )
+        } catch (t: Throwable) {
+            CryptoLog.e(C, "importImage failed", t)
+            items.softDelete(itemId)
+            throw t
+        }
+        return itemId
+    }
 
-        val bitmap = decodeBounded(bytes, THUMB_MAX_DIM)
-        if (bitmap != null) {
-            writeThumbnail(id, bitmap)
+    /** Imports a video (or any large file) by streaming from a content URI. */
+    fun importUri(uri: Uri, name: String, mimeType: String?, isVideo: Boolean): String {
+        val itemId = items.create(
+            NewItem(
+                type = if (isVideo) "video" else "photo",
+                classification = Classification.C,
+                title = name,
+                meta = mimeType ?: "",
+            ),
+        )
+        val temp = File(context.cacheDir, "import-${System.nanoTime()}.tmp")
+        try {
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                temp.outputStream().use { output -> input.copyTo(output, 64 * 1024) }
+            } ?: error("cannot open the selected file")
+
+            val thumbnail = if (isVideo) videoThumbnail(uri)?.let { bitmap ->
+                encodeThumbnail(bitmap).also { bitmap.recycle() }
+            } else {
+                temp.readBytes().let(::makeThumbnail)
+            }
+            files.importFile(
+                itemId = itemId,
+                name = name,
+                mimeType = mimeType,
+                source = temp,
+                thumbnailPlaintext = thumbnail,
+            )
+            return itemId
+        } catch (t: Throwable) {
+            CryptoLog.e(C, "importUri failed", t)
+            items.softDelete(itemId)
+            throw t
+        } finally {
+            temp.delete()
+        }
+    }
+
+    fun thumbnail(entry: MediaEntry): ByteArray? = files.decryptThumbnail(entry.file)
+
+    fun original(entry: MediaEntry): ByteArray = files.readAll(entry.file.id)
+
+    /** Decrypts the original into [target] (video playback bridge). */
+    fun decryptToFile(entry: MediaEntry, target: File) = files.decryptToFile(entry.file.id, target)
+
+    fun delete(entry: MediaEntry) {
+        files.softDelete(entry.file.id)
+        if (entry.file.storage == FileStorage.EXTERNAL) files.externalFile(entry.file).delete()
+        items.softDelete(entry.item.id)
+    }
+
+    // ------------------------------------------------------------- thumbnails
+
+    private fun makeThumbnail(bytes: ByteArray): ByteArray? {
+        val bitmap = decodeBounded(bytes, THUMB_MAX_DIM) ?: return null
+        return try {
+            encodeThumbnail(bitmap)
+        } finally {
             bitmap.recycle()
         }
-        val item = MediaItem(
-            id = id,
-            storageName = attachmentName(id),
-            originalName = originalName,
-            mimeType = mimeType,
-            sizeBytes = bytes.size.toLong(),
-            createdAt = System.currentTimeMillis(),
-        )
-        repo.insert(item)
-        CryptoLog.d(C, "importImage: done id=$id attachment=${attachmentFile(item)} thumbnail=${thumbnailFile(id)}")
-        return item
     }
 
-    /** Streams a video (or any large file) into chunked CWO1 records. */
-    fun importFile(uri: Uri, originalName: String?, mimeType: String?, sizeBytes: Long): MediaItem {
-        val id = RandomUtil.generateUUID()
-        val aad = id.toByteArray(Charsets.UTF_8)
-        val attachments = File(VaultStore.vaultDir(context, session.vaultId), "attachments").apply { mkdirs() }
-        val target = File(attachments, attachmentName(id))
-        val ivPrefix = RandomUtil.generateSecureBytes(4)
-
-        val totalBytes = countBytes(uri)
-        CryptoLog.d(C, "importFile: id=$id name='$originalName' mime=$mimeType uri=$uri total=${totalBytes}B fek(${CryptoLog.key(session.fek)})")
-        val chunkCount = if (totalBytes == 0L) 0L else (totalBytes + Cwo1.CHUNK_SIZE - 1) / Cwo1.CHUNK_SIZE
-        session.fek.use { key ->
-            FileOutputStream(target).use { out ->
-                out.write(Cwo1.headerForChunked(chunkCount, ivPrefix))
-                val input = context.contentResolver.openInputStream(uri)
-                    ?: throw IllegalStateException("cannot open the selected file")
-                input.use {
-                    val buffer = ByteArray(Cwo1.CHUNK_SIZE)
-                    var index = 0L
-                    while (true) {
-                        var filled = 0
-                        while (filled < buffer.size) {
-                            val read = it.read(buffer, filled, buffer.size - filled)
-                            if (read < 0) break
-                            filled += read
-                        }
-                        if (filled == 0) break
-                        val chunk = if (filled == buffer.size) buffer else buffer.copyOf(filled)
-                        val encrypted = AesGcm.encrypt(
-                            key = key,
-                            nonce = Cwo1.nonceForChunk(index, ivPrefix),
-                            aad = aad,
-                            plainText = chunk,
-                        )
-                        out.write(encrypted.cipherText)
-                        out.write(encrypted.authTag)
-                        index++
-                    }
-                }
-            }
-        }
-
-        // Video frame from the source (before it is ever stored in the clear).
-        if (mimeType?.startsWith("video/") == true) {
-            videoThumbnail(uri)?.let {
-                writeThumbnail(id, it)
-                it.recycle()
-            }
-        }
-
-        val item = MediaItem(
-            id = id,
-            storageName = attachmentName(id),
-            originalName = originalName,
-            mimeType = mimeType,
-            sizeBytes = if (sizeBytes > 0) sizeBytes else totalBytes,
-            createdAt = System.currentTimeMillis(),
-        )
-        repo.insert(item)
-        CryptoLog.d(C, "importFile: done id=$id chunks=${if (totalBytes == 0L) 0 else (totalBytes + Cwo1.CHUNK_SIZE - 1) / Cwo1.CHUNK_SIZE} " +
-            "attachment=${attachmentFile(item)}")
-        return item
-    }
-
-    /** Decrypted original bytes (images; videos are streamed by the player). */
-    fun originalBytes(item: MediaItem): ByteArray {
-        val file = attachmentFile(item)
-        require(file.exists()) { "missing attachment: ${item.storageName}" }
-        val aad = item.id.toByteArray(Charsets.UTF_8)
-        val cipher = file.readBytes()
-        CryptoLog.d(C, "originalBytes: id=${item.id} file=$file cipher=${cipher.size}B fek(${CryptoLog.key(session.fek)}) aad=${item.id}")
-        return Cwo1.decryptWholeFile(session.fek, aad, cipher)
-    }
-
-    fun delete(id: String) {
-        val item = repo.get(id)
-        CryptoLog.d(C, "delete: id=$id exists=${item != null}")
-        repo.softDelete(id)
-        if (item != null) {
-            attachmentFile(item).delete()
-            thumbnailFile(id).delete()
-        }
-    }
-
-    // ---------------------------------------------------------------- helpers
-
-    fun attachmentFile(item: MediaItem): File =
-        File(File(VaultStore.vaultDir(context, session.vaultId), "attachments"), item.storageName)
-
-    fun thumbnailFile(id: String): File =
-        File(File(VaultStore.vaultDir(context, session.vaultId), "thumbnails"), thumbnailName(id))
-
-    private fun writeAttachment(id: String, bytes: ByteArray) {
-        val dir = File(VaultStore.vaultDir(context, session.vaultId), "attachments").apply { mkdirs() }
-        File(dir, attachmentName(id)).writeBytes(bytes)
-    }
-
-    private fun writeThumbnail(id: String, bitmap: Bitmap) {
-        val dir = File(VaultStore.vaultDir(context, session.vaultId), "thumbnails").apply { mkdirs() }
+    private fun encodeThumbnail(bitmap: Bitmap): ByteArray {
         val scaled = downscale(bitmap, THUMB_MAX_DIM)
-        val jpeg = java.io.ByteArrayOutputStream().use { out ->
-            scaled.compress(Bitmap.CompressFormat.JPEG, THUMB_QUALITY, out)
-            out.toByteArray()
-        }
-        if (scaled !== bitmap) scaled.recycle()
-        val encrypted = Cwo1.encryptWholeFile(session.fek, id.toByteArray(Charsets.UTF_8), jpeg)
-        jpeg.fill(0)
-        File(dir, thumbnailName(id)).writeBytes(encrypted)
-    }
-
-    private fun countBytes(uri: Uri): Long {
-        val input = context.contentResolver.openInputStream(uri) ?: return 0
-        return input.use {
-            val buffer = ByteArray(64 * 1024)
-            var total = 0L
-            while (true) {
-                val read = it.read(buffer)
-                if (read < 0) break
-                total += read
+        try {
+            return java.io.ByteArrayOutputStream().use { out ->
+                scaled.compress(Bitmap.CompressFormat.JPEG, THUMB_QUALITY, out)
+                out.toByteArray()
             }
-            total
-        }
-    }
-
-    private fun videoThumbnail(uri: Uri): Bitmap? {
-        val retriever = MediaMetadataRetriever()
-        return try {
-            retriever.setDataSource(context, uri)
-            retriever.getFrameAtTime(0)
-        } catch (e: Throwable) {
-            CryptoLog.e(C, "video thumbnail extraction failed", e)
-            null
         } finally {
-            runCatching { retriever.release() }
+            if (scaled !== bitmap) scaled.recycle()
         }
     }
 
@@ -204,8 +155,7 @@ class MediaService(
         val decoded = BitmapFactory.decodeByteArray(
             bytes, 0, bytes.size, BitmapFactory.Options().apply { inSampleSize = sample },
         ) ?: return null
-        val oriented = applyExifRotation(decoded, bytes)
-        return downscale(oriented, maxDim)
+        return downscale(applyExifRotation(decoded, bytes), maxDim)
     }
 
     private fun applyExifRotation(bitmap: Bitmap, bytes: ByteArray): Bitmap {
@@ -242,12 +192,21 @@ class MediaService(
         )
     }
 
-    private fun attachmentName(id: String) = "$id.cwo"
-    private fun thumbnailName(id: String) = "${id}_t.cwo"
+    private fun videoThumbnail(uri: Uri): Bitmap? {
+        val retriever = MediaMetadataRetriever()
+        return try {
+            retriever.setDataSource(context, uri)
+            retriever.getFrameAtTime(0)
+        } catch (t: Throwable) {
+            CryptoLog.e(C, "video thumbnail extraction failed", t)
+            null
+        } finally {
+            runCatching { retriever.release() }
+        }
+    }
 
     private companion object {
         const val C = "MediaService"
-        const val PAGE_SIZE = 60
         const val THUMB_MAX_DIM = 512
         const val THUMB_QUALITY = 85
     }

@@ -1,13 +1,14 @@
 package com.typedefai.cryptowl
 
 import android.app.Application
-import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
-import android.provider.OpenableColumns
 import android.util.Log
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.typedefai.cryptowl.vault.MediaItem
+import com.typedefai.cryptowl.vault.MediaEntry
 import com.typedefai.cryptowl.vault.MediaService
 import com.typedefai.cryptowl.vault.VaultSession
 import kotlinx.coroutines.Dispatchers
@@ -17,24 +18,25 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/**
- * Confidential-tier media vault: import (images in memory, videos streamed),
- * list and delete. No fingerprint — C-tier files share the vault FEK and are
- * readable once the vault is unlocked.
- */
+/** A media item with its decrypted thumbnail (C tier — no biometric gate). */
+data class MediaUiEntry(
+    val entry: MediaEntry,
+    val thumbnail: ImageBitmap?,
+)
+
 class MediaViewModel(app: Application) : AndroidViewModel(app) {
 
     @Volatile
     private var session: VaultSession? = null
 
-    private val _entries = MutableStateFlow<List<MediaItem>>(emptyList())
-    val entries: StateFlow<List<MediaItem>> = _entries.asStateFlow()
-
-    private val _importing = MutableStateFlow(false)
-    val importing: StateFlow<Boolean> = _importing.asStateFlow()
+    private val _entries = MutableStateFlow<List<MediaUiEntry>>(emptyList())
+    val entries: StateFlow<List<MediaUiEntry>> = _entries.asStateFlow()
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
+
+    private val _busy = MutableStateFlow(false)
+    val busy: StateFlow<Boolean> = _busy.asStateFlow()
 
     fun attach(newSession: VaultSession) {
         if (session !== newSession) {
@@ -49,69 +51,103 @@ class MediaViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun refresh() {
-        val openSession = session ?: return
+        val current = session ?: return
         viewModelScope.launch {
             try {
-                _entries.value = withContext(Dispatchers.IO) {
-                    MediaService(getApplication(), openSession).list(limit = 1000).items
-                }
-            } catch (e: Throwable) {
-                Log.e(TAG, "refresh failed", e)
-                _error.value = message(e)
-            }
-        }
-    }
-
-    /** Imports picked media; images are read in memory, other files stream. */
-    fun import(uris: List<Uri>) {
-        val openSession = session ?: return
-        if (uris.isEmpty()) return
-        _error.value = null
-        _importing.value = true
-        viewModelScope.launch {
-            try {
-                withContext(Dispatchers.IO) {
-                    val service = MediaService(getApplication(), openSession)
-                    for (uri in uris) {
-                        importOne(service, uri)
+                val list = withContext(Dispatchers.IO) {
+                    val service = MediaService(getApplication(), current)
+                    service.list().map { entry ->
+                        val bytes = runCatching { service.thumbnail(entry) }.getOrNull()
+                        val bitmap = bytes?.let {
+                            runCatching { BitmapFactory.decodeByteArray(it, 0, it.size) }.getOrNull()
+                        }
+                        MediaUiEntry(entry, bitmap?.asImageBitmap())
                     }
                 }
-            } catch (e: Throwable) {
-                Log.e(TAG, "import failed", e)
-                _error.value = message(e)
-            } finally {
-                _importing.value = false
-                refresh()
+                _entries.value = list
+            } catch (t: Throwable) {
+                Log.e(TAG, "refresh failed", t)
+                _error.value = t.message
             }
         }
     }
 
-    fun delete(id: String) {
-        val openSession = session ?: return
+    fun importImage(bytes: ByteArray, name: String, mimeType: String?) {
+        val current = session ?: return
+        _busy.value = true
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    MediaService(getApplication(), openSession).delete(id)
+                    MediaService(getApplication(), current).importImage(bytes, name, mimeType)
                 }
-            } catch (e: Throwable) {
-                Log.e(TAG, "delete failed", e)
-                _error.value = message(e)
-            } finally {
                 refresh()
+            } catch (t: Throwable) {
+                Log.e(TAG, "importImage failed", t)
+                _error.value = t.message
+            } finally {
+                _busy.value = false
             }
         }
     }
 
-    /** Decrypted original for the viewer (images). */
-    suspend fun loadOriginal(item: MediaItem): Bitmap? {
-        val openSession = session ?: return null
-        return withContext(Dispatchers.IO) {
+    fun importUri(uri: Uri, name: String, mimeType: String?, isVideo: Boolean) {
+        val current = session ?: return
+        _busy.value = true
+        viewModelScope.launch {
             try {
-                val bytes = MediaService(getApplication(), openSession).originalBytes(item)
-                android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-            } catch (e: Throwable) {
-                Log.e(TAG, "loadOriginal failed", e)
-                null
+                withContext(Dispatchers.IO) {
+                    MediaService(getApplication(), current).importUri(uri, name, mimeType, isVideo)
+                }
+                refresh()
+            } catch (t: Throwable) {
+                Log.e(TAG, "importUri failed", t)
+                _error.value = t.message
+            } finally {
+                _busy.value = false
+            }
+        }
+    }
+
+    /** Decrypts the original for the viewer; null on failure. */
+    fun originalBytes(entry: MediaEntry): ByteArray? {
+        val current = session ?: return null
+        return try {
+            MediaService(getApplication(), current).original(entry)
+        } catch (t: Throwable) {
+            Log.e(TAG, "originalBytes failed", t)
+            _error.value = t.message
+            null
+        }
+    }
+
+    /** Decrypts the original into an app-private cache file (video playback). */
+    fun decryptToCache(entry: MediaEntry): java.io.File? {
+        val current = session ?: return null
+        return try {
+            val target = java.io.File(
+                getApplication<Application>().cacheDir,
+                "cwl_play_${java.util.UUID.randomUUID()}.bin",
+            )
+            MediaService(getApplication(), current).decryptToFile(entry, target)
+            target
+        } catch (t: Throwable) {
+            Log.e(TAG, "decryptToCache failed", t)
+            _error.value = t.message
+            null
+        }
+    }
+
+    fun delete(entry: MediaEntry) {
+        val current = session ?: return
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    MediaService(getApplication(), current).delete(entry)
+                }
+                refresh()
+            } catch (t: Throwable) {
+                Log.e(TAG, "delete failed", t)
+                _error.value = t.message
             }
         }
     }
@@ -119,31 +155,6 @@ class MediaViewModel(app: Application) : AndroidViewModel(app) {
     fun clearError() {
         _error.value = null
     }
-
-    private fun importOne(service: MediaService, uri: Uri) {
-        val resolver = getApplication<Application>().contentResolver
-        var name: String? = null
-        var size = 0L
-        resolver.query(uri, null, null, null, null)?.use { c ->
-            if (c.moveToFirst()) {
-                val nameIndex = c.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                if (nameIndex >= 0 && !c.isNull(nameIndex)) name = c.getString(nameIndex)
-                val sizeIndex = c.getColumnIndex(OpenableColumns.SIZE)
-                if (sizeIndex >= 0 && !c.isNull(sizeIndex)) size = c.getLong(sizeIndex)
-            }
-        }
-        val mime = resolver.getType(uri)
-        if (mime?.startsWith("image/") == true) {
-            val bytes = resolver.openInputStream(uri)?.use { it.readBytes() }
-                ?: throw IllegalStateException("cannot open $name")
-            service.importImage(bytes, name, mime)
-        } else {
-            service.importFile(uri, name, mime, size)
-        }
-    }
-
-    private fun message(e: Throwable): String =
-        e.message ?: getApplication<Application>().getString(R.string.media_error)
 
     private companion object {
         const val TAG = "cwl:MediaViewModel"

@@ -17,6 +17,11 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // Vendored SQLCipher 5 + OpenSSL build per ABI; phones are arm64,
+        // the CI emulator is x86_64. Add ABIs here deliberately.
+        ndk {
+            abiFilters += listOf("arm64-v8a", "x86_64")
+        }
         externalNativeBuild {
             cmake {
                 cppFlags += "-std=c++11"
@@ -59,11 +64,8 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.core.splashscreen)
     implementation(libs.material)
-    implementation(libs.sqlcipher.android)
-    implementation(libs.androidx.sqlite)
     implementation(libs.androidx.biometric)
     implementation(libs.androidx.exifinterface)
-    implementation(libs.litertlm.android)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
@@ -76,12 +78,9 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.ui)
-    implementation(libs.richtext.commonmark)
-    implementation(libs.richtext.ui.material3)
     implementation(libs.coil.compose)
     implementation(libs.coil.svg)
     testImplementation(libs.junit)
-    testImplementation(libs.sqlite.jdbc)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
 }

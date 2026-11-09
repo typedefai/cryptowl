@@ -2,7 +2,6 @@ package com.typedefai.cryptowl.vault
 
 import com.typedefai.cryptowl.crypto.CryptoLog
 import com.typedefai.cryptowl.crypto.ProtectedValue
-import net.zetetic.database.sqlcipher.SQLiteDatabase
 
 /**
  * An unlocked vault: the open SQLCipher database plus the keys of the
@@ -16,7 +15,7 @@ import net.zetetic.database.sqlcipher.SQLiteDatabase
  */
 class VaultSession(
     val vaultId: String,
-    val db: SQLiteDatabase,
+    val db: SqlCipherDb,
     val vaultKey: ProtectedValue,
     val fek: ProtectedValue,
     val hfk: ProtectedValue,

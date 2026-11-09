@@ -45,7 +45,6 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private companion object {
         const val TAG = "cwl:MainViewModel"
         const val PATHS_TAG = "cwl:Paths"
-        const val MODEL_DIR = "model"
     }
 
     private val _appState = MutableStateFlow(AppState.LOCKED)
@@ -110,11 +109,6 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val _backupError = MutableStateFlow<String?>(null)
     val backupError: StateFlow<String?> = _backupError.asStateFlow()
 
-    /** On-device LLM chat (LiteRT-LM). Owned here so the engine survives screen changes.
-     *  Gallery behavior: the model initializes when the chat screen opens and
-     *  is cleaned up when leaving it — not loaded at app start. */
-    val chat = ChatViewModel(getApplication<Application>().applicationContext)
-
     init {
         logStoragePaths()
         _appState.value = if (VaultStore.isOnboarded(getApplication())) AppState.LOCKED else AppState.ONBOARDING
@@ -143,10 +137,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 "  thumbnails/          = ${File(VaultStore.vaultDir(app, vaultId), "thumbnails")}\n" +
                 "cacheDir (video temp)  = ${app.cacheDir}\n" +
                 "vault index            = ${VaultStore.indexFile(app)} (exists=${VaultStore.indexFile(app).exists()})\n" +
-                "model dir (external)   = ${File(app.getExternalFilesDir(null), MODEL_DIR)}\n" +
-                "model dir (internal)   = ${File(app.filesDir, MODEL_DIR)}\n" +
-                "shared prefs (device secret) = ${app.filesDir.parentFile}/shared_prefs/cryptowl.vault.xml\n" +
-                "shared prefs (chat settings) = ${app.filesDir.parentFile}/shared_prefs/cryptowl.chat.settings.xml",
+                "shared prefs (device secret) = ${app.filesDir.parentFile}/shared_prefs/cryptowl.vault.xml",
         )
     }
 
@@ -535,9 +526,5 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 _backupProgress.value = null
             }
         }
-    }
-
-    override fun onCleared() {
-        chat.close()
     }
 }

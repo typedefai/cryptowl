@@ -90,6 +90,45 @@ object Cwo1 {
         out.toByteArray()
     }
 
+    /**
+     * Streams [source] into a chunked CWO1 file at [target] (v3 external file
+     * storage). The caller writes to a temp destination and renames it.
+     */
+    fun encryptChunkedFile(
+        fek: ProtectedValue,
+        aad: ByteArray,
+        source: java.io.File,
+        target: java.io.File,
+        ivPrefix: ByteArray = RandomUtil.generateSecureBytes(4),
+    ) {
+        val plaintextSize = source.length()
+        val count = (plaintextSize + CHUNK_SIZE - 1) / CHUNK_SIZE
+        CryptoLog.d(C, "encryptChunkedFile: aad='${aad.decodeToString()}' plain=${plaintextSize}B chunks=$count dst=$target")
+        fek.use { key ->
+            source.inputStream().use { input ->
+                target.outputStream().use { out ->
+                    out.write(headerChunked(count, ivPrefix))
+                    val buffer = ByteArray(CHUNK_SIZE)
+                    for (i in 0 until count) {
+                        val expected = minOf(CHUNK_SIZE.toLong(), plaintextSize - i * CHUNK_SIZE).toInt()
+                        var read = 0
+                        while (read < expected) {
+                            val n = input.read(buffer, read, expected - read)
+                            if (n <= 0) error("source file changed during import")
+                            read += n
+                        }
+                        val chunk = if (expected == CHUNK_SIZE) buffer else buffer.copyOf(expected)
+                        val encrypted = AesGcm.encrypt(key, chunkNonce(i, ivPrefix), aad, chunk)
+                        out.write(encrypted.cipherText)
+                        out.write(encrypted.authTag)
+                        if (chunk !== buffer) chunk.fill(0)
+                    }
+                    buffer.fill(0)
+                }
+            }
+        }
+    }
+
     // ------------------------------------------------------------------ read
 
     /** Decrypts a whole-file CWO1 blob in full. */

@@ -36,8 +36,10 @@ class MasterPasswordChange(
         } catch (e: Exception) {
             throw VaultOpenException("corrupt vault.meta: ${e.message}")
         }
-        if (meta.version > META_VERSION) {
-            throw VaultOpenException("unsupported vault.meta version: ${meta.version}")
+        if (meta.version != META_VERSION) {
+            throw VaultOpenException(
+                "unsupported vault format version ${meta.version} — recreate the vault",
+            )
         }
         val params = KdfParams(
             algorithm = meta.kdf.algorithm,
@@ -136,7 +138,7 @@ class MasterPasswordChange(
 
     private companion object {
         const val C = "MasterPasswordChange"
-        const val META_VERSION = 2
+        const val META_VERSION = 3
         const val WRAPPED_VAULT_KEY_SMK = "vault_key:smk"
     }
 }

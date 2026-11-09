@@ -264,23 +264,10 @@ class UnlockService(
         }
     }
 
-    private fun openDatabase(vaultId: String, vaultKey: ProtectedValue): net.zetetic.database.sqlcipher.SQLiteDatabase {
-        System.loadLibrary("sqlcipher")
-        return vaultKey.use { _ ->
-            val db = net.zetetic.database.sqlcipher.SQLiteDatabase.openOrCreateDatabase(
-                VaultStore.dbFile(context, vaultId), vaultKey.asSqlCipherRawKey(), null, null,
-            )
-            try {
-                // Probe: a wrong key makes every statement fail with
-                // "file is not a database" (mirrors vaultlib verify_key).
-                db.rawQuery("SELECT count(*) FROM sqlite_master", null).use { it.moveToFirst() }
-                SchemaApplier.migrate(db, context)
-                db
-            } catch (e: Exception) {
-                db.close()
-                throw e
-            }
-        }
+    private fun openDatabase(vaultId: String, vaultKey: ProtectedValue): SqlCipherDb {
+        // A wrong key fails the SQLCipher page HMAC probe inside open();
+        // a non-v3 schema fails the fixed-shape check.
+        return VaultDatabase.open(context, VaultStore.dbFile(context, vaultId), vaultKey)
     }
 
     /**
@@ -297,7 +284,7 @@ class UnlockService(
     private fun rebindVaultKey(
         meta: VaultMeta,
         vaultId: String,
-        db: net.zetetic.database.sqlcipher.SQLiteDatabase,
+        db: SqlCipherDb,
         oldSmk: ProtectedValue,
         masterPassword: ProtectedValue,
         vaultKey: ProtectedValue,
@@ -361,7 +348,7 @@ class UnlockService(
      * No-op when the row is absent or already migrated to `kek:biokey`.
      */
     private fun rewrapDesktopKek(
-        db: net.zetetic.database.sqlcipher.SQLiteDatabase,
+        db: SqlCipherDb,
         oldSmk: ProtectedValue,
         newSmk: ProtectedValue,
     ) {
@@ -374,21 +361,31 @@ class UnlockService(
             else Triple(c.getBlob(0), c.getBlob(1), c.getBlob(2))
         } ?: return
 
-        val kek = kdf.unwrapKey(
-            wrapped = com.typedefai.cryptowl.crypto.WrappedKey(row.first, row.second, row.third),
-            wrappingKey = kdf.vaultKey(oldSmk),
-            aad = KEK_SMK_ID.toByteArray(Charsets.UTF_8),
-        )
-        try {
-            val wrapped = kdf.wrapKey(
-                key = kek,
-                wrappingKey = kdf.vaultKey(newSmk),
+        val oldWrapping = kdf.vaultKey(oldSmk)
+        val kek = try {
+            kdf.unwrapKey(
+                wrapped = com.typedefai.cryptowl.crypto.WrappedKey(row.first, row.second, row.third),
+                wrappingKey = oldWrapping,
                 aad = KEK_SMK_ID.toByteArray(Charsets.UTF_8),
             )
+        } finally {
+            oldWrapping.clear()
+        }
+        try {
+            val newWrapping = kdf.vaultKey(newSmk)
+            val wrapped = try {
+                kdf.wrapKey(
+                    key = kek,
+                    wrappingKey = newWrapping,
+                    aad = KEK_SMK_ID.toByteArray(Charsets.UTF_8),
+                )
+            } finally {
+                newWrapping.clear()
+            }
             db.execSQL(
                 "UPDATE t_wrapped_key SET ciphertext = ?, nonce = ?, auth_tag = ?, updated_at = ? " +
                     "WHERE id = 'kek:smk'",
-                arrayOf<Any>(wrapped.cipherText, wrapped.nonce, wrapped.authTag, System.currentTimeMillis()),
+                arrayOf<Any?>(wrapped.cipherText, wrapped.nonce, wrapped.authTag, System.currentTimeMillis()),
             )
             CryptoLog.d(C, "rebind: kek:smk re-wrapped with the Android SMK")
         } finally {

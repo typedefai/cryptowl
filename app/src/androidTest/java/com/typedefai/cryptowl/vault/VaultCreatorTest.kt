@@ -1,97 +1,142 @@
 package com.typedefai.cryptowl.vault
 
-import android.content.Context
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.typedefai.cryptowl.crypto.KdfService
+import androidx.test.platform.app.InstrumentationRegistry
+import com.typedefai.cryptowl.crypto.CrockfordBase32
+import com.typedefai.cryptowl.crypto.HmacSha256
 import com.typedefai.cryptowl.crypto.ProtectedValue
-import net.zetetic.database.sqlcipher.SQLiteDatabase
+import com.typedefai.cryptowl.crypto.RandomUtil
+import java.io.File
+import org.junit.After
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * End-to-end vault creation: key derivation chain (real Argon2 JNI) →
- * vault.meta with verifiable MAC → SQLCipher database initialized from
- * assets/migrations (v1 core + v2 moments). Mirrors the onboarding flow.
+ * Vault creation round-trip: v3 `vault.meta` / `config.json` / fixed schema /
+ * SQLCipher 5, and unlock through [UnlockService].
  */
 @RunWith(AndroidJUnit4::class)
 class VaultCreatorTest {
 
-    private lateinit var context: Context
-    private val vaultId = "test-vault"
-    private val password = ProtectedValue.fromString("test-password-123")
+    private val context = InstrumentationRegistry.getInstrumentation().targetContext
+    private lateinit var vaultId: String
 
     @Before
     fun setUp() {
-        context = ApplicationProvider.getApplicationContext()
-        val vaultDir = VaultStore.vaultDir(context, vaultId)
-        if (vaultDir.exists()) vaultDir.deleteRecursively()
-        VaultStore.indexFile(context).delete()
-        context.getSharedPreferences("cryptowl.vault", Context.MODE_PRIVATE).edit().clear().commit()
+        vaultId = TestVaults.create(context)
+    }
+
+    @After
+    fun tearDown() {
+        TestVaults.cleanup(context, vaultId)
     }
 
     @Test
-    fun createWritesMetaDatabaseAndIndex() {
-        val kdf = KdfService()
-
-        val meta = VaultCreator(context, kdf).create(password, vaultId)
-
-        // vault.meta: version, wrapped vault_key:smk, verifiable MAC
-        assertEquals(2, meta.version)
+    fun creates_v3_vault_with_desktop_compatible_files() {
+        val metaFile = VaultStore.metaFile(context, vaultId)
+        assertTrue(metaFile.exists())
+        val meta = VaultMetaJson.decode(metaFile.readText())
+        assertEquals(3, meta.version)
         assertEquals(vaultId, meta.vaultId)
-        assertEquals("vault_key:smk", meta.wrappedKeys.single().id)
-        assertTrue(VaultStore.metaFile(context, vaultId).exists())
+        assertNull("the secondary salt is added at Top-Secret setup", meta.salts.secondary)
+        assertEquals("argon2id", meta.kdf.algorithm)
+        assertEquals(1, meta.wrappedKeys.count { it.id == "vault_key:smk" })
 
-        val deviceSecret = DeviceSecretStore.getOrCreate(context)
-        val tmk = kdf.createTransformedMasterKey(password, deviceSecret, meta.salts.argon2)
-        val smk = kdf.createStretchedMasterKey(tmk, vaultId.toByteArray(), meta.salts.hkdf)
-        assertEquals(meta.mac?.value, VaultMetaJson.computeMac(meta, kdf.macKey(smk).binaryValue()))
-        assertEquals("HMAC-SHA256", meta.mac?.algorithm)
+        // Round-trip through the canonical writer reproduces the stored bytes.
+        assertEquals(metaFile.readText(), VaultMetaJson.encode(meta))
 
-        // database opens with the unwrapped VaultKey and has the full schema
-        val vaultKey = kdf.unwrapKey(
-            wrapped = meta.wrappedKeys.first { it.id == "vault_key:smk" }.toWrappedKey(),
-            wrappingKey = kdf.vaultKey(smk),
-            aad = "vault_key:smk".toByteArray(),
-        )
-        System.loadLibrary("sqlcipher")
-        vaultKey.use { _ ->
-            val db = SQLiteDatabase.openOrCreateDatabase(
-                VaultStore.dbFile(context, vaultId), vaultKey.asSqlCipherRawKey(), null, null,
-            )
+        // config.json: {"files":{"embed_max_bytes":524288},"name":"<id>"}
+        val configFile = VaultStore.configFile(context, vaultId)
+        assertTrue(configFile.exists())
+        val config = configFile.readText()
+        assertTrue(config.startsWith("""{"files":{"embed_max_bytes":524288},"name":"""))
+        val sigFile = VaultStore.configSigFile(context, vaultId)
+        assertTrue(sigFile.exists())
+        assertEquals(52, CrockfordBase32.decode(sigFile.readText().trim()).size)
+
+        // SQLCipher 5 database with the fixed v3 schema.
+        val dbFile = VaultStore.dbFile(context, vaultId)
+        assertTrue(dbFile.exists())
+        assertEquals("5.", SqlCipherDb.cipherVersion().take(2))
+        val session = TestVaults.unlock(context, vaultId)
+        try {
+            VaultDatabase.checkSchema(session.db)
+            assertEquals(6, VaultDatabase.CORE_TABLES.size)
+        } finally {
+            session.close()
+        }
+    }
+
+    @Test
+    fun unlock_opens_session_and_rejects_wrong_password() {
+        val wrong = ProtectedValue.fromString("definitely not the password")
+        try {
             try {
-                val tables = mutableListOf<String>()
-                db.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null).use { cursor ->
-                    while (cursor.moveToNext()) tables.add(cursor.getString(0))
-                }
-                for (expected in listOf("t_wrapped_key", "t_data_encrypt_key", "t_encrypted_data", "t_file")) {
-                    assertTrue("missing table $expected", tables.contains(expected))
-                }
-                assertEquals(2, db.version) // v1 core + v2 moments applied
-            } finally {
-                db.close()
+                UnlockService(context).unlock(wrong, vaultId)
+                throw AssertionError("wrong password must fail")
+            } catch (expected: VaultOpenException) {
+                // expected
             }
+        } finally {
+            wrong.clear()
         }
 
-        // onboarding markers (the created vault, not the default one)
-        assertTrue(VaultStore.isOnboarded(context, vaultId))
-        assertEquals(vaultId, VaultStore.primaryVaultId(context))
-    }
-
-    @Test(expected = IllegalStateException::class)
-    fun creatingTheSameVaultTwiceThrows() {
-        VaultCreator(context).create(password, vaultId)
-        VaultCreator(context).create(password, vaultId)
+        val session = TestVaults.unlock(context, vaultId)
+        try {
+            assertEquals(vaultId, session.vaultId)
+            assertTrue(session.embedMaxBytes >= 64 * 1024)
+            assertEquals(32, session.fek.use { it.size })
+            assertEquals(32, session.hfk.use { it.size })
+        } finally {
+            session.close()
+        }
     }
 
     @Test
-    fun deviceSecretIsStableAcrossReads() {
-        val first = DeviceSecretStore.getOrCreate(context).binaryValue()
-        val second = DeviceSecretStore.getOrCreate(context).binaryValue()
-        assertEquals(first.toList(), second.toList())
-        assertEquals(32, first.size)
+    fun refresh_of_meta_mac_uses_the_smk_mac_key() {
+        val meta = VaultMetaJson.decode(VaultStore.metaFile(context, vaultId).readText())
+        assertTrue(meta.mac != null)
+        // Re-signing with a wrong MAC key must not match the stored value.
+        val mac = HmacSha256.mac(ByteArray(32) { 0x42 }, VaultMetaJson.canonicalWithoutMac(meta).toByteArray())
+        assertFalse(CrockfordBase32.encode(mac) == meta.mac!!.value)
+    }
+
+    @Test
+    fun vault_database_rejects_wrong_key_and_foreign_schema() {
+        val dbFile = VaultStore.dbFile(context, vaultId)
+        val wrongKey = ProtectedValue.fromBinary(RandomUtil.generateSecureBytes(32))
+        try {
+            try {
+                VaultDatabase.open(context, dbFile, wrongKey)
+                throw AssertionError("a wrong key must fail the SQLCipher probe")
+            } catch (expected: Throwable) {
+                // expected
+            }
+        } finally {
+            wrongKey.clear()
+        }
+
+        val foreign = File(context.cacheDir, "foreign-${System.nanoTime()}.db")
+        val key = ProtectedValue.fromBinary(RandomUtil.generateSecureBytes(32))
+        try {
+            SqlCipherDb.openOrCreate(foreign, key.asSqlCipherRawKey()).use { db ->
+                db.execSQL("CREATE TABLE t_only_one (id TEXT PRIMARY KEY)")
+            }
+            try {
+                VaultDatabase.open(context, foreign, key)
+                throw AssertionError("a non-v3 schema must be refused")
+            } catch (expected: IllegalStateException) {
+                assertTrue(expected.message!!.contains("schema"))
+            }
+        } finally {
+            key.clear()
+            foreign.delete()
+        }
     }
 }

@@ -7,7 +7,6 @@ import com.typedefai.cryptowl.crypto.KdfService
 import com.typedefai.cryptowl.crypto.toHexString
 import com.typedefai.cryptowl.crypto.ProtectedValue
 import com.typedefai.cryptowl.crypto.RandomUtil
-import net.zetetic.database.sqlcipher.SQLiteDatabase
 import java.io.File
 
 /**
@@ -50,11 +49,7 @@ class VaultCreator(
         CryptoLog.d(C, "create: device secret ready deviceSecret(${CryptoLog.key(deviceSecret)})")
         val argon2Salt = RandomUtil.generateSecureBytes(SALT_SIZE)
         val hkdfSalt = RandomUtil.generateSecureBytes(SALT_SIZE)
-        val secondarySalt = RandomUtil.generateSecureBytes(SALT_SIZE)
-        CryptoLog.d(C,
-            "create: salts argon2=${argon2Salt.toHexString(8)} hkdf=${hkdfSalt.toHexString(8)} " +
-                "secondary=${secondarySalt.toHexString(8)}",
-        )
+        CryptoLog.d(C, "create: salts argon2=${argon2Salt.toHexString(8)} hkdf=${hkdfSalt.toHexString(8)}")
 
         val tmk = kdf.createTransformedMasterKey(masterPassword, deviceSecret, argon2Salt)
         CryptoLog.d(C, "create: TMK derived tmk(${CryptoLog.key(tmk)})")
@@ -86,7 +81,7 @@ class VaultCreator(
             salts = VaultMeta.Salts(
                 argon2 = argon2Salt.copyOf(),
                 hkdf = hkdfSalt.copyOf(),
-                secondary = secondarySalt.copyOf(),
+                secondary = null,
             ),
             wrappedKeys = listOf(VaultMeta.WrappedKeyEntry.fromWrappedKey(WRAPPED_VAULT_KEY_SMK, wrappedVaultKey)),
         )
@@ -117,7 +112,6 @@ class VaultCreator(
             deviceSecret.clear()
             argon2Salt.fill(0)
             hkdfSalt.fill(0)
-            secondarySalt.fill(0)
         }
         return metaWithMac
     }
@@ -159,17 +153,8 @@ class VaultCreator(
     }
 
     private fun createDatabase(vaultKey: ProtectedValue, vaultId: String) {
-        System.loadLibrary("sqlcipher")
-        vaultKey.use { _ ->
-            val db = SQLiteDatabase.openOrCreateDatabase(
-                VaultStore.dbFile(context, vaultId), vaultKey.asSqlCipherRawKey(), null, null,
-            )
-            try {
-                SchemaApplier.migrate(db, context)
-            } finally {
-                db.close()
-            }
-        }
+        // Fixed v3 schema: applied once, then verified. No migrations.
+        VaultDatabase.create(context, VaultStore.dbFile(context, vaultId), vaultKey).close()
     }
 
     private companion object {

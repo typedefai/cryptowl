@@ -92,6 +92,12 @@ class VaultBackup(private val context: Context) {
             Log.e(TAG, "restore: staged vault.meta failed to parse", e)
             throw VaultBackupException("corrupt vault.meta in the selected backup: ${e.message}")
         }
+        if (meta.version != 3) {
+            Log.e(TAG, "restore: meta version=${meta.version} is not v3")
+            throw VaultBackupException(
+                "unsupported vault format version ${meta.version} — recreate the vault",
+            )
+        }
         if (meta.vaultId != VaultStore.DEFAULT_VAULT_ID) {
             Log.e(TAG, "restore: meta vaultId=${meta.vaultId} != ${VaultStore.DEFAULT_VAULT_ID}")
             throw VaultBackupException("vault id mismatch: ${meta.vaultId}")

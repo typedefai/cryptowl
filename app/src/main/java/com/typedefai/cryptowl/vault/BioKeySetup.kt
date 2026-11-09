@@ -38,7 +38,7 @@ class BioKeySetup(
         val metaFile = VaultStore.metaFile(context, vaultId)
         require(metaFile.exists()) { "vault.meta missing: $vaultId" }
         val meta = VaultMetaJson.decode(metaFile.readText())
-        require(meta.version <= META_VERSION) { "unsupported vault.meta version: ${meta.version}" }
+        require(meta.version == META_VERSION) { "unsupported vault format version: ${meta.version}" }
 
         val params = KdfParams(
             algorithm = meta.kdf.algorithm,
@@ -116,7 +116,7 @@ class BioKeySetup(
     }
 
     private companion object {
-        const val META_VERSION = 2
+        const val META_VERSION = 3
         const val TAG_SIZE = 16
         const val WRAPPED_VAULT_KEY_SMK = "vault_key:smk"
         const val WRAPPED_VAULT_KEY_BIOKEY = "vault_key:biokey"

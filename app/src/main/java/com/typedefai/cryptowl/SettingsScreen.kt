@@ -65,11 +65,52 @@ import com.typedefai.cryptowl.ui.components.SettingRow
 @Composable
 fun SettingsScreen(
     viewModel: MainViewModel,
+    topSecretViewModel: TopSecretViewModel,
     onLock: () -> Unit,
     onRestore: () -> Unit,
 ) {
     val context = LocalContext.current
     val activity = LocalActivity.current as? FragmentActivity
+    val topSecretState by topSecretViewModel.state.collectAsState()
+    var showTopSecretDialog by rememberSaveable { mutableStateOf(false) }
+    val promptTitle = stringResource(R.string.top_secret_prompt_title)
+    val promptSubtitle = stringResource(R.string.top_secret_prompt_subtitle)
+    val cancelLabel = stringResource(R.string.action_cancel)
+
+    // Top-Secret setup needs a biometric-authorized encrypt cipher.
+    LaunchedEffect(topSecretState.pendingCipher, activity) {
+        val cipher = topSecretState.pendingCipher ?: return@LaunchedEffect
+        if (activity == null) return@LaunchedEffect
+        authenticateWithBiometric(
+            context = context,
+            activity = activity,
+            cipher = cipher,
+            title = promptTitle,
+            subtitle = promptSubtitle,
+            negativeButtonText = cancelLabel,
+            onAuthenticated = topSecretViewModel::completeSetup,
+            onCancelled = topSecretViewModel::cancelPrompt,
+        )
+    }
+    if (showTopSecretDialog) {
+        TopSecretSetupDialog(
+            busy = topSecretState.busy,
+            error = topSecretState.error,
+            onDismiss = {
+                showTopSecretDialog = false
+                topSecretViewModel.clearError()
+            },
+            onConfirm = { master, secondary ->
+                topSecretViewModel.startSetup(secondary, master)
+            },
+        )
+    }
+    LaunchedEffect(topSecretState.done) {
+        if (topSecretState.done) {
+            showTopSecretDialog = false
+            topSecretViewModel.consumeDone()
+        }
+    }
     val biometricAvailable by viewModel.biometricUnlockAvailable.collectAsState()
     val biometricCipher by viewModel.biometricCipher.collectAsState()
     val biometricReady by viewModel.biometricReady.collectAsState()
@@ -230,6 +271,23 @@ fun SettingsScreen(
             },
         )
         SettingRow(
+            icon = Icons.Outlined.Lock,
+            title = stringResource(R.string.settings_top_secret),
+            subtitle = stringResource(
+                if (topSecretState.configured == true) R.string.settings_top_secret_configured
+                else R.string.settings_top_secret_subtitle,
+            ),
+            onClick = {
+                topSecretViewModel.clearError()
+                if (topSecretState.configured == true) {
+                    // Re-configuring would orphan existing T items; keep it one-way.
+                    showTopSecretDialog = false
+                } else {
+                    showTopSecretDialog = true
+                }
+            },
+        )
+        SettingRow(
             icon = Icons.Outlined.Timer,
             title = stringResource(R.string.settings_autolock),
             subtitle = autoLockLabel(autoLockTimeoutMs),
@@ -384,6 +442,76 @@ private fun AboutDialog(info: String?, onDismiss: () -> Unit) {
         },
         confirmButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.chat_cancel)) }
+        },
+    )
+}
+
+@Composable
+private fun TopSecretSetupDialog(
+    busy: Boolean,
+    error: String?,
+    onDismiss: () -> Unit,
+    onConfirm: (master: String, secondary: String) -> Unit,
+) {
+    var master by rememberSaveable { mutableStateOf("") }
+    var secondary by rememberSaveable { mutableStateOf("") }
+    var confirm by rememberSaveable { mutableStateOf("") }
+    val mismatch = secondary != confirm
+    val canSubmit = master.isNotEmpty() && secondary.length >= 8 && !mismatch && !busy
+
+    AlertDialog(
+        onDismissRequest = { if (!busy) onDismiss() },
+        title = { Text(stringResource(R.string.settings_top_secret)) },
+        text = {
+            Column {
+                Text(stringResource(R.string.top_secret_setup_desc), style = MaterialTheme.typography.bodyMedium)
+                Spacer(Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = master,
+                    onValueChange = { master = it },
+                    label = { Text(stringResource(R.string.top_secret_setup_master)) },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = secondary,
+                    onValueChange = { secondary = it },
+                    label = { Text(stringResource(R.string.top_secret_setup_secondary)) },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    isError = mismatch,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = confirm,
+                    onValueChange = { confirm = it },
+                    label = { Text(stringResource(R.string.top_secret_setup_confirm)) },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    isError = mismatch,
+                    supportingText = if (mismatch) {
+                        { Text(stringResource(R.string.password_mismatch)) }
+                    } else {
+                        null
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                error?.let {
+                    Spacer(Modifier.height(8.dp))
+                    Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(master, secondary) }, enabled = canSubmit) {
+                Text(stringResource(R.string.top_secret_setup))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, enabled = !busy) { Text(stringResource(R.string.action_cancel)) }
         },
     )
 }

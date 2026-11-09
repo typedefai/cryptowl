@@ -14,9 +14,6 @@
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.Cryptowl">
-        <!-- Required by LiteRT-LM GPU backend (see LiteRT-LM kotlin getting started). -->
-        <uses-native-library android:name="libvndksupport.so" android:required="false" />
-        <uses-native-library android:name="libOpenCL.so" android:required="false" />
         <!-- Per-app language preferences (AppCompat auto-store). -->
         <service
             android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
@@ -26,16 +23,6 @@
                 android:name="autoStoreLocales"
                 android:value="true" />
         </service>
-        <!-- Camera capture in AI chat (gallery camera flow equivalent). -->
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.fileprovider"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths" />
-        </provider>
         <activity
             android:name=".MainActivity"
             android:configChanges="locale|layoutDirection"

@@ -116,6 +116,12 @@ the spec wins.
 - Crypto golden vectors (P/TMK/SMK/FEK/HFK, GCM wrap) are pinned in
   `app/src/androidTest/.../CryptoVectorsTest.kt` and mirror
   `cryptowl-desktop/tests/core/tst_crypto_vectors.cpp` exactly.
+- `DesktopVaultInteropTest` unpacks `app/src/androidTest/assets/desktop_vault.zip`
+  — a real **desktop-created** vault (password `correct horse battery staple`,
+  one C note + one S password, raw `device_secret` file) — and proves the
+  Android client can unlock it, read both tiers, re-bind the device secret and
+  unlock again. Regenerate the fixture only when the desktop format changes;
+  the desktop client created it (`VaultCreator` + `VaultSession`).
 
 **Device/CI**:
 - Physical device installs can fail with `INSTALL_FAILED_USER_RESTRICTED` —

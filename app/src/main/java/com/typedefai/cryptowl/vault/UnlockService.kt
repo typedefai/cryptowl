@@ -221,14 +221,28 @@ class UnlockService(
         }
     }
 
+    /**
+     * Desktop `device_secret` files come in two legacy forms: 32 raw bytes or
+     * 64 hex characters (docs/design.md "Device Secret on desktop"). Both must
+     * be accepted for the one-time re-bind.
+     */
     private fun readDesktopSecret(vaultId: String): ByteArray? {
         val file = VaultStore.deviceSecretFile(context, vaultId)
         if (!file.exists()) return null
-        return try {
-            file.readText().trim().let { hex ->
-                hex.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
-            }
+        val bytes = try {
+            file.readBytes()
         } catch (e: Exception) {
+            throw VaultOpenException("corrupt device_secret file")
+        }
+        if (bytes.size == DEVICE_SECRET_SIZE) return bytes
+        val text = String(bytes, Charsets.UTF_8).trim()
+        return try {
+            if (text.length != DEVICE_SECRET_SIZE * 2) {
+                throw IllegalArgumentException("unexpected device_secret length")
+            }
+            text.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
+        } catch (e: Exception) {
+            bytes.fill(0)
             throw VaultOpenException("corrupt device_secret file")
         }
     }
@@ -404,6 +418,7 @@ class UnlockService(
         private const val C = "UnlockService"
         const val META_VERSION = 3
         const val KEK_SMK_ID = "kek:smk"
+        const val DEVICE_SECRET_SIZE = 32
         const val WRAPPED_VAULT_KEY_SMK = "vault_key:smk"
         const val WRAPPED_VAULT_KEY_BIOKEY = "vault_key:biokey"
     }

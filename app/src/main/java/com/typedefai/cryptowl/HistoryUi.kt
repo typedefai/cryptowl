@@ -217,9 +217,9 @@ fun HistoryScreen(
     }
 
     if (state.awaitingMasterPassword) {
-        MasterPasswordDialog(onDismiss = { viewModel.clearError() }, onConfirm = viewModel::submitMasterPassword)
+        MasterPasswordDialog(onDismiss = viewModel::cancelGate, onConfirm = viewModel::submitMasterPassword)
     }
     if (state.awaitingSecondaryPassword) {
-        SecondaryPasswordDialog(onDismiss = { viewModel.clearError() }, onConfirm = viewModel::submitSecondaryPassword)
+        SecondaryPasswordDialog(onDismiss = viewModel::cancelGate, onConfirm = viewModel::submitSecondaryPassword)
     }
 }

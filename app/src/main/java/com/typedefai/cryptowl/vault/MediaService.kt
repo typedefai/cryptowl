@@ -53,7 +53,7 @@ class MediaService(
                 type = "photo",
                 classification = Classification.C,
                 title = name,
-                meta = mimeType ?: "",
+                meta = "{}",
             ),
         )
         try {
@@ -79,7 +79,7 @@ class MediaService(
                 type = if (isVideo) "video" else "photo",
                 classification = Classification.C,
                 title = name,
-                meta = mimeType ?: "",
+                meta = "{}",
             ),
         )
         val temp = File(context.cacheDir, "import-${System.nanoTime()}.tmp")

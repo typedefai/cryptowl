@@ -353,7 +353,8 @@ class ItemEditorViewModel(app: Application) : AndroidViewModel(app) {
             return
         }
         val payload = if (type == ItemType.PASSWORD) passwordPayload(st) else st.content
-        val meta = if (type == ItemType.PASSWORD) passwordMeta(st) else ""
+        // Desktop UI convention: non-secret L1 metadata lives in a JSON object.
+        val meta = if (type == ItemType.PASSWORD) passwordMeta(st) else "{}"
         _state.update { it.copy(busy = true, error = null) }
         viewModelScope.launch {
             try {

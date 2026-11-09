@@ -132,7 +132,7 @@ class ItemRepositoryTest {
         // The old C snapshot is still readable without a key.
         assertEquals("secret text", repo.version(id, 1).payload)
         assertEquals(Classification.C, repo.version(id, 1).classification)
-        assertEquals(Classification.S, repo.version(id, 2).classification)
+        assertEquals(Classification.S, repo.version(id, 2, kek = kek).classification)
     }
 
     @Test

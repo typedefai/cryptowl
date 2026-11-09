@@ -79,6 +79,7 @@ class MasterPasswordChange(
                     updatedAt = System.currentTimeMillis(),
                     wrappedKeys = meta.wrappedKeys.map { if (it.id == WRAPPED_VAULT_KEY_SMK) newEntry else it },
                 )
+                rewrapImportedKek(vaultId, vaultKey, oldSmk, newSmk)
                 val macKeyBytes = kdf.macKey(newSmk).binaryValue()
                 val updatedWithMac: VaultMeta
                 try {
@@ -105,6 +106,55 @@ class MasterPasswordChange(
             oldTmk.clear()
             oldSmk.clear()
             deviceSecret.clear()
+        }
+    }
+
+    /**
+     * A desktop-imported vault may still carry `kek:smk` (wrapped with the
+     * SMK). The password chain changes here, so re-wrap that row — otherwise
+     * importing the Secret key would fail after a password change.
+     */
+    private fun rewrapImportedKek(
+        vaultId: String,
+        vaultKey: ProtectedValue,
+        oldSmk: ProtectedValue,
+        newSmk: ProtectedValue,
+    ) {
+        VaultDatabase.open(context, VaultStore.dbFile(context, vaultId), vaultKey).use { db ->
+            val row = db.rawQuery(
+                "SELECT ciphertext, nonce, auth_tag FROM t_wrapped_key " +
+                    "WHERE id = 'kek:smk' AND deleted_at IS NULL LIMIT 1",
+                null,
+            ).use { c ->
+                if (!c.moveToFirst()) null
+                else Triple(c.getBlob(0), c.getBlob(1), c.getBlob(2))
+            } ?: return
+            val oldWrapping = kdf.vaultKey(oldSmk)
+            val kek = try {
+                kdf.unwrapKey(
+                    wrapped = com.typedefai.cryptowl.crypto.WrappedKey(row.first, row.second, row.third),
+                    wrappingKey = oldWrapping,
+                    aad = "kek:smk".toByteArray(Charsets.UTF_8),
+                )
+            } finally {
+                oldWrapping.clear()
+            }
+            try {
+                val newWrapping = kdf.vaultKey(newSmk)
+                val wrapped = try {
+                    kdf.wrapKey(kek, newWrapping, "kek:smk".toByteArray(Charsets.UTF_8))
+                } finally {
+                    newWrapping.clear()
+                }
+                db.execSQL(
+                    "UPDATE t_wrapped_key SET ciphertext = ?, nonce = ?, auth_tag = ?, updated_at = ? " +
+                        "WHERE id = 'kek:smk'",
+                    arrayOf<Any?>(wrapped.cipherText, wrapped.nonce, wrapped.authTag, System.currentTimeMillis()),
+                )
+                CryptoLog.d(C, "change: kek:smk re-wrapped with the new SMK")
+            } finally {
+                kek.clear()
+            }
         }
     }
 

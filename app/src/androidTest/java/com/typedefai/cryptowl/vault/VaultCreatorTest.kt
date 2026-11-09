@@ -58,7 +58,10 @@ class VaultCreatorTest {
         assertTrue(config.startsWith("""{"files":{"embed_max_bytes":524288},"name":"""))
         val sigFile = VaultStore.configSigFile(context, vaultId)
         assertTrue(sigFile.exists())
-        assertEquals(52, CrockfordBase32.decode(sigFile.readText().trim()).size)
+        // Crockford Base32 text: 32-byte HMAC (52 data chars + grouping hyphens).
+        val sigText = sigFile.readText().trim()
+        assertTrue(sigText.length >= 52)
+        assertEquals(32, CrockfordBase32.decode(sigText).size)
 
         // SQLCipher 5 database with the fixed v3 schema.
         val dbFile = VaultStore.dbFile(context, vaultId)

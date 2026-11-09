@@ -170,7 +170,9 @@ class SqlCipherDb private constructor(private var handle: Long) : AutoCloseable 
     companion object {
         private const val ROW = 100
         private const val DONE = 101
-        private const val NULL = 0
+
+        /** `SQLITE_NULL` (sqlite3_column_type). */
+        private const val NULL = 5
 
         init {
             System.loadLibrary("cryptowl")

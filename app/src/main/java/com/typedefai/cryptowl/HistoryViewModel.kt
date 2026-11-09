@@ -305,6 +305,17 @@ class HistoryViewModel(app: Application) : AndroidViewModel(app) {
 
     fun clearError() = _state.update { it.copy(error = null) }
 
+    fun cancelGate() {
+        _state.update {
+            it.copy(
+                awaitingMasterPassword = false,
+                awaitingSecondaryPassword = false,
+                pendingCipher = null,
+                busy = false,
+            )
+        }
+    }
+
     fun consumeRestored() = _state.update { it.copy(restored = false) }
 
     fun clearKeys() {

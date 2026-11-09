@@ -188,6 +188,19 @@ class HistoryViewModel(app: Application) : AndroidViewModel(app) {
         _state.update { it.copy(pendingCipher = null, busy = false) }
     }
 
+    /** No enrolled fingerprint: Secret/Top-Secret tiers need one. */
+    fun onBiometricUnavailable() {
+        _state.update {
+            it.copy(
+                pendingCipher = null,
+                busy = false,
+                awaitingMasterPassword = false,
+                awaitingSecondaryPassword = false,
+                error = getApplication<Application>().getString(R.string.error_biometric_required),
+            )
+        }
+    }
+
     /** Import fallback: the desktop KEK needs the master password. */
     fun submitMasterPassword(password: String) {
         val current = session ?: return

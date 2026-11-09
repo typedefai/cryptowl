@@ -226,6 +226,20 @@ class ItemEditorViewModel(app: Application) : AndroidViewModel(app) {
         _state.update { it.copy(pendingCipher = null, keyPurpose = null, busy = false) }
     }
 
+    /** No enrolled fingerprint: Secret-tier access needs one (docs/design.md L2). */
+    fun onBiometricUnavailable() {
+        _state.update {
+            it.copy(
+                pendingCipher = null,
+                keyPurpose = null,
+                awaitingMasterPassword = false,
+                awaitingSecondaryPassword = false,
+                busy = false,
+                error = getApplication<Application>().getString(R.string.error_biometric_required),
+            )
+        }
+    }
+
     /** Master-password fallback for importing a desktop `kek:smk` binding. */
     fun submitMasterPassword(password: String) {
         val preparation = pendingKek ?: return

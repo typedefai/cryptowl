@@ -311,4 +311,5 @@
     <string name="top_secret_setup_secondary">二級密碼</string>
     <string name="top_secret_setup_confirm">確認二級密碼</string>
     <string name="error_generic">發生錯誤</string>
+    <string name="error_biometric_required">秘密層級項目需要指紋。請先在系統設定中錄入指紋。</string>
 </resources>

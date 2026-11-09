@@ -314,4 +314,5 @@
     <string name="top_secret_setup_secondary">Secondary password</string>
     <string name="top_secret_setup_confirm">Confirm secondary password</string>
     <string name="error_generic">Something went wrong</string>
+    <string name="error_biometric_required">A fingerprint is required for Secret-tier items. Enroll one in system settings first.</string>
 </resources>

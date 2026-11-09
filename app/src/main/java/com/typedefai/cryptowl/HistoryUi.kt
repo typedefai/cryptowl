@@ -76,6 +76,10 @@ fun HistoryScreen(
     LaunchedEffect(state.pendingCipher, activity) {
         val cipher = state.pendingCipher ?: return@LaunchedEffect
         if (activity == null || state.awaitingMasterPassword) return@LaunchedEffect
+        if (!canAuthenticateWithBiometric(context)) {
+            viewModel.onBiometricUnavailable()
+            return@LaunchedEffect
+        }
         authenticateWithBiometric(
             context = context,
             activity = activity,

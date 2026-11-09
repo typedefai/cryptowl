@@ -85,6 +85,10 @@ fun ItemEditorScreen(
         val cipher = state.pendingCipher ?: return@LaunchedEffect
         if (activity == null) return@LaunchedEffect
         if (state.awaitingMasterPassword) return@LaunchedEffect
+        if (!canAuthenticateWithBiometric(context)) {
+            viewModel.onBiometricUnavailable()
+            return@LaunchedEffect
+        }
         authenticateWithBiometric(
             context = context,
             activity = activity,
